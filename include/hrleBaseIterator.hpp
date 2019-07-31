@@ -3,9 +3,9 @@
 
 #include <iostream>
 
+#include "hrleIndexType.hpp"
 #include "hrleRunTypeValues.hpp"
 #include "hrleSizeType.hpp"
-#include "hrleIndexType.hpp"
 #include "hrleVectorType.hpp"
 
 /// Base class for RunsIterator and RunsIteratorOffset. Should/Can not be used

@@ -212,6 +212,11 @@ public:
   /// this function returns the number of defined grid points
   hrleSizeType getNumberOfPoints() const { return definedValues.size(); };
 
+  /// this function returns the number of distinct undefined values
+  hrleSizeType getNumberOfUndefinedValues() const {
+    return undefinedValues.size();
+  }
+
   /// returns the number of distinct runs in the dimension <dimension>
   /// for negative <dimension> it returns the number of defined points
   hrleSizeType getNumberOfRuns(int dimension) const {
@@ -357,7 +362,7 @@ public:
   template <class V>
   void insertNextUndefinedPoint(const V &point, hrleValueType value) {
     // if undefined value already exists, use its runtype,
-    // if it does not use the next available udnefined runtype
+    // if it does not, use the next available undefined runtype
     auto it = std::find(undefinedValues.begin(), undefinedValues.end(), value);
     hrleSizeType runType;
     if (it != undefinedValues.end()) {

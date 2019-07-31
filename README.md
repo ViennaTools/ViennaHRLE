@@ -23,13 +23,13 @@ Releases are tagged on the maser branch and available in the [releases section](
 
 Since this is a header only project, it does not require any installation. However, we recommend the following procedure:
 
-<pre>
-$ git clone github.com/viennahrle/viennahrle.git
-$ cd viennahrle
-$ mkdir build && cd build
-$ cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/your/custom/install/
-$ make install
-</pre>
+```
+git clone github.com/viennahrle/viennahrle.git
+cd viennahrle
+mkdir build && cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/your/custom/install/
+make install
+```
 
 This will install the necessary header and cmake files to the specified path. If DCMAKE_INSTALL_PREFIX is not specified, it will be installed to the standard path for your system, usually /usr/local/ .
 
@@ -39,28 +39,28 @@ The examples can be built using CMake (recommended) or GNU make.
 
 Building using GNU make:
 
-<pre>
+```
 cd Examples
 make
-</pre>
+```
 
 In order to build the examples using CMake (recommended):
 
-<pre>
-$ mkdir build && cd build
-$ cmake .. -DBUILD_EXAMPLES=ON
-$ make
-</pre>
+```
+mkdir build && cd build
+cmake .. -DBUILD_EXAMPLES=ON
+make
+```
 
 ### Integration in CMake projects
 
 In order to use this library in your CMake project, add the following lines to the CMakeLists.txt of your project
 
-<pre>
+```
 set(ViennaHRLE_DIR "/path/to/your/custom/install/")
 find_package(ViennaHRLE REQUIRED)
 target_link_libraries(${PROJECT_NAME} ViennaHRLE)
-</pre>
+```
 
 
 ## Authors
