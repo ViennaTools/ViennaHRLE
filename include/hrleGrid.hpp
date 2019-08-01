@@ -11,7 +11,7 @@
 template <int D> class hrleGrid {
 
 public:
-  enum BoundaryType : unsigned {
+  enum boundaryType : unsigned {
     SYMMETRIC_BOUNDARY = 0,
     INFINITE_BOUNDARY = 1,
     PERIODIC_BOUNDARY = 2,
@@ -31,7 +31,7 @@ private:
 
   hrleCoordType gridDelta;
 
-  hrleVectorType<BoundaryType, D>
+  hrleVectorType<boundaryType, D>
       boundaryConditions; // here the boundary conditions for
                           // all grid directions are stored
 
@@ -50,13 +50,16 @@ private:
                 // increasing and true if the grid_position function is
                 // strictly monotonic decreasing
 
-  /// empty constructor
-  hrleGrid() {}
-
 public:
+  /// empty constructor
+  hrleGrid() {
+    hrleIndexType min[D] = {}, max[D] = {};
+    *this = hrleGrid(min, max);
+  }
+
   hrleGrid(const hrleIndexType *min, const hrleIndexType *max,
            const hrleCoordType delta = 1.0) {
-    BoundaryType boundaryCons[D];
+    boundaryType boundaryCons[D];
     for (unsigned i = 0; i < D; ++i) {
       boundaryCons[i] = SYMMETRIC_BOUNDARY; // Reflective boundary conditions
     }
@@ -65,7 +68,7 @@ public:
   }
 
   hrleGrid(const hrleIndexType *min, const hrleIndexType *max,
-           const hrleCoordType delta, const BoundaryType *boundaryCons) {
+           const hrleCoordType delta, const boundaryType *boundaryCons) {
 
     gridDelta = delta;
 
@@ -147,12 +150,12 @@ public:
   }
 
   /// returns all 2 or 3 boundary conditions
-  inline const hrleVectorType<BoundaryType, D> &getBoundaryConditions() const {
+  inline const hrleVectorType<boundaryType, D> &getBoundaryConditions() const {
     return boundaryConditions;
   }
 
   /// returns the boundary conditions in the specified direction
-  inline BoundaryType getBoundaryConditions(int dir) const {
+  inline boundaryType getBoundaryConditions(int dir) const {
     return boundaryConditions[dir];
   }
 

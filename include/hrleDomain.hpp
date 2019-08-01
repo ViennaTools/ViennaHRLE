@@ -54,7 +54,7 @@ private:
 
   // Private member variables
   hrleGrid<D> &grid; // Grid stores the information about the grid, on
-  // which the level set function is defined
+  // which the HRLE structure is defined
 
   hrleIndexPoints segmentation;
   hrleDomainSegmentArray<T, D> domainSegments;
@@ -69,6 +69,7 @@ private:
   template <class> friend class hrleOffsetRunsIterator;
   // reader and writer need private acces for runtypes/runbreaks/etc
   template <class> friend class hrleDomainWriter;
+  template <class> friend class hrleDomainReader;
 
 public:
   // CONSTRUCTORS
@@ -391,7 +392,8 @@ public:
       newDomain.initialize(); // initialize with only one segment
 
       hrleDomainSegmentType &s = newDomain.domainSegments[0];
-      for (hrleConstRunsIterator<hrleDomain> it(*this); !it.isFinished(); ++it) {
+      for (hrleConstRunsIterator<hrleDomain> it(*this); !it.isFinished();
+           ++it) {
         if (it.isDefined()) {
           s.insertNextDefinedPoint(it.getStartIndices(), it.getDefinedValue());
         } else {

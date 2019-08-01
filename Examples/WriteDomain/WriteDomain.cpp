@@ -1,8 +1,7 @@
-#include <hrleFillDomainFromPointList.hpp>
 #include <hrleDomainWriter.hpp>
+#include <hrleFillDomainFromPointList.hpp>
 #include <iostream>
 #include <string>
-
 
 int main() {
 
@@ -35,7 +34,6 @@ int main() {
   hrleFillDomainFromPointList(
       data, pointData,
       '#'); // last parameter is the background value to use
-
 
   hrleDomainWriter<hrleDomainType> writer(data);
   writer.setFilePath("test.hrle");

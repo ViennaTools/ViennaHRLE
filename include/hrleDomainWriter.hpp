@@ -5,64 +5,65 @@
 
 #include <cmath>
 #include <fstream>
+#include <iostream>
+#include <vector>
 
+#include <hrleIndexType.hpp>
 #include <hrleRunTypeValues.hpp>
-#include <hrleSizeType.hpp>
 
-    /*
-    *********************************************************************
-    *********************** THE HRLE FILE FORMAT ***********************
-    *********************************************************************
-    *    File Header: 8 Bytes     *
-    ********************************
-    * 4 Bytes   Identification Bytes (LvSt)
-    * 1 Byte    File Version Number
-    * 1 Byte    Endianess - Little Endian (0) or Big Endian (1)
-    * 1 Byte    Dimension (2 or 3)
-    * 1 Byte    Bytes Per Distance
-    *********************************************************************
-    *    Grid: 15+ Bytes    *
-    *************************
-    * 1 Byte    This byte contains the number of bytes
-                used for the grid min and grid max of each dimension.
-    * NOTE: The following block is repeated for each dimension.
-    * x Bytes   Grid minimum
-    * x Bytes   Grid maximum
-    * 1 Byte    Boundary Condition
-    * NOTE: END
-    * 8 Bytes   GridDelta
-    *********************************************************************
-    *    H-RLE Block Header: 15 Bytes    *
-    **************************************
-    * 1 Byte    This byte contains the number of bytes
-                used for each start index
-    * 1 Byte    This byte contains the number of bytes
-                used for each run type
-    * 1 Byte    This byte contains the number of bytes
-                used for each runbreak
-    * 4 Bytes   Number of saved Start Indices
-    * 4 Bytes   Number of saved Runtypes
-    * 4 Bytes   Number of saved Runbreaks
-    *********************************************************************
-    *    H-RLE Block Data    *
-    **************************
-    * Start Indices   using adaptive number of bytes(delta encoded)
-    * Runtypes        using n bits per runtype
-    * Indices of runtypes  using adaptive number of bytes(delta encoded)
-    * Runbreaks       using adaptive number of bytes
-    *********************************************************************
-    *    Values Header: 4 Bytes    *
-    ***********************************
-    * 4 Bytes  Number of distances
-    *********************************************************************
-    *    Values Data    *
-    ************************
-    * Distances - using sizeOf Bytes per value
-    *********************************************************************
-    */
+/*
+*********************************************************************
+*********************** THE HRLE FILE FORMAT ***********************
+*********************************************************************
+*    File Header: 8 Bytes     *
+********************************
+* 4 Bytes   Identification Bytes (LvSt)
+* 1 Byte    File Version Number
+* 1 Byte    Endianess - Little Endian (0) or Big Endian (1)
+* 1 Byte    Dimension (2 or 3)
+* 1 Byte    Bytes Per Distance
+*********************************************************************
+*    Grid: 15+ Bytes    *
+*************************
+* 1 Byte    This byte contains the number of bytes
+            used for the grid min and grid max of each dimension.
+* NOTE: The following block is repeated for each dimension.
+* x Bytes   Grid minimum
+* x Bytes   Grid maximum
+* 1 Byte    Boundary Condition
+* NOTE: END
+* 8 Bytes   GridDelta
+*********************************************************************
+*    H-RLE Block Header: 15 Bytes    *
+**************************************
+* 1 Byte    This byte contains the number of bytes
+            used for each start index
+* 1 Byte    This byte contains the number of bits(!!!!!!)
+            used for each run type
+* 1 Byte    This byte contains the number of bytes
+            used for each runbreak
+* 4 Bytes   Number of saved Start Indices
+* 4 Bytes   Number of saved Runtypes
+* 4 Bytes   Number of saved Runbreaks
+*********************************************************************
+*    H-RLE Block Data    *
+**************************
+* Start Indices   using adaptive number of bytes(delta encoded)
+* Runtypes        using n bits per runtype
+* Indices of runtypes  using adaptive number of bytes(delta encoded)
+* Runbreaks       using adaptive number of bytes
+*********************************************************************
+*    Values Header: 4 Bytes    *
+***********************************
+* 4 Bytes  Number of distances
+*********************************************************************
+*    Values Data    *
+************************
+* Distances - using sizeOf Bytes per value
+*********************************************************************
+*/
 
-    template <class hrleDomain>
-    class hrleDomainWriter {
+template <class hrleDomain> class hrleDomainWriter {
   typedef typename hrleDomain::hrleValueType hrleValueType;
 
   static constexpr int D = hrleDomain::dimension;
@@ -73,9 +74,10 @@
   } test_endianness;
 
   hrleDomain *domain;
-  int valueTypeByteSize = sizeof(hrleValueType); // if hrleValueType is float or double, reduce to
-                             // this bytesize before saving
   std::string filePath;
+  int valueTypeByteSize =
+      sizeof(hrleValueType); // if hrleValueType is float or double, reduce to
+                             // this bytesize before saving
 
   bool bigEndian() {
     test_endianness.shortVar = 0x8000; // MSB of 16
@@ -107,7 +109,7 @@ public:
   // setters and getters
   void setDomain(hrleDomain *domainPointer) { domain = domainPointer; }
   void setDomain(hrleDomain &passedDomain) { domain = &passedDomain; }
-  hrleDomain *getDomain() { return domain; }
+  hrleDomain &getDomain() { return *domain; }
   // void setValueTypeByteSize(int size) { valueTypeByteSize = size; }
   const int &getValueTypeByteSize() const { return valueTypeByteSize; }
   void setFilePath(std::string path) {
@@ -133,7 +135,7 @@ public:
       fout << HRLE_FILE_VERSION_NUMBER;
       fout << (bigEndian() ? 1 : 0);
       fout << D;
-      fout.write((char *)&valueTypeByteSize, 1);
+      fout << char(valueTypeByteSize);
     }
 
     // GRID PROPERTIES
@@ -148,7 +150,8 @@ public:
               std::max(getByteSizeOfNumber(bounds[i]), gridBoundaryBytes);
         }
       }
-      gridBoundaryBytes = std::min(gridBoundaryBytes, char(8)); // maximum of 8 Bytes
+      gridBoundaryBytes =
+          std::min(gridBoundaryBytes, char(8)); // maximum of 8 Bytes
 
       // grid properties
       fout << gridBoundaryBytes;
@@ -165,7 +168,7 @@ public:
     }
 
     bool structureIsSerial = true;
-    if(domain->getNumberOfSegments()>1){
+    if (domain->getNumberOfSegments() > 1) {
       domain->serialize();
       structureIsSerial = false;
     }
@@ -183,17 +186,25 @@ public:
       const char bytesPerIndex =
           getByteSizeOfNumber(bounds[2 * dim + 1] - bounds[2 * dim]);
 
-      // +1 because we need extra bit for undefined runs
-      const char bytesPerRunType =
-          getBitSizeOfNumber(domain->getNumberOfUndefinedValues()) / 8 + 1;
+      char bitsPerRunType =
+          getBitSizeOfNumber(domain->getNumberOfUndefinedValues());
+      if (bitsPerRunType == 3) {
+        ++bitsPerRunType;
+      } else if (bitsPerRunType > 4 && bitsPerRunType < 8) {
+        bitsPerRunType = 8;
+      } else if (bitsPerRunType > 8 && (bitsPerRunType%8)) {
+        bitsPerRunType += 8 - bitsPerRunType % 8;
+      }
 
       const char bytesPerRunBreak =
-          std::max(getByteSizeOfNumber(bounds[2 * dim])+1,
-                   getByteSizeOfNumber(bounds[2 * dim + 1])+1);
+          std::max(getBitSizeOfNumber(bounds[2 * dim]),
+                   getBitSizeOfNumber(bounds[2 * dim + 1])) /
+              8 +
+          1;
 
       // HRLE BLOCK HEADER
       fout.write((char *)&bytesPerIndex, 1);
-      fout.write((char *)&bytesPerRunType, 1);
+      fout.write((char *)&bitsPerRunType, 1);
       fout.write((char *)&bytesPerRunBreak, 1);
       {
         uint32_t numberOfValues = startIndices.size();
@@ -203,7 +214,6 @@ public:
         numberOfValues = runBreaks.size();
         fout.write((char *)&numberOfValues, 4);
       }
-
 
       // uint32_t values_written = 0;
       // Write start indices; only save the difference to the next start index
@@ -217,16 +227,13 @@ public:
       }
 
       // write all runtypes to the file, skipping all segments and indices
-      const int bitsPerRunType =
-          getBitSizeOfNumber(domain->getNumberOfUndefinedValues());
       int count = 8 / bitsPerRunType - 1;
       unsigned char byte = 0;
-      // values_written = 0;
       std::vector<hrleSizeType>
           definedRunIndices; // store all indices of defined runtypes
 
       // each runType needs at least one byte
-      if (bytesPerRunType > 0) {
+      if (bitsPerRunType > 4) {
         for (typename std::vector<hrleSizeType>::const_iterator it =
                  runTypes.begin();
              it != runTypes.end(); ++it) {
@@ -237,7 +244,7 @@ public:
           else
             definedRunIndices.push_back(*it);
 
-          fout.write((char *)&PtId, bytesPerRunType);
+          fout.write((char *)&PtId, (bitsPerRunType - 1) / 8 + 1);
         }
       } else { // can fit more than one value in a byte
         for (typename std::vector<hrleSizeType>::const_iterator it =
@@ -293,8 +300,6 @@ public:
       uint32_t numberOfUndefinedValues = domain->getNumberOfUndefinedValues();
       fout.write((char *)&numberOfDefinedValues, 4);
       fout.write((char *)&numberOfUndefinedValues, 4);
-      std::cout << "Defined: " << numberOfDefinedValues << std::endl;
-      std::cout << "Undefined: " << numberOfUndefinedValues << std::endl;
     }
     // DATA
     {
@@ -319,7 +324,7 @@ public:
     fout.close();
 
     // if the hrleDomain was segmented before, segment it again
-    if(!structureIsSerial){
+    if (!structureIsSerial) {
       domain->segment();
     }
 
