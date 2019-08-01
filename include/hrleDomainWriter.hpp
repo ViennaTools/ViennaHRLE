@@ -17,7 +17,7 @@
 *********************************************************************
 *    File Header: 8 Bytes     *
 ********************************
-* 4 Bytes   Identification Bytes (LvSt)
+* 4 Bytes   Identification Bytes (HRLE)
 * 1 Byte    File Version Number
 * 1 Byte    Endianess - Little Endian (0) or Big Endian (1)
 * 1 Byte    Dimension (2 or 3)
@@ -36,6 +36,7 @@
 *********************************************************************
 *    H-RLE Block Header: 15 Bytes    *
 **************************************
+* NOTE: The following is repeated for each dimension
 * 1 Byte    This byte contains the number of bytes
             used for each start index
 * 1 Byte    This byte contains the number of bits(!!!!!!)
@@ -52,6 +53,7 @@
 * Runtypes        using n bits per runtype
 * Indices of runtypes  using adaptive number of bytes(delta encoded)
 * Runbreaks       using adaptive number of bytes
+* NOTE: END
 *********************************************************************
 *    Values Header: 4 Bytes    *
 ***********************************
@@ -63,6 +65,8 @@
 *********************************************************************
 */
 
+/// Class which handles the output of an hrleDomain
+/// to the binary .hrle format
 template <class hrleDomain> class hrleDomainWriter {
   typedef typename hrleDomain::hrleValueType hrleValueType;
 

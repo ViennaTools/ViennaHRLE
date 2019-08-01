@@ -2,6 +2,8 @@
 
 ViennaHRLE is a header-only C++ library for storing sparse spatial data efficiently. In the worst case, traversing the whole data structure is achieved in O(N), where N is the number of data points stored in the structure. Random access is achieved in O(log(N)).
 
+IMPORTANT NOTE: ViennaHRLE is under heavy development and improved daily. If you do have suggestions or find bugs, please let us know!
+
 ## Support
 For help with getting started, have a look at the [Examples](https://github.com/viennahrle/viennahrle/tree/master/Examples).
 
@@ -66,6 +68,8 @@ target_link_libraries(${PROJECT_NAME} ViennaHRLE)
 ## Authors
 
 Current contributors: Lado Filipovic, Paul Manstetten, Xaver Klemenschits and Josef Weinbub
+
+Founder and initial developer: Otmar Ertl
 
 Contact us via: viennats@iue.tuwien.ac.at
 

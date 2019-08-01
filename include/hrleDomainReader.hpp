@@ -13,6 +13,8 @@
 
 #include <bitset> // TODO remove
 
+/// Class which handles the input of an hrleDomain
+/// from a binary .hrle file
 template <class hrleDomain> class hrleDomainReader {
   typedef typename hrleDomain::hrleValueType hrleValueType;
   static constexpr int D = hrleDomain::dimension;
