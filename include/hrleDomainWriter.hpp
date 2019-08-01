@@ -196,7 +196,7 @@ public:
         ++bitsPerRunType;
       } else if (bitsPerRunType > 4 && bitsPerRunType < 8) {
         bitsPerRunType = 8;
-      } else if (bitsPerRunType > 8 && (bitsPerRunType%8)) {
+      } else if (bitsPerRunType > 8 && (bitsPerRunType % 8)) {
         bitsPerRunType += 8 - bitsPerRunType % 8;
       }
 
