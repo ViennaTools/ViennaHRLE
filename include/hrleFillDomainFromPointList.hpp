@@ -79,7 +79,7 @@ void hrleFillDomainFromPointList(
     }
   }
 
-  newDomain.finalize(2);
+  newDomain.finalize();
 }
 
 #endif // HRLE_FOMAIN_FROM_DATA_HPP

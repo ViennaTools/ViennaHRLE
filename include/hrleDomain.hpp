@@ -54,7 +54,7 @@ private:
 
   // Private member variables
   hrleGrid<D> &grid; // Grid stores the information about the grid, on
-  // which the level set function is defined
+  // which the HRLE structure is defined
 
   hrleIndexPoints segmentation;
   hrleDomainSegmentArray<T, D> domainSegments;
@@ -67,6 +67,9 @@ private:
   template <class> friend class hrleBaseIterator;
   template <class> friend class hrleRunsIterator;
   template <class> friend class hrleOffsetRunsIterator;
+  // reader and writer need private acces for runtypes/runbreaks/etc
+  template <class> friend class hrleDomainWriter;
+  template <class> friend class hrleDomainReader;
 
 public:
   // CONSTRUCTORS
@@ -75,7 +78,7 @@ public:
     initialize();
     domainSegments[0].insertNextUndefinedRunType(grid.getMinIndex(),
                                                  hrleRunTypeValues::UNDEF_PT);
-    // finalize(1);
+    // finalize();
   };
 
   // TODO: this is a convenience constructor, but it is impossible to keep the
@@ -120,7 +123,53 @@ public:
     return totalPoints;
   }
 
+  unsigned getNumberOfUndefinedValues() const {
+    unsigned total = 0;
+    for (unsigned i = 0; i < domainSegments.getNumberOfSegments(); ++i) {
+      total += domainSegments[i].getNumberOfUndefinedValues();
+    }
+    return total;
+  }
+
+  unsigned getNumberOfSegments() const {
+    return domainSegments.getNumberOfSegments();
+  }
+
   const hrleIndexPoints &getSegmentation() const { return segmentation; }
+
+  hrleIndexType getMinRunBreak(int dim) const {
+    hrleIndexType minBreak = domainSegments[0].getMinRunBreak(dim);
+    for (unsigned i = 1; i < domainSegments.getNumberOfSegments(); ++i) {
+      minBreak = std::min(minBreak, domainSegments[i].getMinRunBreak(dim));
+    }
+    return minBreak;
+  }
+
+  hrleIndexType getMaxRunBreak(int dim) const {
+    hrleIndexType maxBreak = domainSegments[0].getMaxRunBreak(dim);
+    for (unsigned i = 1; i < domainSegments.getNumberOfSegments(); ++i) {
+      maxBreak = std::max(maxBreak, domainSegments[i].getMaxRunBreak(dim));
+    }
+    return maxBreak;
+  }
+
+  void getDomainBounds(hrleIndexType *bounds) {
+    for (unsigned i = 0; i < D; ++i) {
+      if (grid.getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
+          grid.getBoundaryConditions(i) == hrleGrid<D>::NEG_INFINITE_BOUNDARY) {
+        bounds[2 * i] = getMinRunBreak(i);
+      } else {
+        bounds[2 * i] = grid.getMinIndex(i);
+      }
+
+      if (grid.getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
+          grid.getBoundaryConditions(i) == hrleGrid<D>::POS_INFINITE_BOUNDARY) {
+        bounds[2 * i + 1] = getMaxRunBreak(i);
+      } else {
+        bounds[2 * i + 1] = grid.getMaxIndex(i);
+      }
+    }
+  }
 
   template <class V>
   void insertNextDefinedPoint(int sub, const V &point, T value) {
@@ -176,7 +225,7 @@ public:
 
   // distribute data points evenly across hrleDomainSegments and add SEGMENT_PT
   // as boundary markers
-  void finalize(int num_lay) {
+  void finalize() {
 
     for (hrleSizeType i = 0; i + 1 < domainSegments.getNumberOfSegments();
          ++i) {
@@ -331,9 +380,30 @@ public:
       }
     }
 
-    newDomain.finalize(std::min(domainSegments.getNumberOfSegments(),
-                                static_cast<hrleSizeType>(2)));
+    newDomain.finalize();
     deepCopy(newDomain);
+  }
+
+  /// opposite of "segment()" puts all data back into a single
+  /// HRLE structure
+  void serialize() {
+    if (domainSegments.getNumberOfSegments() > 1) {
+      hrleDomain newDomain(grid);
+      newDomain.initialize(); // initialize with only one segment
+
+      hrleDomainSegmentType &s = newDomain.domainSegments[0];
+      for (hrleConstRunsIterator<hrleDomain> it(*this); !it.isFinished();
+           ++it) {
+        if (it.isDefined()) {
+          s.insertNextDefinedPoint(it.getStartIndices(), it.getDefinedValue());
+        } else {
+          s.insertNextUndefinedPoint(it.getStartIndices(), it.getValue());
+        }
+      }
+
+      newDomain.finalize();
+      deepCopy(newDomain);
+    }
   }
 };
 
