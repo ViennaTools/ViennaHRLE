@@ -4,5 +4,5 @@ project("CrossIterator")
 
 find_package(ViennaHRLE REQUIRED)
 
-add_executable(${PROJECT_NAME} CrossIterator.cpp)
+add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp)
 target_link_libraries(${PROJECT_NAME} ViennaHRLE)
