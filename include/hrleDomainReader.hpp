@@ -155,7 +155,8 @@ public:
       {
         runTypes.clear();
         unsigned numberOfValuesPerByte = 8 / bitsPerRunType;
-        unsigned numberOfBytes = (numberOfRunTypes - 1) / numberOfValuesPerByte + 1;
+        unsigned numberOfBytes =
+            (numberOfRunTypes - 1) / numberOfValuesPerByte + 1;
         // Read defined run IDs with second file stream
         std::ifstream runIdFin(filePath);
         runIdFin.seekg((long)fin.tellg() + (long)numberOfBytes);

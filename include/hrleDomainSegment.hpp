@@ -27,7 +27,7 @@ public:
   std::vector<hrleSizeType> runTypes[D];
   std::vector<hrleIndexType> runBreaks[D];
   std::vector<hrleValueType>
-      definedValues; // this vector keeps the level set values of all defined
+      definedValues; // this vector keeps the values of all defined
                      // grid points its size is therefore equal to the number of
                      // defined grid points
 
@@ -61,11 +61,11 @@ public:
   // DYNAMIC FUNCTIONS
   hrleAllocationType<hrleSizeType, D> getAllocation() const {
     // hrleAllocationType allocates the requried sizes to num_values and
-    // num_runs num_values[0] is to contain level set values, num_values[i]
+    // num_runs num_values[0] is to contain defined values, num_values[i]
     // contains the start indices at the i-th dimension num_runs[i] is to
     // contain the run types at the i-th dimension
     hrleAllocationType<hrleSizeType, D> a;
-    a.num_values[0] = hrleSizeType(definedValues.size()); // To contain level set values
+    a.num_values[0] = hrleSizeType(definedValues.size());
     a.num_runs[0] = hrleSizeType(runTypes[0].size());
     for (int i = 1; i < D; ++i) {
       a.num_values[i] = hrleSizeType(startIndices[i - 1].size());
@@ -210,7 +210,9 @@ public:
   }
 
   /// this function returns the number of defined grid points
-  hrleSizeType getNumberOfPoints() const { return hrleSizeType(definedValues.size()); };
+  hrleSizeType getNumberOfPoints() const {
+    return hrleSizeType(definedValues.size());
+  };
 
   /// this function returns the number of distinct undefined values
   hrleSizeType getNumberOfUndefinedValues() const {
@@ -292,7 +294,8 @@ public:
           if (point[dim] == runBreaks[dim].back()) {
             runTypes[dim].pop_back();
             if (!isPtIdDefined(runTypes[dim].back())) {
-              runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
+              runTypes[dim].push_back(
+                  hrleSizeType(startIndices[dim - 1].size()));
             } else
               runBreaks[dim].pop_back();
           } else {
@@ -369,7 +372,8 @@ public:
       runType = hrleRunTypeValues::UNDEF_PT +
                 hrleSizeType(std::distance(undefinedValues.begin(), it));
     } else {
-      runType = hrleRunTypeValues::UNDEF_PT + hrleSizeType(undefinedValues.size());
+      runType =
+          hrleRunTypeValues::UNDEF_PT + hrleSizeType(undefinedValues.size());
       undefinedValues.push_back(value);
     }
 
@@ -411,7 +415,8 @@ public:
           if (point[dim] == runBreaks[dim].back()) {
             runTypes[dim].pop_back();
             if (!isPtIdDefined(runTypes[dim].back())) {
-              runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
+              runTypes[dim].push_back(
+                  hrleSizeType(startIndices[dim - 1].size()));
             } else {
               runBreaks[dim].pop_back();
             }
@@ -423,7 +428,8 @@ public:
         startIndices[dim - 1].push_back(hrleSizeType(runTypes[dim - 1].size()));
       } else {
         if (dim <= level)
-          startIndices[dim - 1].push_back(hrleSizeType(runTypes[dim - 1].size()));
+          startIndices[dim - 1].push_back(
+              hrleSizeType(runTypes[dim - 1].size()));
       }
     }
 

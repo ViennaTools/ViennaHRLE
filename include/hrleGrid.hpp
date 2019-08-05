@@ -325,8 +325,7 @@ public:
     if (lc != uc) {
       return (index2Coordinate(static_cast<hrleIndexType>(lc)) *
                   ((uc - c)) + // TODO
-              index2Coordinate(static_cast<hrleIndexType>(uc)) *
-                  ((c - lc)));
+              index2Coordinate(static_cast<hrleIndexType>(uc)) * ((c - lc)));
     } else {
       return index2Coordinate(static_cast<hrleIndexType>(lc));
     }

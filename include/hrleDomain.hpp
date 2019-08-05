@@ -266,9 +266,9 @@ public:
     hrleIndexPoint pointCoords;
 
     // find domainSegment of point
-    const int segment = int(std::upper_bound(pointIdOffsets.begin() + 1,
-                                          pointIdOffsets.end(), pt) -
-                         (pointIdOffsets.begin() + 1));
+    const int segment = int(
+        std::upper_bound(pointIdOffsets.begin() + 1, pointIdOffsets.end(), pt) -
+        (pointIdOffsets.begin() + 1));
 
     pt -= pointIdOffsets[segment]; // local point id
 
@@ -301,8 +301,8 @@ public:
       pointCoords[g] = pt - s.runTypes[g][min];
 
       pt = hrleSizeType(std::upper_bound(s.startIndices[g].begin() + 1,
-                            s.startIndices[g].end(), min) -
-           (s.startIndices[g].begin() + 1));
+                                         s.startIndices[g].end(), min) -
+                        (s.startIndices[g].begin() + 1));
 
       pointCoords[g] += s.getRunStartCoord(g, pt, min);
     }
@@ -355,7 +355,8 @@ public:
     hrleDomain newDomain(grid);
     newDomain.initialize(getNewSegmentation(), getAllocation());
 
-#pragma omp parallel num_threads(int(newDomain.domainSegments.getNumberOfSegments()))
+#pragma omp parallel num_threads(                                              \
+    int(newDomain.domainSegments.getNumberOfSegments()))
     {
       int p = 0;
 #ifdef _OPENMP
