@@ -37,20 +37,21 @@ This will install the necessary header and cmake files to the specified path. If
 
 ### Building examples
 
-The examples can be built using CMake (recommended) or GNU make.
+The examples can be built using CMake (recommended) or GNU make.\
+Building for Windows is only supported using CMake with Visual Studio.
 
-Building using GNU make:
-
-```
-cd Examples
-make
-```
-
-In order to build the examples using CMake (recommended):
+Build using CMake (recommended):
 
 ```
 mkdir build && cd build
 cmake .. -DBUILD_EXAMPLES=ON
+make
+```
+
+Build using GNU make:
+
+```
+cd Examples
 make
 ```
 

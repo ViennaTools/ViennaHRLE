@@ -311,24 +311,23 @@ public:
   }
 
   /// Returns the coordinate of the point at index "index" in the direction dir.
-  hrleCoordType index2Coordinate(int dir, hrleIndexType Index) const {
+  hrleCoordType index2Coordinate(hrleIndexType Index) const {
     return Index * gridDelta;
   }
 
   /// This function transforms the coordinate c in respect to the rectilinear
   /// grid into the real coordinates. Non-integer contributions in c are
   /// considered!
-  hrleCoordType localIndex2LocalCoordinate(int dir, hrleCoordType c) const {
+  hrleCoordType localIndex2LocalCoordinate(hrleCoordType c) const {
     hrleCoordType lc = std::floor(c);
     hrleCoordType uc = std::ceil(c);
 
     if (lc != uc) {
-      return (index2Coordinate(dir, static_cast<hrleIndexType>(lc)) *
+      return (index2Coordinate(static_cast<hrleIndexType>(lc)) *
                   ((uc - c)) + // TODO
-              index2Coordinate(dir, static_cast<hrleIndexType>(uc)) *
-                  ((c - lc)));
+              index2Coordinate(static_cast<hrleIndexType>(uc)) * ((c - lc)));
     } else {
-      return index2Coordinate(dir, static_cast<hrleIndexType>(lc));
+      return index2Coordinate(static_cast<hrleIndexType>(lc));
     }
   }
 
@@ -359,7 +358,7 @@ public:
   }
 
   /// Transforms a global coordinate in direction dir to a global index.
-  hrleIndexType globalCoordinate2GlobalIndex(int dir, hrleCoordType c) const {
+  hrleIndexType globalCoordinate2GlobalIndex(hrleCoordType c) const {
     return hrleIndexType(round(c / gridDelta));
   }
 
@@ -369,7 +368,7 @@ public:
   globalCoordinates2GlobalIndices(const V &v) const {
     hrleVectorType<hrleIndexType, D> tmp;
     for (unsigned i = 0; i < D; ++i)
-      tmp[i] = globalCoordinate2GlobalIndex(i, v[i]);
+      tmp[i] = globalCoordinate2GlobalIndex(v[i]);
     return tmp;
   }
 
@@ -377,10 +376,10 @@ public:
   /// Non-integer contributions of c are considered.
   /// a and b allow to restrict the search between two grid indices
   hrleCoordType localCoordinate2LocalIndex(
-      int dir, hrleCoordType c, hrleIndexType a,
+      hrleCoordType c, hrleIndexType a,
       hrleIndexType b) const { // TODO global/local coordinates
-    hrleCoordType ac = index2Coordinate(dir, a);
-    hrleCoordType bc = index2Coordinate(dir, b);
+    hrleCoordType ac = index2Coordinate(a);
+    hrleCoordType bc = index2Coordinate(b);
 
     if (ac > bc) {
       std::swap(ac, bc);
@@ -395,7 +394,7 @@ public:
     while (std::abs(a - b) > hrleIndexType(1)) {
 
       hrleIndexType mid = (a + b) / 2;
-      hrleCoordType midc = index2Coordinate(dir, mid);
+      hrleCoordType midc = index2Coordinate(mid);
 
       if (c <= midc) {
         b = mid;
@@ -413,7 +412,7 @@ public:
   hrleCoordType localCoordinate2LocalIndex(int dir, hrleCoordType c) const {
     hrleIndexType a = getMinIndex(dir);
     hrleIndexType b = getMaxIndex(dir);
-    return localCoordinate2LocalIndex(dir, c, a, b);
+    return localCoordinate2LocalIndex(c, a, b);
   }
 
   /*hrleCoordType globalCoordinate2GlobalIndex(int dim, hrleCoordType
@@ -452,7 +451,7 @@ public:
   // const GridTraitsType &grid_traits() const { return GridTraits; }
 
   /// returns the grid point separation
-  const hrleCoordType getGridDelta() const { return gridDelta; }
+  hrleCoordType getGridDelta() const { return gridDelta; }
 
   // Returns the grid position for a global index,
   // taking into account the boundary conditions.
@@ -471,12 +470,12 @@ public:
     }
 
     if (((cycles & 1) == 0) || isBoundaryPeriodic(dir)) {
-      return index2Coordinate(dir, offset) +
-             cycles * (index2Coordinate(dir, getMaxIndex(dir)) -
-                       index2Coordinate(dir, getMinIndex(dir)));
+      return index2Coordinate(offset) +
+             cycles * (index2Coordinate(getMaxIndex(dir)) -
+                       index2Coordinate(getMinIndex(dir)));
     } else {
-      return (1 + cycles) * index2Coordinate(dir, getMaxIndex(dir)) +
-             (1 - cycles) * index2Coordinate(dir, getMinIndex(dir)) -
+      return (1 + cycles) * index2Coordinate(getMaxIndex(dir)) +
+             (1 - cycles) * index2Coordinate(getMinIndex(dir)) -
              index2Coordinate(dir,
                               getMaxIndex(dir) + getMinIndex(dir) - offset);
     }
@@ -485,18 +484,18 @@ public:
   // Returns the minimum coordinate of the domain of the grid.
   hrleCoordType getMinLocalCoordinate(int dir) const {
     if (parity(dir)) {
-      return index2Coordinate(dir, getMaxIndex(dir));
+      return index2Coordinate(getMaxIndex(dir));
     } else {
-      return index2Coordinate(dir, getMinIndex(dir));
+      return index2Coordinate(getMinIndex(dir));
     }
   }
 
   /// Returns the maximum coordinate of the domain of the grid
   hrleCoordType getMaxLocalCoordinate(int dir) const {
     if (parity(dir)) {
-      return index2Coordinate(dir, getMinIndex(dir));
+      return index2Coordinate(getMinIndex(dir));
     } else {
-      return index2Coordinate(dir, getMaxIndex(dir));
+      return index2Coordinate(getMaxIndex(dir));
     }
   }
 

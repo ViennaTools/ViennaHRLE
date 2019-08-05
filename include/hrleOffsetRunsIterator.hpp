@@ -72,7 +72,7 @@ protected:
     typename std::vector<hrleIndexType>::const_iterator pos_breaks =
         std::upper_bound(start_breaks, end_breaks, rel_c);
 
-    r += (pos_breaks - start_breaks);
+    r += hrleSizeType(pos_breaks - start_breaks);
 
     runTypePos[r_level] = r;
 

@@ -70,7 +70,7 @@ template <class hrleDomain> class hrleSquareIterator {
   /// push offset iterators lexicographically into std::vector from -order to
   /// +order
   template <class V> void initializeNeigbors(const V &v) {
-    const unsigned numNeighbors = std::pow((1 + 2 * order), D);
+    const unsigned numNeighbors = unsigned(std::pow((1 + 2 * order), D));
 
     neighborIterators.reserve(numNeighbors);
 
@@ -120,7 +120,7 @@ public:
   }
 
   void next() {
-    const int numNeighbors = neighborIterators.size();
+    const int numNeighbors = int(neighborIterators.size());
     std::vector<bool> increment(numNeighbors + 1, false);
     increment[numNeighbors] = true;
 

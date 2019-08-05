@@ -24,14 +24,14 @@ int main() {
 
   std::string helloString = "Hello, World!";
 
-  for (hrleIndexType i = 0; i < helloString.size(); ++i) {
+  for (unsigned i = 0; i < helloString.size(); ++i) {
     pointData.push_back(std::make_pair(index, helloString[i]));
     index[0] += 1;
     // index[1] += 1;
   }
   ++index[1];
   index[0] = 0;
-  for (hrleIndexType i = helloString.size() - 1; i >= 0; --i) {
+  for (int i = int(helloString.size()) - 1; i >= 0; --i) {
     pointData.push_back(std::make_pair(index, helloString[i]));
     index[0] += 1;
     // index[1] += 1;

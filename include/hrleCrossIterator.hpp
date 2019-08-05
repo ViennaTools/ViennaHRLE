@@ -37,7 +37,7 @@ template <class hrleDomain> class hrleCrossIterator {
   }
 
   template <class V> void initializeNeigbors(const V &v) {
-    for (int i = 0; i < order; ++i) {
+    for (int i = 0; i < int(order); ++i) {
       for (int j = 0; j < 2 * D; ++j) {
         hrleVectorType<hrleIndexType, D> relativeIndex(hrleIndexType(0));
         if (j < D)
@@ -144,7 +144,7 @@ public:
     unsigned char directions = 0;
     unsigned neighborIndex;
     for (unsigned i = 0; i < D; ++i) {
-      assert(abs(relativeIndex[i]) <= order);
+      assert(unsigned(abs(relativeIndex[i])) <= order);
       if (relativeIndex[i] != 0) {
         ++directions;
         if (relativeIndex[i] > 0)

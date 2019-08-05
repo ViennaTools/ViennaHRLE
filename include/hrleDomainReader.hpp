@@ -75,7 +75,6 @@ public:
 
     // FILE HEADER
     char buff[9] = {};
-    unsigned char byte;
     fin.read(buff, 9);
     // Comparing Identification Bytes
     if (std::string(buff).compare(0, 4, "HRLE")) {
@@ -84,7 +83,7 @@ public:
     if (HRLE_FILE_READ_VERSION_NUMBER != buff[4] - 48)
       std::cout << "ERROR: File version is deprecated and cannot be read!"
                 << std::endl;
-    if (bigEndian() != buff[5] - 48)
+    if (bigEndian() != bool(buff[5] - 48))
       std::cout << "WARNING: File was written in a different byte order than "
                    "it is being read. Results may be incorrect!"
                 << std::endl;
@@ -128,7 +127,7 @@ public:
       std::vector<hrleIndexType> &runBreaks =
           newDomain.domainSegments[0].runBreaks[dim];
 
-      int32_t numberOfStartIndices, numberOfRunTypes, numberOfRunBreaks;
+      uint32_t numberOfStartIndices, numberOfRunTypes, numberOfRunBreaks;
       char bytesPerIndex, bitsPerRunType, bytesPerRunBreak;
       // reading in the 15 byte H-RLE header
       fin.read(&bytesPerIndex, 1);
@@ -144,22 +143,23 @@ public:
         unsigned long long sum = 0;
         // push the 0, it was not written to the file
         startIndices.push_back(0);
-        for (int i = 0; i < numberOfStartIndices - 1; ++i) {
+        for (unsigned i = 0; i < numberOfStartIndices - 1; ++i) {
           unsigned long long current = 0;
           fin.read((char *)&current, bytesPerIndex);
           sum += current;
-          startIndices.push_back(sum);
+          startIndices.push_back(hrleSizeType(sum));
         }
       }
 
       // READ RUN TYPES
       {
         runTypes.clear();
-        int numberOfValuesPerByte = 8 / bitsPerRunType;
-        int numberOfBytes = (numberOfRunTypes - 1) / numberOfValuesPerByte + 1;
+        unsigned numberOfValuesPerByte = 8 / bitsPerRunType;
+        unsigned numberOfBytes =
+            (numberOfRunTypes - 1) / numberOfValuesPerByte + 1;
         // Read defined run IDs with second file stream
         std::ifstream runIdFin(filePath);
-        runIdFin.seekg(fin.tellg() + (long)numberOfBytes);
+        runIdFin.seekg((long)fin.tellg() + (long)numberOfBytes);
 
         unsigned long long definedId = 0;
         if (bitsPerRunType > 4) {
@@ -170,7 +170,7 @@ public:
               unsigned long long relativeId = 0;
               runIdFin.read((char *)&relativeId, bytesPerIndex);
               definedId += relativeId;
-              runTypes.push_back(definedId);
+              runTypes.push_back(hrleSizeType(definedId));
             } else { // undefined run
               runTypes.push_back(current - 1 + hrleRunTypeValues::UNDEF_PT);
             }
@@ -182,7 +182,7 @@ public:
           for (unsigned i = 0; i < numberOfBytes; ++i) {
             char byte;
             fin.read(&byte, 1);
-            for (int j = 0; j < numberOfValuesPerByte; ++j) {
+            for (unsigned j = 0; j < numberOfValuesPerByte; ++j) {
               if (readValues == numberOfRunTypes)
                 break;
               hrleSizeType current = (byte & bitMask) >> (8 - bitsPerRunType);
@@ -191,7 +191,7 @@ public:
                 unsigned long long relativeId = 0;
                 runIdFin.read((char *)&relativeId, bytesPerIndex);
                 definedId += relativeId;
-                runTypes.push_back(definedId);
+                runTypes.push_back(hrleSizeType(definedId));
               } else { // undefined run
                 runTypes.push_back(current - 1 + hrleRunTypeValues::UNDEF_PT);
               }
@@ -214,7 +214,7 @@ public:
           fin.read((char *)&runBreak, bytesPerRunBreak);
           if (runBreak >> (bytesPerRunBreak * 8 - 1))
             runBreak |= bitMask;
-          runBreaks.push_back(runBreak);
+          runBreaks.push_back(hrleSizeType(runBreak));
         }
       }
     }
