@@ -211,11 +211,11 @@ public:
       fout.write((char *)&bitsPerRunType, 1);
       fout.write((char *)&bytesPerRunBreak, 1);
       {
-        uint32_t numberOfValues = startIndices.size();
+        uint32_t numberOfValues = uint32_t(startIndices.size());
         fout.write((char *)&numberOfValues, 4);
-        numberOfValues = runTypes.size();
+        numberOfValues = uint32_t(runTypes.size());
         fout.write((char *)&numberOfValues, 4);
-        numberOfValues = runBreaks.size();
+        numberOfValues = uint32_t(runBreaks.size());
         fout.write((char *)&numberOfValues, 4);
       }
 

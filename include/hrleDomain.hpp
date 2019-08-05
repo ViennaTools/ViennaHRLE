@@ -132,7 +132,7 @@ public:
   }
 
   unsigned getNumberOfSegments() const {
-    return domainSegments.getNumberOfSegments();
+    return unsigned(domainSegments.getNumberOfSegments());
   }
 
   const hrleIndexPoints &getSegmentation() const { return segmentation; }
@@ -239,7 +239,7 @@ public:
       }
       s.insertNextUndefinedRunType(segmentation.back(), grid.getMaxIndex(),
                                    hrleRunTypeValues::SEGMENT_PT +
-                                       segmentation.size());
+                                       hrleSizeType(segmentation.size()));
     }
 
     // TODO: for now do not save pointId offsets as they can easily be found
@@ -266,7 +266,7 @@ public:
     hrleIndexPoint pointCoords;
 
     // find domainSegment of point
-    const int segment = (std::upper_bound(pointIdOffsets.begin() + 1,
+    const int segment = int(std::upper_bound(pointIdOffsets.begin() + 1,
                                           pointIdOffsets.end(), pt) -
                          (pointIdOffsets.begin() + 1));
 
@@ -277,7 +277,7 @@ public:
     // find right PointID by bisection
     for (int g = 0; g < D; ++g) {
       hrleSizeType min = 0;
-      hrleSizeType max = s.runTypes[g].size() - 1;
+      hrleSizeType max = hrleSizeType(s.runTypes[g].size()) - 1;
 
       while (!s.isPtIdDefined(s.runTypes[g][min]))
         ++min;
@@ -300,9 +300,9 @@ public:
 
       pointCoords[g] = pt - s.runTypes[g][min];
 
-      pt = std::upper_bound(s.startIndices[g].begin() + 1,
+      pt = hrleSizeType(std::upper_bound(s.startIndices[g].begin() + 1,
                             s.startIndices[g].end(), min) -
-           (s.startIndices[g].begin() + 1);
+           (s.startIndices[g].begin() + 1));
 
       pointCoords[g] += s.getRunStartCoord(g, pt, min);
     }
@@ -355,7 +355,7 @@ public:
     hrleDomain newDomain(grid);
     newDomain.initialize(getNewSegmentation(), getAllocation());
 
-#pragma omp parallel num_threads(newDomain.domainSegments.getNumberOfSegments())
+#pragma omp parallel num_threads(int(newDomain.domainSegments.getNumberOfSegments()))
     {
       int p = 0;
 #ifdef _OPENMP
