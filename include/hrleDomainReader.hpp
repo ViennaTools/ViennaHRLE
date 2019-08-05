@@ -159,7 +159,7 @@ public:
         int numberOfBytes = (numberOfRunTypes - 1) / numberOfValuesPerByte + 1;
         // Read defined run IDs with second file stream
         std::ifstream runIdFin(filePath);
-        runIdFin.seekg(fin.tellg() + (long)numberOfBytes);
+        runIdFin.seekg((long)fin.tellg() + (long)numberOfBytes);
 
         unsigned long long definedId = 0;
         if (bitsPerRunType > 4) {

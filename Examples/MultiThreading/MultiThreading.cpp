@@ -7,7 +7,9 @@
 int main() {
 
   constexpr int D = 2;
+#ifdef _OPENMP
   omp_set_num_threads(4); // how many threads to use
+#endif
 
   // set domain bounds
   hrleIndexType min[D] = {0, -2}, max[D] = {10, 10};

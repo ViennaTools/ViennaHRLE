@@ -6,7 +6,9 @@
 int main() {
 
   constexpr int D = 2;
+#ifdef _OPENMP
   omp_set_num_threads(4); // how many threads to use
+#endif
 
   typedef hrleDomain<char, D> hrleDomainType;
 

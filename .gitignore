@@ -1,5 +1,7 @@
 *a.out
 *.hrle
+*.json
+*.vs
 !foxDomain.hrle
 Examples/build/
 build/
