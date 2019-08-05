@@ -24,7 +24,7 @@ int main() {
 
   std::string dataString = "The quick brown fox jumps over the lazy dog.";
 
-  for (hrleIndexType i = 0; i < dataString.size(); ++i) {
+  for (unsigned i = 0; i < dataString.size(); ++i) {
     if (index[0] == data.getGrid().getMaxIndex()[0]) {
       index[0] = data.getGrid().getMinIndex()[0];
       index[1] += 2;

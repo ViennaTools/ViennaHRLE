@@ -50,7 +50,7 @@ int main() {
 
   // fill vector with chars from the string "Hello World!" at increasing indices
   std::string helloString = "Hello, World!";
-  for (hrleIndexType i = 0; i < helloString.size(); ++i) {
+  for (unsigned i = 0; i < helloString.size(); ++i) {
     pointData.push_back(std::make_pair(index, helloString[i]));
     index[0] += 2;
     index[1] += 1;

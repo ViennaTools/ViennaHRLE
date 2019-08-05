@@ -16,8 +16,8 @@ template <class T = double, int D = 3> class hrleDomainSegmentArray {
 
   // assignment operator and copy-constructor are private since vector only
   // holds pointers, use deepCopy or shallowCopy instead
-  const hrleDomainSegmentArray &operator=(const hrleDomainSegmentArray &s) {}
-  hrleDomainSegmentArray(const hrleDomainSegmentArray &s) {}
+  const hrleDomainSegmentArray &operator=(const hrleDomainSegmentArray &s);
+  hrleDomainSegmentArray(const hrleDomainSegmentArray &s);
 
 public:
   typedef typename hrleDomainSegmentPointerArray::size_type size_type;

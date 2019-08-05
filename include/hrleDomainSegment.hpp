@@ -86,7 +86,7 @@ public:
   /// well as the LS values
   hrleDomainSegment(const hrleGrid<D> &g,
                     const hrleAllocationType<hrleSizeType, D> &a)
-      : numberOfActivePoints(0), grid(g) {
+      : grid(g), numberOfActivePoints(0) {
     definedValues.reserve(a.num_values[0]);
     runTypes[0].reserve(a.num_runs[0]);
 

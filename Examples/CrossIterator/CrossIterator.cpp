@@ -23,7 +23,7 @@ int main() {
 
   std::string helloString = "Hello, World!";
 
-  for (hrleIndexType i = 0; i < helloString.size(); ++i) {
+  for (unsigned i = 0; i < helloString.size(); ++i) {
     pointData.push_back(std::make_pair(index, helloString[i]));
     index[0] += 1;
     // index[1] += 1;
