@@ -163,7 +163,7 @@ public:
     } else {
       // assert(getRunCode()==NEG_PT); //TODO
       return domain.domainSegments[sub]
-          .undefinedValues[hrleRunTypeValues::UNDEF_PT - getRunCode()];
+          .undefinedValues[getRunCode() - hrleRunTypeValues::UNDEF_PT];
     }
   }
 

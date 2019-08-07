@@ -41,4 +41,7 @@ writeDomain:	WriteDomain/WriteDomain.cpp makeBuildDir
 readDomain:	ReadDomain/ReadDomain.cpp makeBuildDir
 		${COMPILE_COMMAND} -o build/ReadDomain ReadDomain/ReadDomain.cpp
 
+sparseLevelSet:	SparseLevelSet/SparseLevelSet.cpp makeBuildDir
+		${COMPILE_COMMAND} -o build/SparseLevelSet SparseLevelSet/SparseLevelSet.cpp
+
 
