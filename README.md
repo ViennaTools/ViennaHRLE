@@ -44,7 +44,7 @@ Build using CMake (recommended):
 
 ```
 mkdir build && cd build
-cmake .. -DBUILD_EXAMPLES=ON
+cmake .. -DVIENNAHRLE_BUILD_EXAMPLES=ON
 make
 ```
 
@@ -65,6 +65,13 @@ find_package(ViennaHRLE REQUIRED)
 target_link_libraries(${PROJECT_NAME} ViennaHRLE)
 ```
 
+ViennaHRLE also sets the variable VIENNAHRLE_INCLUDE_DIRS, which might be more convenient for certain projects. Therefore, it is also possible to integrate ViennaHRLE as
+
+```
+set(ViennaHRLE_DIR "/path/to/your/custom/install/")
+find_package(ViennaHRLE REQUIRED)
+target_include_directories(${PROJECT_NAME} ${VIENNAHRLE_INCLUDE_DIRS})
+```
 
 ## Authors
 

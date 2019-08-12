@@ -93,7 +93,6 @@ void hrleFillDomainWithSignedDistance(
       if (tmp >= next_index)
         break;
 
-
       newDomain.insertNextUndefinedPoint(0, tmp,
                                          signs[q] ? negValue : posValue);
     }

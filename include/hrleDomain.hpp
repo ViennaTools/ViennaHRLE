@@ -49,11 +49,10 @@ public:
   static constexpr int dimension = D;
 
 private:
-  hrleDomain(){};
   hrleDomain(hrleDomain &){};
 
   // Private member variables
-  hrleGrid<D> &grid; // Grid stores the information about the grid, on
+  hrleGrid<D> *grid; // Grid stores the information about the grid, on
   // which the HRLE structure is defined
 
   hrleIndexPoints segmentation;
@@ -73,10 +72,19 @@ private:
 
 public:
   // CONSTRUCTORS
+  hrleDomain(){};
+
   // create empty level set with one undefined run
-  hrleDomain(hrleGrid<D> &g) : grid(g) {
+  hrleDomain(hrleGrid<D> &g) : grid(&g) {
     initialize();
-    domainSegments[0].insertNextUndefinedRunType(grid.getMinIndex(),
+    domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(),
+                                                 hrleRunTypeValues::UNDEF_PT);
+    // finalize();
+  };
+
+  hrleDomain(hrleGrid<D> *g) : grid(g) {
+    initialize();
+    domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(),
                                                  hrleRunTypeValues::UNDEF_PT);
     // finalize();
   };
@@ -87,7 +95,7 @@ public:
   //            const hrleCoordType delta = 1.0) {
   //   grid = hrleGrid<D>(min, max, delta);
   //   initialize();
-  //   domainSegments[0].insertNextUndefinedRunType(grid.getMinIndex(),
+  //   domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(),
   //                                                hrleRunTypeValues::UNDEF_PT);
   // }
 
@@ -113,7 +121,7 @@ public:
     }
   }
 
-  const hrleGrid<D> &getGrid() const { return grid; }
+  const hrleGrid<D> &getGrid() const { return *grid; }
 
   unsigned getNumberOfPoints() const {
     unsigned totalPoints = 0;
@@ -155,18 +163,20 @@ public:
 
   void getDomainBounds(hrleIndexType *bounds) {
     for (unsigned i = 0; i < D; ++i) {
-      if (grid.getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
-          grid.getBoundaryConditions(i) == hrleGrid<D>::NEG_INFINITE_BOUNDARY) {
+      if (grid->getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
+          grid->getBoundaryConditions(i) ==
+              hrleGrid<D>::NEG_INFINITE_BOUNDARY) {
         bounds[2 * i] = getMinRunBreak(i);
       } else {
-        bounds[2 * i] = grid.getMinIndex(i);
+        bounds[2 * i] = grid->getMinIndex(i);
       }
 
-      if (grid.getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
-          grid.getBoundaryConditions(i) == hrleGrid<D>::POS_INFINITE_BOUNDARY) {
+      if (grid->getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
+          grid->getBoundaryConditions(i) ==
+              hrleGrid<D>::POS_INFINITE_BOUNDARY) {
         bounds[2 * i + 1] = getMaxRunBreak(i);
       } else {
-        bounds[2 * i + 1] = grid.getMaxIndex(i);
+        bounds[2 * i + 1] = grid->getMaxIndex(i);
       }
     }
   }
@@ -205,19 +215,19 @@ public:
 
     segmentation = p;
 
-    domainSegments.initialize(segmentation.size() + 1, grid,
+    domainSegments.initialize(segmentation.size() + 1, *grid,
                               a); // clear old segments and create new ones
 
     for (hrleSizeType i = 1; i < domainSegments.getNumberOfSegments(); ++i) {
       hrleDomainSegment<T, D> &s = domainSegments[i];
 
-      s.insertNextUndefinedRunType(grid.getMinIndex(),
-                                   grid.decrementIndices(segmentation[0]),
+      s.insertNextUndefinedRunType(grid->getMinIndex(),
+                                   grid->decrementIndices(segmentation[0]),
                                    hrleRunTypeValues::SEGMENT_PT);
 
       for (hrleSizeType j = 1; j < i; ++j) {
         s.insertNextUndefinedRunType(segmentation[j - 1],
-                                     grid.decrementIndices(segmentation[j]),
+                                     grid->decrementIndices(segmentation[j]),
                                      hrleRunTypeValues::SEGMENT_PT + j);
       }
     }
@@ -234,10 +244,10 @@ public:
 
       for (hrleSizeType j = i + 1; j < segmentation.size(); ++j) {
         s.insertNextUndefinedRunType(segmentation[j - 1],
-                                     grid.decrementIndices(segmentation[j]),
+                                     grid->decrementIndices(segmentation[j]),
                                      hrleRunTypeValues::SEGMENT_PT + j);
       }
-      s.insertNextUndefinedRunType(segmentation.back(), grid.getMaxIndex(),
+      s.insertNextUndefinedRunType(segmentation.back(), grid->getMaxIndex(),
                                    hrleRunTypeValues::SEGMENT_PT +
                                        hrleSizeType(segmentation.size()));
     }
@@ -365,12 +375,13 @@ public:
 
       hrleDomainSegmentType &s = newDomain.domainSegments[p];
       hrleConstRunsIterator<hrleDomain> it(
-          *this, (p == 0) ? grid.getMinIndex() : newDomain.segmentation[p - 1]);
+          *this,
+          (p == 0) ? grid->getMinIndex() : newDomain.segmentation[p - 1]);
 
       hrleVectorType<hrleIndexType, D> endOfSegment =
           (p != static_cast<int>(newDomain.segmentation.size()))
               ? newDomain.segmentation[p]
-              : grid.getMaxIndex();
+              : grid->getMaxIndex();
 
       for (; it.getStartIndices() < endOfSegment; it.next()) {
         if (it.isDefined()) {
