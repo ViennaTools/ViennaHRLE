@@ -14,9 +14,10 @@ set(LOCAL_CONFIG_DIR "lib/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
 
 # Adding the install interface generator expression makes sure that the include
 # files are installed to the proper location (provided by GNUInstallDirs)
+set(VIENNAHRLE_BUILD_INCLUDE_DIR "${${PROJECT_NAME}_SOURCE_DIR}/include")
 target_include_directories(
   ${PROJECT_NAME}
-  INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
+  INTERFACE $<BUILD_INTERFACE:${VIENNAHRLE_BUILD_INCLUDE_DIR}>
           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_11)
@@ -38,8 +39,8 @@ configure_package_config_file(
 
 # build examples
 # Do we want examples built?
-option(BUILD_EXAMPLES "Build examples." OFF)
-if(BUILD_EXAMPLES)
+option(VIENNAHRLE_BUILD_EXAMPLES "Build examples." OFF)
+if(VIENNAHRLE_BUILD_EXAMPLES)
   add_subdirectory(Examples)
 endif()
 

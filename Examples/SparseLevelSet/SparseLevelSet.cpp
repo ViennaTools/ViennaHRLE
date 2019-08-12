@@ -1,11 +1,9 @@
 #include <hrleDomain.hpp>
 #include <hrleFillDomainWithSignedDistance.hpp>
-#include <hrleFillDomainFromPointList.hpp>
 #include <hrleIterator.hpp>
 #include <iostream>
-#include <string>
 #include <limits>
-
+#include <string>
 
 // This example shows how to use hrleFillDomainWithSignedDistance
 // It was designed to store a signed distance field in the
@@ -31,7 +29,7 @@ int main() {
 
   // the simplest way to fill the domain with data is using a vector of
   // index/value pairs
-  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, valueType> > pointData;
+  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, valueType>> pointData;
 
   double radius = 3.3;
   hrleVectorType<hrleIndexType, D> centre(0); // initialise with all zeros
@@ -39,22 +37,22 @@ int main() {
   // fill point list with values
   {
     hrleVectorType<hrleIndexType, D> index(grid.getMinIndex());
-    while(index < grid.getMaxIndex()){
+    while (index < grid.getMaxIndex()) {
       // write only first point outside and all inside circle
-      hrleVectorType<double ,D> distanceVec;
-      for(int i=0; i<D; ++i) distanceVec[i] = double(index[i])-double(centre[i]);
-      double distanceFromCentre = std::sqrt(DotProduct(distanceVec, distanceVec));
-      if(std::abs(distanceFromCentre-radius)<1.){
-        pointData.push_back(std::make_pair(index, distanceFromCentre-radius));
+      hrleVectorType<double, D> distanceVec;
+      for (int i = 0; i < D; ++i)
+        distanceVec[i] = double(index[i]) - double(centre[i]);
+      double distanceFromCentre =
+          std::sqrt(DotProduct(distanceVec, distanceVec));
+      if (std::abs(distanceFromCentre - radius) < 1.) {
+        pointData.push_back(std::make_pair(index, distanceFromCentre - radius));
       }
       index = grid.incrementIndices(index);
     }
   }
 
-
   // now put the data into an hrleDomain using a helper function
-  hrleFillDomainWithSignedDistance(
-      data, pointData, -1., 1.);
+  hrleFillDomainWithSignedDistance(data, pointData, -1., 1.);
 
   // visualise signed distance field on command line
   hrleConstIterator<hrleDomain<valueType, D>> it(data);
@@ -68,7 +66,8 @@ int main() {
     ++it;
   }
 
-  std::cout << std::setw(8) << std::setprecision(2) << it.getValue() << std::endl;
+  std::cout << std::setw(8) << std::setprecision(2) << it.getValue()
+            << std::endl;
 
   return 0;
 }
