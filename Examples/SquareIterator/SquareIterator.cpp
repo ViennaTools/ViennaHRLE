@@ -44,7 +44,7 @@ int main() {
   // go to the first 'l' and output all neighbors
   const int order = 2;
   hrleSquareIterator<hrleDomain<char, D>> neighborIt(data, order);
-  while (!(neighborIt.center().getValue() == 'l')) {
+  while (!(neighborIt.getCenter().getValue() == 'l')) {
     neighborIt.next();
   }
 
@@ -62,7 +62,7 @@ int main() {
 
   // make cross iterator for comparison and advance to the first 'l'
   hrleConstCrossIterator<hrleDomain<char, D>> crossIt(data, order);
-  while (!(crossIt.center().getValue() == 'l')) {
+  while (!(crossIt.getCenter().getValue() == 'l')) {
     crossIt.next();
   }
 
@@ -73,7 +73,7 @@ int main() {
               << crossIt.getNeighbor(2 * D * i + 1).getValue() << std::endl;
   for (int i = order - 1; i >= 0; --i)
     std::cout << crossIt.getNeighbor(2 * D * i + 2).getValue() << " ";
-  std::cout << crossIt.center().getValue() << " ";
+  std::cout << crossIt.getCenter().getValue() << " ";
   for (unsigned i = 0; i < order; ++i)
     std::cout << crossIt.getNeighbor(2 * D * i).getValue() << " ";
   std::cout << std::endl;

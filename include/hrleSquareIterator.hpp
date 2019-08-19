@@ -185,11 +185,11 @@ public:
     return neighborIterators[coordinateToIndex(relativeCoordinate)];
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &center() {
+  hrleOffsetRunsIterator<hrleDomain> &getCenter() {
     return neighborIterators[centerIndex];
   }
 
-  bool isFinished() const { return center().isFinished(); }
+  bool isFinished() const { return getCenter().isFinished(); }
 };
 
 template <class hrleDomain>

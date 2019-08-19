@@ -73,7 +73,7 @@ public:
     return domainSegmentPointers.size();
   }
 
-  void deepCopy(const hrleDomainSegmentArray &s) {
+  void deepCopy(const hrleGrid<D> *g, const hrleDomainSegmentArray &s) {
     domainSegmentPointers.resize(s.getNumberOfSegments());
 
 #pragma omp parallel for schedule(static, 1)
@@ -81,7 +81,7 @@ public:
     // Each chunk is assigned to a thread
     for (int k = 0; k < static_cast<int>(s.getNumberOfSegments()); ++k) {
       domainSegmentPointers[k] =
-          segmentPointer(new hrleDomainSegment<T, D>(s[k]));
+          segmentPointer(new hrleDomainSegment<T, D>(*g, s[k]));
     }
   }
 

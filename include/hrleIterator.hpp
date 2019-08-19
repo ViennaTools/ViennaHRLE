@@ -22,9 +22,9 @@ public:
   hrleIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain), runsIterator(passedDomain, reverse) {
     if (reverse)
-      currentIndices = passedDomain.getGrid().getMaxIndex();
+      currentIndices = passedDomain.getGrid().getMaxGridPoint();
     else
-      currentIndices = passedDomain.getGrid().getMinIndex();
+      currentIndices = passedDomain.getGrid().getMinGridPoint();
   }
 
   template <class V>
@@ -34,6 +34,7 @@ public:
   hrleIterator<hrleDomain> &operator++() {
     // move iterator with currentIndices if they are the same
     switch (compare(runsIterator.getEndIndices(), currentIndices)) {
+    case -1:
     case 0:
       if (!runsIterator.isFinished())
         runsIterator.next();
@@ -52,6 +53,7 @@ public:
   hrleIterator<hrleDomain> &operator--() {
     // move iterator with currentIndices if they are the same
     switch (compare(runsIterator.getStartIndices(), currentIndices)) {
+    case 1:
     case 0:
       if (!runsIterator.isFinished())
         runsIterator.previous();
@@ -80,7 +82,7 @@ public:
   // start
   bool previous() {
     // if min index is reached, iterator is done
-    if (compare(currentIndices, domain.getGrid().getMinIndex()) <= 0) {
+    if (compare(currentIndices, domain.getGrid().getMinGridPoint()) < 0) {
       return false;
     }
     ++(*this);
@@ -93,7 +95,7 @@ public:
   }
 
   bool isFinished() {
-    if (compare(currentIndices, domain.getGrid().getMaxIndex()) >= 0) {
+    if (compare(currentIndices, domain.getGrid().getMaxGridPoint()) > 0) {
       return true;
     } else {
       return false;

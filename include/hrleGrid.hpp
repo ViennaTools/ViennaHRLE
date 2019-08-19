@@ -82,12 +82,12 @@ public:
 
       if ((boundaryConditions[i] == INFINITE_BOUNDARY) ||
           (boundaryConditions[i] == NEG_INFINITE_BOUNDARY)) {
-        minGridPointCoord[i] = -INF_EXTENSION;
+        // minGridPointCoord[i] = -INF_EXTENSION;
         minIndex[i] = -INF_EXTENSION;
       }
       if ((boundaryConditions[i] == INFINITE_BOUNDARY) ||
           (boundaryConditions[i] == POS_INFINITE_BOUNDARY)) {
-        maxGridPointCoord[i] = INF_EXTENSION;
+        // maxGridPointCoord[i] = INF_EXTENSION;
         maxIndex[i] = INF_EXTENSION;
       }
       if (boundaryConditions[i] == PERIODIC_BOUNDARY)

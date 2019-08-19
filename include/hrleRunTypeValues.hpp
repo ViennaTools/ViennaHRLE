@@ -31,10 +31,4 @@ struct hrleRunTypeValues {
       std::numeric_limits<hrleSizeType>::max();
 };
 
-constexpr hrleSizeType hrleRunTypeValues::SEGMENT_PT;
-
-constexpr hrleSizeType hrleRunTypeValues::UNDEF_PT;
-
-constexpr hrleSizeType hrleRunTypeValues::INACTIVE_PT;
-
 #endif // HRLE_RUN_TYPE_VALUES_HPP

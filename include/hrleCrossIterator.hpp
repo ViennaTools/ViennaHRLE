@@ -158,9 +158,13 @@ public:
     return neighborIterators[neighborIndex];
   }
 
-  hrleRunsIterator<hrleDomain> &center() { return centerIterator; }
+  hrleRunsIterator<hrleDomain> &getCenter() { return centerIterator; }
 
-  bool isFinished() const { return center().isFinished(); }
+  const hrleVectorType<hrleIndexType, D> &getIndices() {
+    return centerIterator.getStartIndices();
+  }
+
+  bool isFinished() const { return getCenter().isFinished(); }
 
   // const hrleVectorType<hrleIndexType, D> &getStartIndices() const {
   //   return startCoords;

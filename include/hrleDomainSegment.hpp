@@ -10,7 +10,7 @@
 
 template <class T = double, int D = 3> class hrleDomainSegment {
 
-  const hrleGrid<D> &grid;
+  const hrleGrid<D> *grid;
 
   hrleDomainSegment(){};
 
@@ -86,7 +86,7 @@ public:
   /// well as the LS values
   hrleDomainSegment(const hrleGrid<D> &g,
                     const hrleAllocationType<hrleSizeType, D> &a)
-      : grid(g), numberOfActivePoints(0) {
+      : grid(&g), numberOfActivePoints(0) {
     definedValues.reserve(a.num_values[0]);
     runTypes[0].reserve(a.num_runs[0]);
 
@@ -100,6 +100,20 @@ public:
     runBreaks[D - 1].reserve(a.num_runs[D - 1] - 1);
   };
 
+  hrleDomainSegment(const hrleGrid<D> &g, const hrleDomainSegment &s)
+      : grid(&g), numberOfActivePoints(0) {
+    for (int i = 0; i < D; ++i)
+      startIndices[i] = s.startIndices[i];
+    for (int i = 0; i < D; ++i)
+      runTypes[i] = s.runTypes[i];
+    for (int i = 0; i < D; ++i)
+      runBreaks[i] = s.runBreaks[i];
+    definedValues = s.definedValues;
+    undefinedValues = s.undefinedValues;
+    numberOfActivePoints = s.numberOfActivePoints;
+    grid = &g;
+  };
+
   const hrleDomainSegment &operator=(const hrleDomainSegment &s) {
     for (int i = 0; i < D; ++i)
       startIndices[i] = s.startIndices[i];
@@ -108,45 +122,46 @@ public:
     for (int i = 0; i < D; ++i)
       runBreaks[i] = s.runBreaks[i];
     definedValues = s.definedValues;
+    undefinedValues = s.undefinedValues;
     // activePointIds = s.activePointIds;
     numberOfActivePoints = s.numberOfActivePoints;
-    assert((&grid) == (&s.grid));
+    grid = s.grid;
     return *this;
   }
 
-  /// returns the start index of the run given by startIndices_pos and
+  /// returns the start index of the run given by startIndicesPos and
   /// runTypePos see the definition of the HRLE-data structure for more
   /// details
-  hrleIndexType getRunStartCoord(int dim, hrleSizeType startIndices_pos,
+  hrleIndexType getRunStartCoord(int dim, hrleSizeType startIndicesPos,
                                  hrleSizeType runTypePos) const {
 
-    if (runTypePos == startIndices[dim][startIndices_pos]) {
-      return grid.getMinIndex(dim);
+    if (runTypePos == startIndices[dim][startIndicesPos]) {
+      return grid->getMinIndex(dim);
     } else {
-      return runBreaks[dim][runTypePos - startIndices_pos - 1];
+      return runBreaks[dim][runTypePos - startIndicesPos - 1];
     }
   }
 
-  /// returns the end index of the run given by startIndices_pos and
+  /// returns the end index of the run given by startIndicesPos and
   /// runTypePos NOTE: the end index is not included by the run see the
   /// definition of the HRLE-data structure for more details
-  hrleIndexType getRunEndCoord(int dim, hrleSizeType startIndices_pos,
+  hrleIndexType getRunEndCoord(int dim, hrleSizeType startIndicesPos,
                                hrleSizeType runTypePos) const {
-    if (runTypePos + 1 < getStartIndex(dim, startIndices_pos + 1)) {
-      return runBreaks[dim][runTypePos - startIndices_pos] - 1;
+    if (runTypePos + 1 < getStartIndex(dim, startIndicesPos + 1)) {
+      return runBreaks[dim][runTypePos - startIndicesPos] - 1;
     } else {
-      return grid.getMaxIndex(dim);
+      return grid->getMaxGridPoint(dim);
     }
   }
 
   /// returns the starting index of the runTypes array
-  /// if startIndices_pos is equal to the size of startIndices array
+  /// if startIndicesPos is equal to the size of startIndices array
   /// the size of the run_types array is returned
-  hrleSizeType getStartIndex(int dim, hrleSizeType startIndices_pos) const {
-    if (startIndices_pos == startIndices[dim].size()) {
+  hrleSizeType getStartIndex(int dim, hrleSizeType startIndicesPos) const {
+    if (startIndicesPos == startIndices[dim].size()) {
       return hrleSizeType(runTypes[dim].size());
     } else {
-      return startIndices[dim][startIndices_pos];
+      return startIndices[dim][startIndicesPos];
     }
   }
 
@@ -237,12 +252,12 @@ public:
       return; // in this case, do not add the point
 
     for (int dim = 0; dim < D - 1; ++dim) {
-      if (start_point[dim] != grid.getMinIndex(dim)) {
-        if (start_point[dim] <= grid.getMaxIndex(dim)) {
+      if (start_point[dim] != grid->getMinIndex(dim)) {
+        if (start_point[dim] <= grid->getMaxIndex(dim)) {
           insertNextUndefinedRunType(start_point, rt);
         }
 
-        start_point[dim] = grid.getMinIndex(dim);
+        start_point[dim] = grid->getMinIndex(dim);
         ++start_point[dim + 1];
       }
 
@@ -250,7 +265,7 @@ public:
         return;
     }
 
-    if (start_point[D - 1] <= grid.getMaxIndex(D - 1)) {
+    if (start_point[D - 1] <= grid->getMaxIndex(D - 1)) {
       insertNextUndefinedRunType(start_point, rt);
     }
   }
@@ -260,7 +275,7 @@ public:
 
     int level;
     for (level = 0; level < D; ++level) {
-      if (point[level] != grid.getMinIndex(level))
+      if (point[level] != grid->getMinIndex(level))
         break;
     }
 
@@ -271,7 +286,7 @@ public:
 
       if (runTypes[dim].size() ==
           startIndices[dim].back()) { // if there is no run
-        if (point[dim] != grid.getMinIndex(dim)) {
+        if (point[dim] != grid->getMinIndex(dim)) {
           runTypes[dim].push_back(old_sign);
           runBreaks[dim].push_back(point[dim]);
         }
@@ -284,7 +299,7 @@ public:
           return;
         if (runTypes[dim].size() ==
             startIndices[dim].back() + 1) { // if there is a single run
-          if (point[dim] == grid.getMinIndex(dim)) {
+          if (point[dim] == grid->getMinIndex(dim)) {
             runTypes[dim].back() = hrleSizeType(startIndices[dim - 1].size());
           } else {
             runBreaks[dim].push_back(point[dim]);
@@ -309,7 +324,7 @@ public:
 
     if (runTypes[dim].size() ==
         startIndices[dim].back()) { // if there is no run
-      if (point[dim] != grid.getMinIndex(dim)) {
+      if (point[dim] != grid->getMinIndex(dim)) {
         runTypes[dim].push_back(old_sign);
         runBreaks[dim].push_back(point[dim]);
       }
@@ -321,7 +336,7 @@ public:
         return;
       if (runTypes[dim].size() ==
           startIndices[dim].back() + 1) { // if there is a single run
-        if (point[dim] == grid.getMinIndex(dim)) {
+        if (point[dim] == grid->getMinIndex(dim)) {
           runTypes[dim].back() = rt;
         } else {
           runBreaks[dim].push_back(point[dim]);
@@ -385,7 +400,7 @@ public:
 
     int level;
     for (level = 0; level < D; ++level) {
-      if (point[level] != grid.getMinIndex(level))
+      if (point[level] != grid->getMinIndex(level))
         break;
     }
 
@@ -394,7 +409,7 @@ public:
     for (int dim = D - 1; dim > 0; --dim) {
       if (runTypes[dim].size() ==
           startIndices[dim].back()) { // if there is no run
-        if (point[dim] != grid.getMinIndex(dim)) {
+        if (point[dim] != grid->getMinIndex(dim)) {
           runTypes[dim].push_back(old_sign);
           runBreaks[dim].push_back(point[dim]);
         }
@@ -405,7 +420,7 @@ public:
         old_sign = runTypes[dim].back();
         if (runTypes[dim].size() ==
             startIndices[dim].back() + 1) { // if there is a single run
-          if (point[dim] == grid.getMinIndex(dim)) {
+          if (point[dim] == grid->getMinIndex(dim)) {
             runTypes[dim].back() = hrleSizeType(startIndices[dim - 1].size());
           } else {
             runBreaks[dim].push_back(point[dim]);
@@ -434,7 +449,7 @@ public:
     }
 
     if (runTypes[0].size() == startIndices[0].back()) { // if there is no run
-      if (point[0] != grid.getMinIndex(0)) {
+      if (point[0] != grid->getMinIndex(0)) {
         runTypes[0].push_back(old_sign);
         runBreaks[0].push_back(point[0]);
       }
@@ -444,7 +459,7 @@ public:
       old_sign = runTypes[0].back();
       if (runTypes[0].size() ==
           startIndices[0].back() + 1) { // if there is a single run
-        if (point[0] == grid.getMinIndex(0)) {
+        if (point[0] == grid->getMinIndex(0)) {
           runTypes[0].back() = hrleSizeType(definedValues.size());
         } else {
           runBreaks[0].push_back(point[0]);
@@ -546,7 +561,7 @@ public:
     for (unsigned i = 0; i < undefinedValues.size(); ++i) {
       if (i % 10 == 0)
         out << std::endl;
-      out << std::setw(8) << std::fixed << undefinedValues[i];
+      out << std::setw(16) << std::defaultfloat << undefinedValues[i];
     }
     out << std::endl;
     out << std::endl;
