@@ -89,21 +89,15 @@ public:
     // finalize();
   };
 
-  // TODO: this is a convenience constructor, but it is impossible to keep the
-  // grid reference maybe use a pointer instead hrleDomain(const hrleIndexType
-  // *min, const hrleIndexType *max,
-  //            const hrleCoordType delta = 1.0) {
-  //   grid = hrleGrid<D>(min, max, delta);
-  //   initialize();
-  //   domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(),
-  //                                                hrleRunTypeValues::UNDEF_PT);
-  // }
+  void deepCopy(hrleGrid<D> *passedGrid, const hrleDomain<T, D> &passedDomain) {
+    deepCopy(*passedGrid, passedDomain);
+  }
 
-  void deepCopy(const hrleDomain<T, D> &passedDomain) {
-    grid = passedDomain.grid;
+  void deepCopy(hrleGrid<D> &passedGrid, const hrleDomain<T, D> &passedDomain) {
+    grid = &passedGrid;
     pointIdOffsets = passedDomain.pointIdOffsets;
-    domainSegments.deepCopy(passedDomain.domainSegments);
     segmentation = passedDomain.segmentation;
+    domainSegments.deepCopy(grid, passedDomain.domainSegments);
   }
 
   void shallowCopy(const hrleDomain<T, D> &passedDomain) {
@@ -122,6 +116,10 @@ public:
   }
 
   const hrleGrid<D> &getGrid() const { return *grid; }
+
+  hrleDomainSegmentType &getDomainSegment(unsigned i) {
+    return domainSegments[i];
+  }
 
   unsigned getNumberOfPoints() const {
     unsigned totalPoints = 0;
@@ -393,7 +391,7 @@ public:
     }
 
     newDomain.finalize();
-    deepCopy(newDomain);
+    deepCopy(*grid, newDomain);
   }
 
   /// opposite of "segment()" puts all data back into a single
@@ -414,7 +412,7 @@ public:
       }
 
       newDomain.finalize();
-      deepCopy(newDomain);
+      deepCopy(*grid, newDomain);
     }
   }
 };

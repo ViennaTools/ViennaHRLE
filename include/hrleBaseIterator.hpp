@@ -24,7 +24,7 @@ protected:
   hrleVectorType<hrleIndexType, D> startRunAbsCoords;
   hrleVectorType<hrleIndexType, D> endRunAbsCoords;
   hrleVectorType<hrleIndexType, D> absCoords;
-  hrleVectorType<hrleIndexType, D> end_absCoords;
+  hrleVectorType<hrleIndexType, D> endAbsCoords;
   int r_level;
   int s_level;
   int sub;
@@ -37,8 +37,8 @@ protected:
   void go_up_AB() {
     // shfdhsfhdskjhgf assert((r_level==s_level) || (s_level==r_level+1));
     s_level = r_level + 1;
-    absCoords[r_level] = domain.getGrid().getMinIndex(r_level);
-    end_absCoords[r_level] = domain.getGrid().getMaxIndex(r_level);
+    absCoords[r_level] = domain.getGrid().getMinGridPoint(r_level);
+    endAbsCoords[r_level] = domain.getGrid().getMaxGridPoint(r_level);
     // shfdhsfhdskjhgf assert(s_level==r_level+1);
   }
 
@@ -49,7 +49,7 @@ public:
     std::cout << "startRunAbsCoords: " << startRunAbsCoords << std::endl;
     std::cout << "endRunAbsCoords: " << endRunAbsCoords << std::endl;
     std::cout << "absCoords: " << absCoords << std::endl;
-    std::cout << "end_absCoords: " << end_absCoords << std::endl;
+    std::cout << "endAbsCoords: " << endAbsCoords << std::endl;
     std::cout << "r_level: " << r_level << std::endl;
     std::cout << "s_level: " << s_level << std::endl;
     std::cout << "sub: " << sub << std::endl;
@@ -62,7 +62,7 @@ public:
 
   hrleBaseIterator(hrleDomain &passedDomain)
       : domain(passedDomain), absCoords(domain.getGrid().getMinIndex()),
-        end_absCoords(domain.getGrid().getMaxIndex()), r_level(D), s_level(D),
+        endAbsCoords(domain.getGrid().getMaxIndex()), r_level(D), s_level(D),
         sub(0) {
     startIndicesPos[D] = 0;
   }
@@ -77,7 +77,7 @@ public:
   //   startRunAbsCoords = it.startRunAbsCoords;
   //   endRunAbsCoords = it.endRunAbsCoords;
   //   absCoords = it.absCoords;
-  //   end_absCoords = it.end_absCoords;
+  //   endAbsCoords = it.endAbsCoords;
   //   s_level = it.s_level;
   //   r_level = it.r_level;
   //   sub = it.sub;
@@ -100,11 +100,11 @@ public:
 
   hrleIndexType getEndIndices(int dir) const {
     // returns the end index of a run for a certain axis direction
-    return end_absCoords[dir];
+    return endAbsCoords[dir];
   }
 
   const hrleVectorType<hrleIndexType, D> &getEndIndices() const {
-    return end_absCoords;
+    return endAbsCoords;
   }
 
   hrleSizeType getRunTypePosition() const {

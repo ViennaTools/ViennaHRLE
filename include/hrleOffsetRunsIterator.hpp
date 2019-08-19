@@ -24,7 +24,7 @@ class hrleOffsetRunsIterator : public hrleBaseIterator<hrleDomain> {
   using hrleBaseIterator<hrleDomain>::s_level;
   using hrleBaseIterator<hrleDomain>::sub;
   using hrleBaseIterator<hrleDomain>::absCoords;
-  using hrleBaseIterator<hrleDomain>::end_absCoords;
+  using hrleBaseIterator<hrleDomain>::endAbsCoords;
   using hrleBaseIterator<hrleDomain>::startRunAbsCoords;
   using hrleBaseIterator<hrleDomain>::endRunAbsCoords;
   using hrleBaseIterator<hrleDomain>::runTypePos;
@@ -229,14 +229,14 @@ protected:
       startIndicesPos[s_level] += (rel_c - start_run_rel_coords[r_level]);
       rel_coords[s_level] = rel_c;
       absCoords[s_level] = abs_c;
-      end_absCoords[s_level] = abs_c;
+      endAbsCoords[s_level] = abs_c;
 
       // shfdhsfhdskjhgf assert(domain.isDefined(startIndicesPos[s_level]));
 
       return true;
     } else {
       absCoords[r_level] = startRunAbsCoords[r_level];
-      end_absCoords[r_level] = endRunAbsCoords[r_level];
+      endAbsCoords[r_level] = endRunAbsCoords[r_level];
 
       // shfdhsfhdskjhgf assert(s_level==r_level+1);
       return false;
@@ -262,7 +262,7 @@ protected:
 
       if (absCoords[s_level] < endRunAbsCoords[r_level]) {
         ++absCoords[s_level];
-        ++end_absCoords[s_level];
+        ++endAbsCoords[s_level];
 
         if (domain.getGrid().isBoundaryPeriodic(r_level)) {
           // shfdhsfhdskjhgf
@@ -318,7 +318,7 @@ protected:
 
       if (absCoords[s_level] > startRunAbsCoords[r_level]) {
         --absCoords[s_level];
-        --end_absCoords[s_level];
+        --endAbsCoords[s_level];
 
         if (domain.getGrid().isBoundaryPeriodic(r_level)) {
           // shfdhsfhdskjhgf
@@ -681,7 +681,7 @@ public:
       if (r_level == D) {
         absCoords =
             domain.getGrid().incrementIndices(domain.getGrid().getMaxIndex());
-        end_absCoords = absCoords; // TODO
+        endAbsCoords = absCoords; // TODO
         // it.startIndicesPos[D]=it.l.num_pts();
         return *this;
       }
@@ -722,7 +722,7 @@ public:
       if (r_level == D) {
         absCoords =
             domain.getGrid().decrementIndices(domain.getGrid().getMinIndex());
-        end_absCoords = absCoords; // TODO
+        endAbsCoords = absCoords; // TODO
         return *this;
       }
     }
@@ -804,7 +804,7 @@ public:
 
     for (int h = 0; h < r_level; ++h) {
       absCoords[h] = domain.getGrid().getMinIndex(h);
-      end_absCoords[h] = domain.getGrid().getMaxIndex(h);
+      endAbsCoords[h] = domain.getGrid().getMaxIndex(h);
     }
 
     // TODO initialize absCoords

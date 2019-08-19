@@ -43,7 +43,7 @@ int main() {
   // go to the first 'l' and output all neighbors
   const int order = 3;
   hrleConstCrossIterator<hrleDomain<char, D>> neighborIt(data, order);
-  while (!(neighborIt.center().getValue() == 'l')) {
+  while (!(neighborIt.getCenter().getValue() == 'l')) {
     neighborIt.next();
   }
 
@@ -59,7 +59,7 @@ int main() {
               << neighborIt.getNeighbor(2 * D * i + 1).getValue() << std::endl;
   for (int i = order - 1; i >= 0; --i)
     std::cout << neighborIt.getNeighbor(2 * D * i + 2).getValue() << " ";
-  std::cout << neighborIt.center().getValue() << " ";
+  std::cout << neighborIt.getCenter().getValue() << " ";
   for (unsigned i = 0; i < order; ++i)
     std::cout << neighborIt.getNeighbor(2 * D * i).getValue() << " ";
   std::cout << std::endl;

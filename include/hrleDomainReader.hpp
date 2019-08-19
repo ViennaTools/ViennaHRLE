@@ -244,7 +244,7 @@ public:
     fin.close();
 
     // now swap with passed domain
-    domain->deepCopy(newDomain);
+    domain->deepCopy(domain->grid, newDomain);
 
     return fin.good();
   }
