@@ -75,17 +75,17 @@ public:
   hrleDomain(){};
 
   // create empty level set with one undefined run
-  hrleDomain(hrleGrid<D> &g) : grid(&g) {
+  hrleDomain(hrleGrid<D> &g, T runType = hrleRunTypeValues::UNDEF_PT)
+      : grid(&g) {
     initialize();
-    domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(),
-                                                 hrleRunTypeValues::UNDEF_PT);
+    domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
     // finalize();
   };
 
-  hrleDomain(hrleGrid<D> *g) : grid(g) {
+  hrleDomain(hrleGrid<D> *g, T runType = hrleRunTypeValues::UNDEF_PT)
+      : grid(g) {
     initialize();
-    domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(),
-                                                 hrleRunTypeValues::UNDEF_PT);
+    domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
     // finalize();
   };
 

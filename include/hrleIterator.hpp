@@ -107,6 +107,11 @@ public:
   hrleIndexType getIndex(int dimension) { return currentIndices[dimension]; }
 
   hrleVectorType<hrleIndexType, D> getIndices() { return currentIndices; }
+
+  void print() {
+    std::cout << currentIndices << std::endl;
+    runsIterator.print();
+  }
 };
 
 template <class hrleDomain>

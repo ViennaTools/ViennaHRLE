@@ -82,12 +82,12 @@ public:
 
       if ((boundaryConditions[i] == INFINITE_BOUNDARY) ||
           (boundaryConditions[i] == NEG_INFINITE_BOUNDARY)) {
-        // minGridPointCoord[i] = -INF_EXTENSION;
+        minGridPointCoord[i] = -INF_EXTENSION;
         minIndex[i] = -INF_EXTENSION;
       }
       if ((boundaryConditions[i] == INFINITE_BOUNDARY) ||
           (boundaryConditions[i] == POS_INFINITE_BOUNDARY)) {
-        // maxGridPointCoord[i] = INF_EXTENSION;
+        maxGridPointCoord[i] = INF_EXTENSION;
         maxIndex[i] = INF_EXTENSION;
       }
       if (boundaryConditions[i] == PERIODIC_BOUNDARY)
@@ -104,12 +104,12 @@ public:
   }
 
   /// copy constructor
-  hrleGrid(const hrleGrid &gt)
-      : minIndex(gt.minIndex), maxIndex(gt.maxIndex),
-        indexExtension(gt.indexExtension),
-        boundaryConditions(gt.boundaryConditions),
-        minGridPointCoord(gt.minGridPointCoord),
-        maxGridPointCoord(gt.maxGridPointCoord), parities(gt.parities) {}
+  // hrleGrid(const hrleGrid &gt)
+  //     : minIndex(gt.minIndex), maxIndex(gt.maxIndex),
+  //       indexExtension(gt.indexExtension),
+  //       boundaryConditions(gt.boundaryConditions),
+  //       minGridPointCoord(gt.minGridPointCoord),
+  //       maxGridPointCoord(gt.maxGridPointCoord), parities(gt.parities) {}
 
   void print() const {
     std::cout << "minIndex: " << minIndex << std::endl;
@@ -476,8 +476,7 @@ public:
     } else {
       return (1 + cycles) * index2Coordinate(getMaxIndex(dir)) +
              (1 - cycles) * index2Coordinate(getMinIndex(dir)) -
-             index2Coordinate(dir,
-                              getMaxIndex(dir) + getMinIndex(dir) - offset);
+             index2Coordinate(getMaxIndex(dir) + getMinIndex(dir) - offset);
     }
   }
 

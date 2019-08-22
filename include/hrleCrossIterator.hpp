@@ -22,7 +22,7 @@ template <class hrleDomain> class hrleCrossIterator {
 
   hrleDomain &domain;
   const unsigned order;
-  // hrleVectorType<hrleIndexType, D> startCoords;
+  hrleVectorType<hrleIndexType, D> currentCoords;
   hrleRunsIterator<hrleDomain> centerIterator;
   std::vector<hrleOffsetRunsIterator<hrleDomain>> neighborIterators;
 
@@ -64,13 +64,14 @@ public:
                     const hrleVectorType<hrleIndexType, D> &v,
                     const unsigned passedOrder = 1)
       : domain(passedDomain), order(passedOrder),
-        centerIterator(passedDomain, v) {
+        centerIterator(passedDomain, v), currentCoords(v) {
 
     initializeNeigbors(v);
   }
 
   hrleCrossIterator(hrleDomain &passedDomain, const unsigned passedOrder = 1)
-      : domain(passedDomain), order(passedOrder), centerIterator(passedDomain) {
+      : domain(passedDomain), order(passedOrder), centerIterator(passedDomain),
+        currentCoords(domain.getGrid().getMinGridPoint()) {
 
     initializeNeigbors(passedDomain.getGrid().getMinIndex());
   }
@@ -107,6 +108,8 @@ public:
     for (int i = 0; i < numNeighbors; ++i)
       if (increment[i])
         neighborIterators[i].next();
+
+    currentCoords = domain.getGrid().incrementIndices(end_coords);
   }
 
   void previous() {
@@ -132,10 +135,15 @@ public:
       if (decrement[i])
         neighborIterators[i].previous();
     }
+    currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &getNeighbor(int direction) {
-    return neighborIterators[direction];
+  hrleOffsetRunsIterator<hrleDomain> &getNeighbor(unsigned index) {
+    return neighborIterators[index];
+  }
+
+  hrleOffsetRunsIterator<hrleDomain> &getNeighbor(int index) {
+    return neighborIterators[index];
   }
 
   template <class V>
@@ -160,11 +168,9 @@ public:
 
   hrleRunsIterator<hrleDomain> &getCenter() { return centerIterator; }
 
-  const hrleVectorType<hrleIndexType, D> &getIndices() {
-    return centerIterator.getStartIndices();
-  }
+  const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
 
-  bool isFinished() const { return getCenter().isFinished(); }
+  bool isFinished() const { return centerIterator.isFinished(); }
 
   // const hrleVectorType<hrleIndexType, D> &getStartIndices() const {
   //   return startCoords;

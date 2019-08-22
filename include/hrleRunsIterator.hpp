@@ -1,6 +1,8 @@
 #ifndef HRLE_RUNS_ITERATOR_HPP
 #define HRLE_RUNS_ITERATOR_HPP
 
+#include <vector>
+
 #include "hrleBaseIterator.hpp"
 #include "hrleIndexType.hpp"
 

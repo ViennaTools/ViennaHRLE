@@ -77,25 +77,25 @@ protected:
     runTypePos[r_level] = r;
 
     if (pos_breaks == start_breaks) {
-      start_run_rel_coords[r_level] = domain.getGrid().getMinIndex(r_level);
+      start_run_rel_coords[r_level] = domain.getGrid().getMinGridPoint(r_level);
     } else {
       // shfdhsfhdskjhgf assert(pos_breaks>start_breaks);
       start_run_rel_coords[r_level] = *(pos_breaks - 1);
     }
 
     if (pos_breaks == end_breaks) {
-      end_run_rel_coords[r_level] = domain.getGrid().getMaxIndex(r_level);
+      end_run_rel_coords[r_level] = domain.getGrid().getMaxGridPoint(r_level);
     } else {
       // shfdhsfhdskjhgf assert(pos_breaks<end_breaks);
       end_run_rel_coords[r_level] = (*pos_breaks) - 1;
     }
 
     // shfdhsfhdskjhgf
-    // assert(start_run_rel_coords[r_level]>=domain.getGrid().getMinIndex(r_level));
+    // assert(start_run_rel_coords[r_level]>=domain.getGrid().getMinGridPoint(r_level));
     // shfdhsfhdskjhgf assert(start_run_rel_coords[r_level]<=rel_c);
     // shfdhsfhdskjhgf assert(rel_c<=end_run_rel_coords[r_level]);
     // shfdhsfhdskjhgf
-    // assert(domain.getGrid().getMaxIndex(r_level)>=end_run_rel_coords[r_level]);
+    // assert(domain.getGrid().getMaxGridPoint(r_level)>=end_run_rel_coords[r_level]);
 
     // calculate run_absCoords
 
@@ -109,11 +109,11 @@ protected:
       startRunAbsCoords[r_level] =
           std::max(domain.getGrid().localIndex2GlobalIndex(
                        r_level, rel_s, cycles, offset[r_level]),
-                   domain.getGrid().getMinIndex(r_level));
+                   domain.getGrid().getMinGridPoint(r_level));
       endRunAbsCoords[r_level] =
           std::min(domain.getGrid().localIndex2GlobalIndex(
                        r_level, rel_e, cycles, offset[r_level]),
-                   domain.getGrid().getMaxIndex(r_level));
+                   domain.getGrid().getMaxGridPoint(r_level));
 
     } else {
 
@@ -121,8 +121,8 @@ protected:
 
       if (start_breaks == end_breaks) {
 
-        startRunAbsCoords[r_level] = domain.getGrid().getMinIndex(r_level);
-        endRunAbsCoords[r_level] = domain.getGrid().getMaxIndex(r_level);
+        startRunAbsCoords[r_level] = domain.getGrid().getMinGridPoint(r_level);
+        endRunAbsCoords[r_level] = domain.getGrid().getMaxGridPoint(r_level);
 
       } else {
 
@@ -142,21 +142,21 @@ protected:
         startRunAbsCoords[r_level] =
             std::max(domain.getGrid().localIndex2GlobalIndex(
                          r_level, rel_s, cycles, offset[r_level]),
-                     domain.getGrid().getMinIndex(r_level));
+                     domain.getGrid().getMinGridPoint(r_level));
 
         endRunAbsCoords[r_level] =
             std::min(domain.getGrid().localIndex2GlobalIndex(
                          r_level, rel_e, cycles, offset[r_level]),
-                     domain.getGrid().getMaxIndex(r_level));
+                     domain.getGrid().getMaxGridPoint(r_level));
       }
     }
 
     // shfdhsfhdskjhgf
-    // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinIndex(r_level));
+    // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinGridPoint(r_level));
     // shfdhsfhdskjhgf assert(startRunAbsCoords[r_level]<=abs_c);
     // shfdhsfhdskjhgf assert(abs_c<=endRunAbsCoords[r_level]);
     // shfdhsfhdskjhgf
-    // assert(domain.getGrid().getMaxIndex(r_level)>=endRunAbsCoords[r_level]);
+    // assert(domain.getGrid().getMaxGridPoint(r_level)>=endRunAbsCoords[r_level]);
 
     // shfdhsfhdskjhgf assert(s_level>=1);
     // shfdhsfhdskjhgf assert(s_level==r_level+1);
@@ -166,9 +166,9 @@ protected:
       // shfdhsfhdskjhgf
       // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
       // shfdhsfhdskjhgf
-      // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxIndex(r_level)
+      // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
       // ||
-      // start_run_rel_coords[r_level]==domain.getGrid().getMinIndex(r_level));
+      // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
     }
 
     // shfdhsfhdskjhgf
@@ -188,7 +188,7 @@ protected:
 
     // shfdhsfhdskjhgf assert(s_level==r_level);
 
-    const hrleIndexType c = domain.getGrid().getMinIndex(r_level - 1);
+    const hrleIndexType c = domain.getGrid().getMinGridPoint(r_level - 1);
     // shfdhsfhdskjhgf assert(l.isDefined(startIndicesPos[s_level]));
     go_down_AB(c);
 
@@ -200,7 +200,7 @@ protected:
 
     // shfdhsfhdskjhgf assert(s_level==r_level);
 
-    const hrleIndexType c = domain.getGrid().getMaxIndex(r_level - 1);
+    const hrleIndexType c = domain.getGrid().getMaxGridPoint(r_level - 1);
     // shfdhsfhdskjhgf assert(l.isDefined(startIndicesPos[s_level]));
     go_down_AB(c);
 
@@ -266,15 +266,16 @@ protected:
 
         if (domain.getGrid().isBoundaryPeriodic(r_level)) {
           // shfdhsfhdskjhgf
-          // assert(rel_coords[s_level]!=domain.getGrid().getMaxIndex(s_level));
+          // assert(rel_coords[s_level]!=domain.getGrid().getMaxGridPoint(s_level));
           ++rel_coords[s_level];
           ++startIndicesPos[s_level];
         } else {
 
-          if (rel_coords[s_level] == domain.getGrid().getMaxIndex(s_level)) {
+          if (rel_coords[s_level] ==
+              domain.getGrid().getMaxGridPoint(s_level)) {
             move_inverse.set(s_level);
           } else if (rel_coords[s_level] ==
-                     domain.getGrid().getMinIndex(s_level)) {
+                     domain.getGrid().getMinGridPoint(s_level)) {
             move_inverse.reset(s_level);
           }
 
@@ -322,14 +323,15 @@ protected:
 
         if (domain.getGrid().isBoundaryPeriodic(r_level)) {
           // shfdhsfhdskjhgf
-          // assert(rel_coords[s_level]!=domain.getGrid().getMinIndex(s_level));
+          // assert(rel_coords[s_level]!=domain.getGrid().getMinGridPoint(s_level));
           --rel_coords[s_level];
           --startIndicesPos[s_level];
         } else {
-          if (rel_coords[s_level] == domain.getGrid().getMaxIndex(s_level)) {
+          if (rel_coords[s_level] ==
+              domain.getGrid().getMaxGridPoint(s_level)) {
             move_inverse.reset(s_level);
           } else if (rel_coords[s_level] ==
-                     domain.getGrid().getMinIndex(s_level)) {
+                     domain.getGrid().getMinGridPoint(s_level)) {
             move_inverse.set(s_level);
           }
           if (move_inverse.test(s_level)) {
@@ -360,9 +362,9 @@ protected:
 
     // shfdhsfhdskjhgf assert(s_level==r_level+1);
     // shfdhsfhdskjhgf
-    // assert(endRunAbsCoords[r_level]<=domain.getGrid().getMaxIndex(r_level));
+    // assert(endRunAbsCoords[r_level]<=domain.getGrid().getMaxGridPoint(r_level));
     // shfdhsfhdskjhgf
-    // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinIndex(r_level));
+    // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinGridPoint(r_level));
 
     const hrleDomainSegmentType &sl = domain.domainSegments[sub];
 
@@ -371,16 +373,17 @@ protected:
     // assert(runTypePos[r_level]<sl.getStartIndex(r_level,
     // startIndicesPos[s_level]+1));
 
-    if (endRunAbsCoords[r_level] != domain.getGrid().getMaxIndex(r_level)) {
+    if (endRunAbsCoords[r_level] != domain.getGrid().getMaxGridPoint(r_level)) {
 
       if (domain.getGrid().isBoundaryPeriodic(
               r_level)) { // periodic boundary conditions
 
         if (end_run_rel_coords[r_level] ==
-            domain.getGrid().getMaxIndex(r_level)) {
+            domain.getGrid().getMaxGridPoint(r_level)) {
           runTypePos[r_level] =
               sl.getStartIndex(r_level, startIndicesPos[s_level]);
-          start_run_rel_coords[r_level] = domain.getGrid().getMinIndex(r_level);
+          start_run_rel_coords[r_level] =
+              domain.getGrid().getMinGridPoint(r_level);
         } else {
           ++runTypePos[r_level];
           start_run_rel_coords[r_level] = end_run_rel_coords[r_level] + 1;
@@ -395,10 +398,10 @@ protected:
       } else {
 
         if (start_run_rel_coords[r_level] ==
-            domain.getGrid().getMinIndex(r_level)) {
+            domain.getGrid().getMinGridPoint(r_level)) {
           move_inverse.reset(r_level);
         } else if (end_run_rel_coords[r_level] ==
-                   domain.getGrid().getMaxIndex(r_level)) {
+                   domain.getGrid().getMaxGridPoint(r_level)) {
           move_inverse.set(r_level);
         }
 
@@ -418,7 +421,7 @@ protected:
           startRunAbsCoords[r_level] = endRunAbsCoords[r_level];
 
           if (start_run_rel_coords[r_level] ==
-              domain.getGrid().getMinIndex(r_level)) {
+              domain.getGrid().getMinGridPoint(r_level)) {
             endRunAbsCoords[r_level] +=
                 (end_run_rel_coords[r_level] - start_run_rel_coords[r_level]);
           }
@@ -439,7 +442,7 @@ protected:
           startRunAbsCoords[r_level] = endRunAbsCoords[r_level];
 
           if (end_run_rel_coords[r_level] ==
-              domain.getGrid().getMaxIndex(r_level)) {
+              domain.getGrid().getMaxGridPoint(r_level)) {
             endRunAbsCoords[r_level] +=
                 (end_run_rel_coords[r_level] - start_run_rel_coords[r_level]);
           }
@@ -448,8 +451,8 @@ protected:
 
       endRunAbsCoords[r_level] +=
           (end_run_rel_coords[r_level] - start_run_rel_coords[r_level]);
-      if (endRunAbsCoords[r_level] > domain.getGrid().getMaxIndex(r_level))
-        endRunAbsCoords[r_level] = domain.getGrid().getMaxIndex(r_level);
+      if (endRunAbsCoords[r_level] > domain.getGrid().getMaxGridPoint(r_level))
+        endRunAbsCoords[r_level] = domain.getGrid().getMaxGridPoint(r_level);
 
       // shfdhsfhdskjhgf assert(runTypePos[r_level]>=sl.getStartIndex(r_level,
       // startIndicesPos[s_level])); shfdhsfhdskjhgf
@@ -457,27 +460,27 @@ protected:
       // startIndicesPos[s_level]+1));
 
       // shfdhsfhdskjhgf
-      // assert(start_run_rel_coords[r_level]>=domain.getGrid().getMinIndex(r_level));
+      // assert(start_run_rel_coords[r_level]>=domain.getGrid().getMinGridPoint(r_level));
       // shfdhsfhdskjhgf
       // assert(start_run_rel_coords[r_level]<=end_run_rel_coords[r_level]);
       // shfdhsfhdskjhgf
-      // assert(domain.getGrid().getMaxIndex(r_level)>=end_run_rel_coords[r_level]);
+      // assert(domain.getGrid().getMaxGridPoint(r_level)>=end_run_rel_coords[r_level]);
 
       // shfdhsfhdskjhgf
-      // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinIndex(r_level));
+      // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinGridPoint(r_level));
       // shfdhsfhdskjhgf
       // assert(startRunAbsCoords[r_level]<=endRunAbsCoords[r_level]);
       // shfdhsfhdskjhgf
-      // assert(domain.getGrid().getMaxIndex(r_level)>=endRunAbsCoords[r_level]);
+      // assert(domain.getGrid().getMaxGridPoint(r_level)>=endRunAbsCoords[r_level]);
 
       if (endRunAbsCoords[r_level] - startRunAbsCoords[r_level] >
           end_run_rel_coords[r_level] - start_run_rel_coords[r_level]) {
         // shfdhsfhdskjhgf
         // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
         // shfdhsfhdskjhgf
-        // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxIndex(r_level)
+        // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
         // ||
-        // start_run_rel_coords[r_level]==domain.getGrid().getMinIndex(r_level));
+        // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
       }
 
       // shfdhsfhdskjhgf
@@ -502,9 +505,9 @@ protected:
 
     // shfdhsfhdskjhgf assert(s_level==r_level+1);
     // shfdhsfhdskjhgf
-    // assert(endRunAbsCoords[r_level]<=domain.getGrid().getMaxIndex(r_level));
+    // assert(endRunAbsCoords[r_level]<=domain.getGrid().getMaxGridPoint(r_level));
     // shfdhsfhdskjhgf
-    // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinIndex(r_level));
+    // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinGridPoint(r_level));
 
     const hrleDomainSegmentType &sl = domain.domainSegments[sub];
 
@@ -513,16 +516,18 @@ protected:
     // assert(runTypePos[r_level]<sl.getStartIndex(r_level,
     // startIndicesPos[s_level]+1));
 
-    if (startRunAbsCoords[r_level] != domain.getGrid().getMinIndex(r_level)) {
+    if (startRunAbsCoords[r_level] !=
+        domain.getGrid().getMinGridPoint(r_level)) {
 
       if (domain.getGrid().isBoundaryPeriodic(
               r_level)) { // periodic boundary conditions
 
         if (start_run_rel_coords[r_level] ==
-            domain.getGrid().getMinIndex(r_level)) {
+            domain.getGrid().getMinGridPoint(r_level)) {
           runTypePos[r_level] =
               sl.getStartIndex(r_level, startIndicesPos[s_level] + 1) - 1;
-          end_run_rel_coords[r_level] = domain.getGrid().getMaxIndex(r_level);
+          end_run_rel_coords[r_level] =
+              domain.getGrid().getMaxGridPoint(r_level);
         } else {
           --runTypePos[r_level];
           end_run_rel_coords[r_level] = start_run_rel_coords[r_level] - 1;
@@ -537,10 +542,10 @@ protected:
       } else {
 
         if (start_run_rel_coords[r_level] ==
-            domain.getGrid().getMinIndex(r_level)) {
+            domain.getGrid().getMinGridPoint(r_level)) {
           move_inverse.set(r_level);
         } else if (end_run_rel_coords[r_level] ==
-                   domain.getGrid().getMaxIndex(r_level)) {
+                   domain.getGrid().getMaxGridPoint(r_level)) {
           move_inverse.reset(r_level);
         }
 
@@ -560,7 +565,7 @@ protected:
           endRunAbsCoords[r_level] = startRunAbsCoords[r_level];
 
           if (end_run_rel_coords[r_level] ==
-              domain.getGrid().getMaxIndex(r_level)) {
+              domain.getGrid().getMaxGridPoint(r_level)) {
             startRunAbsCoords[r_level] -=
                 (end_run_rel_coords[r_level] - start_run_rel_coords[r_level]);
           }
@@ -581,7 +586,7 @@ protected:
           endRunAbsCoords[r_level] = startRunAbsCoords[r_level];
 
           if (start_run_rel_coords[r_level] ==
-              domain.getGrid().getMinIndex(r_level)) {
+              domain.getGrid().getMinGridPoint(r_level)) {
             startRunAbsCoords[r_level] -=
                 (end_run_rel_coords[r_level] - start_run_rel_coords[r_level]);
           }
@@ -590,8 +595,9 @@ protected:
 
       startRunAbsCoords[r_level] -=
           (end_run_rel_coords[r_level] - start_run_rel_coords[r_level]);
-      if (startRunAbsCoords[r_level] < domain.getGrid().getMinIndex(r_level))
-        startRunAbsCoords[r_level] = domain.getGrid().getMinIndex(r_level);
+      if (startRunAbsCoords[r_level] <
+          domain.getGrid().getMinGridPoint(r_level))
+        startRunAbsCoords[r_level] = domain.getGrid().getMinGridPoint(r_level);
 
       // shfdhsfhdskjhgf assert(runTypePos[r_level]>=sl.getStartIndex(r_level,
       // startIndicesPos[s_level])); shfdhsfhdskjhgf
@@ -599,27 +605,27 @@ protected:
       // startIndicesPos[s_level]+1));
 
       // shfdhsfhdskjhgf
-      // assert(start_run_rel_coords[r_level]>=domain.getGrid().getMinIndex(r_level));
+      // assert(start_run_rel_coords[r_level]>=domain.getGrid().getMinGridPoint(r_level));
       // shfdhsfhdskjhgf
       // assert(start_run_rel_coords[r_level]<=end_run_rel_coords[r_level]);
       // shfdhsfhdskjhgf
-      // assert(domain.getGrid().getMaxIndex(r_level)>=end_run_rel_coords[r_level]);
+      // assert(domain.getGrid().getMaxGridPoint(r_level)>=end_run_rel_coords[r_level]);
 
       // shfdhsfhdskjhgf
-      // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinIndex(r_level));
+      // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinGridPoint(r_level));
       // shfdhsfhdskjhgf
       // assert(startRunAbsCoords[r_level]<=endRunAbsCoords[r_level]);
       // shfdhsfhdskjhgf
-      // assert(domain.getGrid().getMaxIndex(r_level)>=endRunAbsCoords[r_level]);
+      // assert(domain.getGrid().getMaxGridPoint(r_level)>=endRunAbsCoords[r_level]);
 
       if (endRunAbsCoords[r_level] - startRunAbsCoords[r_level] >
           end_run_rel_coords[r_level] - start_run_rel_coords[r_level]) {
         // shfdhsfhdskjhgf
         // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
         // shfdhsfhdskjhgf
-        // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxIndex(r_level)
+        // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
         // ||
-        // start_run_rel_coords[r_level]==domain.getGrid().getMinIndex(r_level));
+        // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
       }
 
       // shfdhsfhdskjhgf
@@ -655,9 +661,9 @@ public:
                          bool reverse = false)
       : hrleBaseIterator<hrleDomain>(passedDomain), offset(o) {
     if (reverse) {
-      goToIndices(domain.getGrid().getMaxIndex());
+      goToIndices(domain.getGrid().getMaxGridPoint());
     } else {
-      goToIndices(domain.getGrid().getMinIndex());
+      goToIndices(domain.getGrid().getMinGridPoint());
     }
   }
 
@@ -679,8 +685,8 @@ public:
       go_up_BA();
       // shfdhsfhdskjhgf assert(it.r_level==it.s_level);
       if (r_level == D) {
-        absCoords =
-            domain.getGrid().incrementIndices(domain.getGrid().getMaxIndex());
+        absCoords = domain.getGrid().incrementIndices(
+            domain.getGrid().getMaxGridPoint());
         endAbsCoords = absCoords; // TODO
         // it.startIndicesPos[D]=it.l.num_pts();
         return *this;
@@ -688,7 +694,7 @@ public:
     }
 
     while (r_level == s_level && s_level > 0) {
-      const hrleIndexType c = domain.getGrid().getMinIndex(r_level - 1);
+      const hrleIndexType c = domain.getGrid().getMinGridPoint(r_level - 1);
       // go_down_AB(c);
       go_down_AB_first();
       go_down_BA(c);
@@ -720,15 +726,15 @@ public:
       go_up_BA();
       // shfdhsfhdskjhgf assert(it.r_level==it.s_level);
       if (r_level == D) {
-        absCoords =
-            domain.getGrid().decrementIndices(domain.getGrid().getMinIndex());
+        absCoords = domain.getGrid().decrementIndices(
+            domain.getGrid().getMinGridPoint());
         endAbsCoords = absCoords; // TODO
         return *this;
       }
     }
 
     while (r_level == s_level && s_level > 0) {
-      const hrleIndexType c = domain.getGrid().getMaxIndex(r_level - 1);
+      const hrleIndexType c = domain.getGrid().getMaxGridPoint(r_level - 1);
       // go_down_AB(c);
       go_down_AB_last();
       go_down_BA(c);
@@ -803,14 +809,14 @@ public:
     // shfdhsfhdskjhgf assert(!it.isFinished());
 
     for (int h = 0; h < r_level; ++h) {
-      absCoords[h] = domain.getGrid().getMinIndex(h);
-      endAbsCoords[h] = domain.getGrid().getMaxIndex(h);
+      absCoords[h] = domain.getGrid().getMinGridPoint(h);
+      endAbsCoords[h] = domain.getGrid().getMaxGridPoint(h);
     }
 
     // TODO initialize absCoords
   }
 
-  const hrleVectorType<hrleIndexType, D> get_offset() const { return offset; }
+  const hrleVectorType<hrleIndexType, D> getOffset() const { return offset; }
 };
 
 // typedef for const iterator

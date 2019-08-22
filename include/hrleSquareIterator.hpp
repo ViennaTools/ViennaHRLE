@@ -22,6 +22,7 @@ template <class hrleDomain> class hrleSquareIterator {
   const hrleIndexType sideLength;
   const hrleIndexType sliceArea;
   const hrleIndexType centerIndex;
+  hrleVectorType<hrleIndexType, D> currentCoords;
   std::vector<hrleOffsetRunsIterator<hrleDomain>> neighborIterators;
 
   bool isDefined() const {
@@ -96,7 +97,8 @@ public:
                      const unsigned passedOrder = 1)
       : domain(passedDomain), order(passedOrder),
         sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
-        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))) {
+        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
+        currentCoords(v) {
 
     initializeNeigbors(v);
   }
@@ -104,7 +106,8 @@ public:
   hrleSquareIterator(hrleDomain &passedDomain, const unsigned passedOrder = 1)
       : domain(passedDomain), order(passedOrder),
         sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
-        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))) {
+        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
+        currentCoords(domain.getGrid().getMinGridPoint()) {
 
     initializeNeigbors(passedDomain.getGrid().getMinIndex());
   }
@@ -144,6 +147,8 @@ public:
     for (int i = 0; i < numNeighbors; i++)
       if (increment[i])
         neighborIterators[i].next();
+
+    currentCoords = domain.getGrid().incrementIndices(end_coords);
   }
 
   void previous() {
@@ -170,6 +175,8 @@ public:
     for (int i = 0; i < numNeighbors; i++)
       if (decrement[i])
         neighborIterators[i].previous();
+
+    currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
   hrleOffsetRunsIterator<hrleDomain> &getNeighbor(int index) {
@@ -188,6 +195,8 @@ public:
   hrleOffsetRunsIterator<hrleDomain> &getCenter() {
     return neighborIterators[centerIndex];
   }
+
+  const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
 
   bool isFinished() const { return getCenter().isFinished(); }
 };
