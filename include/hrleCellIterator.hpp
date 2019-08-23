@@ -37,8 +37,7 @@ template <class hrleDomain> class hrleCellIterator {
 
 public:
   hrleCellIterator(hrleDomain &passedDomain,
-                   const hrleVectorType<hrleIndexType, D> &v,
-                   const unsigned passedOrder = 1)
+                   const hrleVectorType<hrleIndexType, D> &v)
       : domain(passedDomain), currentCoords(v) {
 
     initialize(v);
@@ -46,7 +45,7 @@ public:
       next();
   }
 
-  hrleCellIterator(hrleDomain &passedDomain, const unsigned passedOrder = 1)
+  hrleCellIterator(hrleDomain &passedDomain)
       : domain(passedDomain),
         currentCoords(domain.getGrid().getMinGridPoint()) {
 

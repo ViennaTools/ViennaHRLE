@@ -63,8 +63,8 @@ public:
   hrleCrossIterator(hrleDomain &passedDomain,
                     const hrleVectorType<hrleIndexType, D> &v,
                     const unsigned passedOrder = 1)
-      : domain(passedDomain), order(passedOrder),
-        centerIterator(passedDomain, v), currentCoords(v) {
+      : domain(passedDomain), order(passedOrder), currentCoords(v),
+        centerIterator(passedDomain, v) {
 
     initializeNeigbors(v);
   }

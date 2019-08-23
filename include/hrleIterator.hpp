@@ -110,7 +110,7 @@ public:
   // start
   bool previous() {
     // if min index is reached, iterator is done
-    if (compare(currentIndices, domain.getGrid(),getMinBounds()) < 0) {
+    if (compare(currentIndices, domain.getGrid().getMinBounds()) < 0) {
       return false;
     }
     ++(*this);
