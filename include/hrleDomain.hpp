@@ -159,6 +159,22 @@ public:
     return maxBreak;
   }
 
+  hrleVectorType<hrleIndexType, D> getMinRunBreak() const {
+    hrleVectorType<hrleIndexType, D> minBreak;
+    for (unsigned i = 0; i < D; ++i) {
+      minBreak[i] = getMinRunBreak(i);
+    }
+    return minBreak;
+  }
+
+  hrleVectorType<hrleIndexType, D> getMaxRunBreak() const {
+    hrleVectorType<hrleIndexType, D> maxBreak;
+    for (unsigned i = 0; i < D; ++i) {
+      maxBreak[i] = getMaxRunBreak(i);
+    }
+    return maxBreak;
+  }
+
   void getDomainBounds(hrleIndexType *bounds) {
     for (unsigned i = 0; i < D; ++i) {
       if (grid->getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||

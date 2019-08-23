@@ -18,13 +18,41 @@ template <class hrleDomain> class hrleIterator {
   hrleRunsIterator<hrleDomain> runsIterator;
   hrleVectorType<hrleIndexType, D> currentIndices;
 
+  void incrementIndices(hrleVectorType<hrleIndexType, D> &v) {
+    int dim = 0;
+    for (; dim < D - 1; ++dim) {
+      bool posInfinite = domain.getGrid().isPosBoundaryInfinite(dim);
+      bool negInfinite = domain.getGrid().isNegBoundaryInfinite(dim);
+      if (v[dim] < (posInfinite ? domain.getMaxRunBreak(dim)
+                                : domain.getGrid().getMaxGridPoint(dim)))
+        break;
+      v[dim] = (negInfinite ? domain.getMinRunBreak(dim)
+                            : domain.getGrid().getMinGridPoint(dim));
+    }
+    ++v[dim];
+  }
+
+  void decrementIndices(hrleVectorType<hrleIndexType, D> &v) {
+    int dim = 0;
+    for (; dim < D - 1; ++dim) {
+      bool posInfinite = domain.getGrid().isPosBoundaryInfinite(dim);
+      bool negInfinite = domain.getGrid().isNegBoundaryInfinite(dim);
+      if (v[dim] > (negInfinite ? domain.getMinRunBreak(dim)
+                                : domain.getGrid().getMinGridPoint(dim)))
+        break;
+      v[dim] = (posInfinite ? domain.getMaxRunBreak(dim)
+                            : domain.getGrid().getMaxGridPoint(dim));
+    }
+    --v[dim];
+  }
+
 public:
   hrleIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain), runsIterator(passedDomain, reverse) {
     if (reverse)
-      currentIndices = passedDomain.getGrid().getMaxGridPoint();
+      currentIndices = domain.getGrid().getMaxBounds();
     else
-      currentIndices = passedDomain.getGrid().getMinGridPoint();
+      currentIndices = domain.getGrid().getMinBounds();
   }
 
   template <class V>
@@ -39,7 +67,7 @@ public:
       if (!runsIterator.isFinished())
         runsIterator.next();
     default:
-      currentIndices = domain.getGrid().incrementIndices(currentIndices);
+      incrementIndices(currentIndices);
     }
     return *this;
   }
@@ -58,7 +86,7 @@ public:
       if (!runsIterator.isFinished())
         runsIterator.previous();
     default:
-      currentIndices = domain.getGrid().decrementIndices(currentIndices);
+      decrementIndices(currentIndices);
     }
     return *this;
   }
@@ -82,7 +110,7 @@ public:
   // start
   bool previous() {
     // if min index is reached, iterator is done
-    if (compare(currentIndices, domain.getGrid().getMinGridPoint()) < 0) {
+    if (compare(currentIndices, domain.getGrid(),getMinBounds()) < 0) {
       return false;
     }
     ++(*this);
@@ -95,7 +123,7 @@ public:
   }
 
   bool isFinished() {
-    if (compare(currentIndices, domain.getGrid().getMaxGridPoint()) > 0) {
+    if (compare(currentIndices, domain.getGrid().getMaxBounds()) > 0) {
       return true;
     } else {
       return false;

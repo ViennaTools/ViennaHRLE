@@ -49,19 +49,21 @@ void hrleFillDomainWithSignedDistance(
   hrleVectorType<bool, D> signs(pointDataBegin->second < 0);
 
   while (pointDataIt != pointDataEnd) {
+    if (pointDataIt->first <= newDomain.getGrid().getMaxBounds() &&
+        pointDataIt->first >= newDomain.getGrid().getMinBounds()) {
+      // Add defined point as it appears in the list
+      newDomain.insertNextDefinedPoint(0, pointDataIt->first,
+                                       pointDataIt->second);
 
-    // Add defined point as it appears in the list
-    newDomain.insertNextDefinedPoint(0, pointDataIt->first,
-                                     pointDataIt->second);
-
-    // determine signs for next undefined runs
-    {
-      bool changeSign = false;
-      for (int i = D - 1; i >= 0; --i) {
-        changeSign = changeSign || (pointDataIt->first[i] > currentIndex[i]);
-        if (changeSign) {
-          signs[i] = pointDataIt->second < 0;
-          currentIndex[i] = pointDataIt->first[i];
+      // determine signs for next undefined runs
+      {
+        bool changeSign = false;
+        for (int i = D - 1; i >= 0; --i) {
+          changeSign = changeSign || (pointDataIt->first[i] > currentIndex[i]);
+          if (changeSign) {
+            signs[i] = pointDataIt->second < 0;
+            currentIndex[i] = pointDataIt->first[i];
+          }
         }
       }
     }

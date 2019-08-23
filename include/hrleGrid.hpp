@@ -44,6 +44,8 @@ private:
                          // conditions in direction k,
                          // maxGridPointCoord[k]=max[k]-1 holds
 
+  hrleVectorType<hrleIndexType, D> minBounds, maxBounds;
+
   hrleVectorType<bool, D>
       parities; // here the parities of the grid are stored, the parity is
                 // false if the grid_position function is strictly monotonic
@@ -79,6 +81,8 @@ public:
       maxGridPointCoord[i] = max[i];
       minIndex[i] = min[i];
       maxIndex[i] = max[i];
+      minBounds[i] = min[i];
+      maxBounds[i] = max[i];
 
       if ((boundaryConditions[i] == INFINITE_BOUNDARY) ||
           (boundaryConditions[i] == NEG_INFINITE_BOUNDARY)) {
@@ -90,8 +94,10 @@ public:
         maxGridPointCoord[i] = INF_EXTENSION;
         maxIndex[i] = INF_EXTENSION;
       }
-      if (boundaryConditions[i] == PERIODIC_BOUNDARY)
+      if (boundaryConditions[i] == PERIODIC_BOUNDARY) {
         maxGridPointCoord[i]--;
+        maxBounds[i]--;
+      }
     }
     indexExtension = maxIndex - minIndex;
 
@@ -207,6 +213,22 @@ public:
   /// periodic BNCs
   inline const hrleVectorType<hrleIndexType, D> &getMinGridPoint() const {
     return minGridPointCoord;
+  }
+
+  const hrleVectorType<hrleIndexType, D> &getMinBounds(int dim) const {
+    return minBounds[dim];
+  }
+
+  const hrleVectorType<hrleIndexType, D> &getMaxBounds(int dim) const {
+    return maxBounds[dim];
+  }
+
+  const hrleVectorType<hrleIndexType, D> &getMinBounds() const {
+    return minBounds;
+  }
+
+  const hrleVectorType<hrleIndexType, D> &getMaxBounds() const {
+    return maxBounds;
   }
 
   /// returns whether the point v is at infinity in any dimension
