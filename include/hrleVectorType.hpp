@@ -328,13 +328,13 @@ inline T CrossProduct(const hrleVectorType<T, 2> &v1,
 
 template <int D, class T>
 inline hrleVectorType<T, D> Normalize(const hrleVectorType<T, D> &v) {
-  T n = Normalize(v);
+  T n = Norm(v);
   if (n <= 0.)
     return hrleVectorType<T, D>(T(0));
   return v / n;
 }
 
-template <int D, class T> inline T Normalize(const hrleVectorType<T, D> &v) {
+template <int D, class T> inline T Norm(const hrleVectorType<T, D> &v) {
   T max = std::abs(v[0]);
   for (int i = 1; i < D; i++)
     max = std::max(max, std::abs(v[i]));
