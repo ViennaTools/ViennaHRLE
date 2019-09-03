@@ -329,6 +329,24 @@ public:
     return true;
   }
 
+  /// Advances the iterator to position v.
+  /// If v is lexicographically higher than the current position
+  /// the iterator will be moved back to v.
+  /// If v is lexicographically smaller than the current position
+  /// then the iterator will be moved until it reaches v
+  template<class V>
+  void goToIndicesSequential(const V &v){
+    if(v >= absCoords){
+      while(v > endAbsCoords){
+        ++(*this);
+      }
+    }else{
+      while(v < absCoords){
+        --(*this);
+      }
+    }
+  }
+
   template <class V> void goToIndices(const V &v) {
     goToIndices(0, v); // TODO
     int s = hrleBaseIterator<hrleDomain>::getSegmentId();

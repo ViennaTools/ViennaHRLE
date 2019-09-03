@@ -172,6 +172,37 @@ public:
 
   bool isFinished() const { return centerIterator.isFinished(); }
 
+  /// Sets the iterator to position v.
+  /// Uses random access to move, so it is be slower
+  /// than goToIndicesSequential for repeated serial calls.
+  template<class V>
+  void goToIndices(V &v){
+    centerIterator.goToIndices(v);
+    for (int i = 0; i < int(order); ++i) {
+      for (int j = 0; j < 2 * D; ++j) {
+        neighborIterators.goToIndices(v);
+      }
+    }
+  }
+
+  /// Advances the iterator to position v.
+  /// If v is lexicographically higher than the current position
+  /// the iterator will be moved back to v.
+  /// If v is lexicographically smaller than the current position
+  /// then the iterator will be moved until it reaches v
+  template<class V>
+  void goToIndicesSequential(const V &v){
+    if(v >= currentCoords){
+      while(v > currentCoords){
+        next();
+      }
+    }else{
+      while(v < currentCoords){
+        previous();
+      }
+    }
+  }
+
   // const hrleVectorType<hrleIndexType, D> &getStartIndices() const {
   //   return startCoords;
   // }
