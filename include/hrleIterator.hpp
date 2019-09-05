@@ -17,6 +17,8 @@ template <class hrleDomain> class hrleIterator {
   hrleDomain &domain;
   hrleRunsIterator<hrleDomain> runsIterator;
   hrleVectorType<hrleIndexType, D> currentIndices;
+  hrleVectorType<hrleIndexType, D> minIndex;
+  hrleVectorType<hrleIndexType, D> maxIndex;
 
   void incrementIndices(hrleVectorType<hrleIndexType, D> &v) {
     int dim = 0;
@@ -49,10 +51,15 @@ template <class hrleDomain> class hrleIterator {
 public:
   hrleIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain), runsIterator(passedDomain, reverse) {
+    auto &grid = domain.getGrid();
+    for(unsigned i=0; i<D; ++i){
+      minIndex[i] = (grid.isNegBoundaryInfinite(i))?domain.getMinRunBreak(i):grid.getMinBounds(i);
+      maxIndex[i] = (grid.isPosBoundaryInfinite(i))?domain.getMaxRunBreak(i):grid.getMaxBounds(i);
+    }
     if (reverse)
-      currentIndices = domain.getGrid().getMaxBounds();
+      currentIndices = maxIndex;
     else
-      currentIndices = domain.getGrid().getMinBounds();
+      currentIndices = minIndex;
   }
 
   template <class V>
@@ -110,7 +117,7 @@ public:
   // start
   bool previous() {
     // if min index is reached, iterator is done
-    if (compare(currentIndices, domain.getGrid().getMinBounds()) < 0) {
+    if (compare(minIndex) < 0) {
       return false;
     }
     ++(*this);
@@ -123,7 +130,7 @@ public:
   }
 
   bool isFinished() {
-    if (compare(currentIndices, domain.getGrid().getMaxBounds()) > 0) {
+    if (compare(currentIndices, maxIndex) > 0) {
       return true;
     } else {
       return false;
