@@ -70,8 +70,9 @@ public:
   }
 
   hrleCrossIterator(hrleDomain &passedDomain, const unsigned passedOrder = 1)
-      : domain(passedDomain), order(passedOrder), centerIterator(passedDomain),
-        currentCoords(domain.getGrid().getMinGridPoint()) {
+      : domain(passedDomain), order(passedOrder),
+        currentCoords(domain.getGrid().getMinGridPoint()),
+        centerIterator(passedDomain) {
 
     initializeNeigbors(passedDomain.getGrid().getMinIndex());
   }
@@ -175,12 +176,11 @@ public:
   /// Sets the iterator to position v.
   /// Uses random access to move, so it is be slower
   /// than goToIndicesSequential for repeated serial calls.
-  template<class V>
-  void goToIndices(V &v){
+  template <class V> void goToIndices(V &v) {
     centerIterator.goToIndices(v);
     for (int i = 0; i < int(order); ++i) {
       for (int j = 0; j < 2 * D; ++j) {
-        neighborIterators.goToIndices(v);
+        neighborIterators[j].goToIndices(v);
       }
     }
   }
@@ -190,14 +190,13 @@ public:
   /// the iterator will be moved back to v.
   /// If v is lexicographically smaller than the current position
   /// then the iterator will be moved until it reaches v
-  template<class V>
-  void goToIndicesSequential(const V &v){
-    if(v >= currentCoords){
-      while(v > currentCoords){
+  template <class V> void goToIndicesSequential(const V &v) {
+    if (v >= currentCoords) {
+      while (v > currentCoords) {
         next();
       }
-    }else{
-      while(v < currentCoords){
+    } else {
+      while (v < currentCoords) {
         previous();
       }
     }

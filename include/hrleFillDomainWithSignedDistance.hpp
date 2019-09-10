@@ -53,10 +53,11 @@ void hrleFillDomainWithSignedDistance(
 
     // if boundary conditions are infinite always set the point
     // if not, check, whether it is inside of domain
-    for(unsigned i=0; i<D; ++i){
-      if(grid.getBoundaryConditions(i) != hrleGrid<D>::INFINITE_BOUNDARY){
-        if(pointDataIt->first[i] > grid.getMaxBounds(i) ||
-           pointDataIt->first < grid.getMinBounds()) setPoint=false;
+    for (unsigned i = 0; i < D; ++i) {
+      if (grid.getBoundaryConditions(i) != hrleGrid<D>::INFINITE_BOUNDARY) {
+        if (pointDataIt->first[i] > grid.getMaxBounds(i) ||
+            pointDataIt->first < grid.getMinBounds())
+          setPoint = false;
       }
     }
 

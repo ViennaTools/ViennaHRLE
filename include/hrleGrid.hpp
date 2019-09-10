@@ -215,13 +215,9 @@ public:
     return minGridPointCoord;
   }
 
-  hrleIndexType getMinBounds(int dim) const {
-    return minBounds[dim];
-  }
+  hrleIndexType getMinBounds(int dim) const { return minBounds[dim]; }
 
-  hrleIndexType getMaxBounds(int dim) const {
-    return maxBounds[dim];
-  }
+  hrleIndexType getMaxBounds(int dim) const { return maxBounds[dim]; }
 
   const hrleVectorType<hrleIndexType, D> &getMinBounds() const {
     return minBounds;

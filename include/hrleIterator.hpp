@@ -52,9 +52,11 @@ public:
   hrleIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain), runsIterator(passedDomain, reverse) {
     auto &grid = domain.getGrid();
-    for(unsigned i=0; i<D; ++i){
-      minIndex[i] = (grid.isNegBoundaryInfinite(i))?domain.getMinRunBreak(i):grid.getMinBounds(i);
-      maxIndex[i] = (grid.isPosBoundaryInfinite(i))?domain.getMaxRunBreak(i):grid.getMaxBounds(i);
+    for (unsigned i = 0; i < D; ++i) {
+      minIndex[i] = (grid.isNegBoundaryInfinite(i)) ? domain.getMinRunBreak(i)
+                                                    : grid.getMinBounds(i);
+      maxIndex[i] = (grid.isPosBoundaryInfinite(i)) ? domain.getMaxRunBreak(i)
+                                                    : grid.getMaxBounds(i);
     }
     if (reverse)
       currentIndices = maxIndex;

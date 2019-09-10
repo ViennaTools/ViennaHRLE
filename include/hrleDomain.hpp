@@ -121,9 +121,7 @@ public:
     return domainSegments[i];
   }
 
-  hrleSizeType getPointIdOffset(unsigned i) const {
-    return pointIdOffsets[i];
-  }
+  hrleSizeType getPointIdOffset(unsigned i) const { return pointIdOffsets[i]; }
 
   unsigned getNumberOfPoints() const {
     unsigned totalPoints = 0;
