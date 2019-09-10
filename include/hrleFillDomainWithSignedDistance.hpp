@@ -56,7 +56,7 @@ void hrleFillDomainWithSignedDistance(
     for (unsigned i = 0; i < D; ++i) {
       if (grid.getBoundaryConditions(i) != hrleGrid<D>::INFINITE_BOUNDARY) {
         if (pointDataIt->first[i] > grid.getMaxBounds(i) ||
-            pointDataIt->first < grid.getMinBounds())
+            pointDataIt->first[i] < grid.getMinBounds(i))
           setPoint = false;
       }
     }
