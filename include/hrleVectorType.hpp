@@ -351,7 +351,7 @@ template <int D, class T> inline T Norm(const hrleVectorType<T, D> &v) {
 template <int D, class T>
 inline T Norm2(
     const hrleVectorType<T, D> &v) { // squared l2 norm TODO name is misleading
-  return Dot(v, v);
+  return DotProduct(v, v);
 }
 
 template <int D, class T>
