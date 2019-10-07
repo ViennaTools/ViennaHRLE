@@ -53,7 +53,7 @@ template <class hrleDomain> class hrleSquareIterator {
     return coordinate;
   }
 
-  template <class V> hrleIndexType coordinateToIndex(const V &coordinate) {
+  template <class V> hrleIndexType coordinateToIndex(V coordinate) {
     // shift to the middle
     for (unsigned i = 0; i < D; ++i)
       coordinate[i] += order;
@@ -199,7 +199,7 @@ public:
   const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
 
   unsigned getSize(){
-    return numNeighbors;
+    return neighborIterators.size();
   }
 
   bool isFinished() const { return getCenter().isFinished(); }
@@ -208,7 +208,8 @@ public:
   /// Uses random access to move, so it is be slower
   /// than goToIndicesSequential for repeated serial calls.
   template <class V> void goToIndices(V &v) {
-    centerIterator.goToIndices(v);
+    const unsigned numNeighbors = neighborIterators.size();
+    getCenter().goToIndices(v);
     for (int i = 0; i < int(order); ++i) {
       for (int j = 0; j < numNeighbors; ++j) {
         neighborIterators[j].goToIndices(v);
