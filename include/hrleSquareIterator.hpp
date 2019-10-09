@@ -35,7 +35,7 @@ template <class hrleDomain> class hrleSquareIterator {
     return false;
   }
 
-  hrleVectorType<hrleIndexType, D> indexToCoordinate(hrleIndexType index) {
+    hrleVectorType<hrleIndexType, D> indexToCoordinate(hrleIndexType index) const {
     hrleVectorType<hrleIndexType, D> coordinate;
 
     if (D > 2) {
@@ -53,7 +53,7 @@ template <class hrleDomain> class hrleSquareIterator {
     return coordinate;
   }
 
-  template <class V> hrleIndexType coordinateToIndex(V coordinate) {
+  template <class V> hrleIndexType coordinateToIndex(V coordinate) const {
     // shift to the middle
     for (unsigned i = 0; i < D; ++i)
       coordinate[i] += order;
