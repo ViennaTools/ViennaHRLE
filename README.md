@@ -5,7 +5,7 @@ ViennaHRLE is a header-only C++ library for storing sparse spatial data efficien
 IMPORTANT NOTE: ViennaHRLE is under heavy development and improved daily. If you do have suggestions or find bugs, please let us know!
 
 ## Support
-For help with getting started, have a look at the [Examples](https://github.com/viennahrle/viennahrle/tree/master/Examples).
+For help with getting started, have a look at the [Examples](https://github.com/ViennaTools/viennahrle/tree/master/Examples).
 
 Bug reports and suggestions should be filed on GitHub.
 
@@ -13,7 +13,7 @@ Bug reports and suggestions should be filed on GitHub.
 If you want to contribute to ViennaHRLE, make sure to follow the [LLVM Coding guidelines](https://llvm.org/docs/CodingStandards.html). Before creating a pull request, make sure ALL files have been formatted by clang-format, which can be done using the format-project.sh script in the root directory.
 
 ## Releases
-Releases are tagged on the maser branch and available in the [releases section](https://github.com/viennahrle/viennahrle/releases).
+Releases are tagged on the maser branch and available in the [releases section](https://github.com/ViennaTools/viennahrle/releases).
 
 ## Building
 
