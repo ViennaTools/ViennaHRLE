@@ -22,6 +22,7 @@ template <class hrleDomain> class hrleSquareIterator {
   const hrleIndexType sideLength;
   const hrleIndexType sliceArea;
   const hrleIndexType centerIndex;
+  hrleVectorType<hrleIndexType, D> currentCoords;
   std::vector<hrleOffsetRunsIterator<hrleDomain>> neighborIterators;
 
   bool isDefined() const {
@@ -34,7 +35,7 @@ template <class hrleDomain> class hrleSquareIterator {
     return false;
   }
 
-  hrleVectorType<hrleIndexType, D> indexToCoordinate(hrleIndexType index) {
+    hrleVectorType<hrleIndexType, D> indexToCoordinate(hrleIndexType index) const {
     hrleVectorType<hrleIndexType, D> coordinate;
 
     if (D > 2) {
@@ -52,7 +53,7 @@ template <class hrleDomain> class hrleSquareIterator {
     return coordinate;
   }
 
-  hrleIndexType coordinateToIndex(hrleVectorType<hrleIndexType, D> coordinate) {
+  template <class V> hrleIndexType coordinateToIndex(V coordinate) const {
     // shift to the middle
     for (unsigned i = 0; i < D; ++i)
       coordinate[i] += order;
@@ -96,7 +97,8 @@ public:
                      const unsigned passedOrder = 1)
       : domain(passedDomain), order(passedOrder),
         sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
-        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))) {
+        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
+        currentCoords(v) {
 
     initializeNeigbors(v);
   }
@@ -104,7 +106,8 @@ public:
   hrleSquareIterator(hrleDomain &passedDomain, const unsigned passedOrder = 1)
       : domain(passedDomain), order(passedOrder),
         sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
-        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))) {
+        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
+        currentCoords(domain.getGrid().getMinGridPoint()) {
 
     initializeNeigbors(passedDomain.getGrid().getMinIndex());
   }
@@ -144,6 +147,8 @@ public:
     for (int i = 0; i < numNeighbors; i++)
       if (increment[i])
         neighborIterators[i].next();
+
+    currentCoords = domain.getGrid().incrementIndices(end_coords);
   }
 
   void previous() {
@@ -170,6 +175,8 @@ public:
     for (int i = 0; i < numNeighbors; i++)
       if (decrement[i])
         neighborIterators[i].previous();
+
+    currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
   hrleOffsetRunsIterator<hrleDomain> &getNeighbor(int index) {
@@ -189,7 +196,43 @@ public:
     return neighborIterators[centerIndex];
   }
 
+  const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
+
+  unsigned getSize(){
+    return neighborIterators.size();
+  }
+
   bool isFinished() const { return getCenter().isFinished(); }
+
+  /// Sets the iterator to position v.
+  /// Uses random access to move, so it is be slower
+  /// than goToIndicesSequential for repeated serial calls.
+  template <class V> void goToIndices(V &v) {
+    const unsigned numNeighbors = neighborIterators.size();
+    getCenter().goToIndices(v);
+    for (int i = 0; i < int(order); ++i) {
+      for (int j = 0; j < numNeighbors; ++j) {
+        neighborIterators[j].goToIndices(v);
+      }
+    }
+  }
+
+  /// Advances the iterator to position v.
+  /// If v is lexicographically higher than the current position
+  /// the iterator will be moved back to v.
+  /// If v is lexicographically smaller than the current position
+  /// then the iterator will be moved until it reaches v
+  template <class V> void goToIndicesSequential(const V &v) {
+    if (v >= currentCoords) {
+      while (v > currentCoords) {
+        next();
+      }
+    } else {
+      while (v < currentCoords) {
+        previous();
+      }
+    }
+  }
 };
 
 template <class hrleDomain>
