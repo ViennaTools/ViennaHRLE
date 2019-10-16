@@ -29,8 +29,8 @@ License:         MIT (X11), see file LICENSE in the base directory
 
 #include "hrleAllocationType.hpp"
 #include "hrleDomainSegmentArray.hpp"
-#include "hrleRunsIterator.hpp"
 #include "hrleSizeType.hpp"
+#include "hrleSparseIterator.hpp"
 #include "hrleVectorType.hpp"
 
 static constexpr unsigned int lvlset_omp_max_num_threads = 1000;
@@ -64,8 +64,8 @@ private:
   // Friend classes
   // Iterators need private access to get the values
   template <class> friend class hrleBaseIterator;
-  template <class> friend class hrleRunsIterator;
-  template <class> friend class hrleOffsetRunsIterator;
+  template <class> friend class hrleSparseIterator;
+  template <class> friend class hrleSparseOffsetIterator;
   // reader and writer need private acces for runtypes/runbreaks/etc
   template <class> friend class hrleDomainWriter;
   template <class> friend class hrleDomainReader;
@@ -75,14 +75,14 @@ public:
   hrleDomain(){};
 
   // create empty level set with one undefined run
-  hrleDomain(hrleGrid<D> &g, T runType = hrleRunTypeValues::UNDEF_PT)
+  hrleDomain(hrleGrid<D> &g, hrleSizeType runType = hrleRunTypeValues::UNDEF_PT)
       : grid(&g) {
     initialize();
     domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
     // finalize();
   };
 
-  hrleDomain(hrleGrid<D> *g, T runType = hrleRunTypeValues::UNDEF_PT)
+  hrleDomain(hrleGrid<D> *g, hrleSizeType runType = hrleRunTypeValues::UNDEF_PT)
       : grid(g) {
     initialize();
     domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
@@ -390,7 +390,7 @@ public:
 #endif
 
       hrleDomainSegmentType &s = newDomain.domainSegments[p];
-      hrleConstRunsIterator<hrleDomain> it(
+      hrleConstSparseIterator<hrleDomain> it(
           *this,
           (p == 0) ? grid->getMinIndex() : newDomain.segmentation[p - 1]);
 
@@ -420,7 +420,7 @@ public:
       newDomain.initialize(); // initialize with only one segment
 
       hrleDomainSegmentType &s = newDomain.domainSegments[0];
-      for (hrleConstRunsIterator<hrleDomain> it(*this); !it.isFinished();
+      for (hrleConstSparseIterator<hrleDomain> it(*this); !it.isFinished();
            ++it) {
         if (it.isDefined()) {
           s.insertNextDefinedPoint(it.getStartIndices(), it.getDefinedValue());

@@ -1,6 +1,6 @@
+#include <hrleDenseIterator.hpp>
 #include <hrleFillDomainFromPointList.hpp>
-#include <hrleIterator.hpp>
-#include <hrleRunsIterator.hpp>
+#include <hrleSparseIterator.hpp>
 #include <iostream>
 #include <string>
 
@@ -47,7 +47,7 @@ int main() {
     p = omp_get_thread_num();
 #endif
     // define iterator starting at the corresponding domainSegment
-    hrleRunsIterator<hrleDomain<char, D>> it(
+    hrleSparseIterator<hrleDomain<char, D>> it(
         data, (p == 0) ? grid.getMinIndex() : data.getSegmentation()[p - 1]);
     // store the end of the domainSegment
     hrleVectorType<hrleIndexType, D> endOfSegment =
@@ -61,7 +61,7 @@ int main() {
     }
   }
 
-  hrleConstIterator<hrleDomain<char, D>> pit(data);
+  hrleConstDenseIterator<hrleDomain<char, D>> pit(data);
   int y = data.getGrid().getMinIndex(1);
   while (!pit.isFinished()) {
     if (y < pit.getIndex(1)) {

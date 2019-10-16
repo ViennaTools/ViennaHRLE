@@ -3,15 +3,15 @@
 
 #include <cassert>
 
-#include "hrleOffsetRunsIterator.hpp"
-#include "hrleRunsIterator.hpp"
+#include "hrleSparseIterator.hpp"
+#include "hrleSparseOffsetIterator.hpp"
 
-/// This neighbor iterator consists of 2*Dimensions hrleOffsetRunsIterator s
-/// for the cartesian neighbors and an hrleRunsIterator
+/// This neighbor iterator consists of 2*Dimensions hrleSparseOffsetIterator s
+/// for the cartesian neighbors and an hrleSparseIterator
 /// for the center.
 /// Whenever one of these (2*Dimensions+1) iterators reach a defined grid point,
 /// the iterator stops.
-template <class hrleDomain> class hrleCrossIterator {
+template <class hrleDomain> class hrleSparseStarIterator {
 
   typedef typename std::conditional<std::is_const<hrleDomain>::value,
                                     const typename hrleDomain::hrleValueType,
@@ -23,8 +23,8 @@ template <class hrleDomain> class hrleCrossIterator {
   hrleDomain &domain;
   const unsigned order;
   hrleVectorType<hrleIndexType, D> currentCoords;
-  hrleRunsIterator<hrleDomain> centerIterator;
-  std::vector<hrleOffsetRunsIterator<hrleDomain>> neighborIterators;
+  hrleSparseIterator<hrleDomain> centerIterator;
+  std::vector<hrleSparseOffsetIterator<hrleDomain>> neighborIterators;
 
   bool isDefined() const {
     if (centerIterator.isDefined())
@@ -45,31 +45,34 @@ template <class hrleDomain> class hrleCrossIterator {
         else
           relativeIndex[j - D] = -(i + 1);
         neighborIterators.push_back(
-            hrleOffsetRunsIterator<hrleDomain>(domain, relativeIndex, v));
+            hrleSparseOffsetIterator<hrleDomain>(domain, relativeIndex, v));
       }
     }
   }
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleCrossIterator<hrleDomain> operator++(int) { // use pre increment instead
+  hrleSparseStarIterator<hrleDomain>
+  operator++(int) { // use pre increment instead
     return *this;
   }
-  hrleCrossIterator<hrleDomain> operator--(int) { // use pre decrement instead
+  hrleSparseStarIterator<hrleDomain>
+  operator--(int) { // use pre decrement instead
     return *this;
   }
 
 public:
-  hrleCrossIterator(hrleDomain &passedDomain,
-                    const hrleVectorType<hrleIndexType, D> &v,
-                    const unsigned passedOrder = 1)
+  hrleSparseStarIterator(hrleDomain &passedDomain,
+                         const hrleVectorType<hrleIndexType, D> &v,
+                         const unsigned passedOrder = 1)
       : domain(passedDomain), order(passedOrder), currentCoords(v),
         centerIterator(passedDomain, v) {
 
     initializeNeigbors(v);
   }
 
-  hrleCrossIterator(hrleDomain &passedDomain, const unsigned passedOrder = 1)
+  hrleSparseStarIterator(hrleDomain &passedDomain,
+                         const unsigned passedOrder = 1)
       : domain(passedDomain), order(passedOrder),
         currentCoords(domain.getGrid().getMinGridPoint()),
         centerIterator(passedDomain) {
@@ -77,12 +80,12 @@ public:
     initializeNeigbors(passedDomain.getGrid().getMinIndex());
   }
 
-  hrleCrossIterator<hrleDomain> &operator++() {
+  hrleSparseStarIterator<hrleDomain> &operator++() {
     next();
     return *this;
   }
 
-  hrleCrossIterator<hrleDomain> &operator--() {
+  hrleSparseStarIterator<hrleDomain> &operator--() {
     previous();
     return *this;
   }
@@ -139,16 +142,16 @@ public:
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &getNeighbor(unsigned index) {
+  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(unsigned index) {
     return neighborIterators[index];
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &getNeighbor(int index) {
+  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(int index) {
     return neighborIterators[index];
   }
 
   template <class V>
-  hrleOffsetRunsIterator<hrleDomain> &getNeighbor(V &relativeIndex) {
+  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(V &relativeIndex) {
     // check first if it is a valid index
     unsigned char directions = 0;
     unsigned neighborIndex;
@@ -167,7 +170,7 @@ public:
     return neighborIterators[neighborIndex];
   }
 
-  hrleRunsIterator<hrleDomain> &getCenter() { return centerIterator; }
+  hrleSparseIterator<hrleDomain> &getCenter() { return centerIterator; }
 
   const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
 
@@ -210,6 +213,6 @@ public:
 };
 
 template <class hrleDomain>
-using hrleConstCrossIterator = hrleCrossIterator<const hrleDomain>;
+using hrleConstSparseStarIterator = hrleSparseStarIterator<const hrleDomain>;
 
 #endif // HRLE_CROSS_ITERATOR_HPP

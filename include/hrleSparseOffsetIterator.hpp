@@ -6,16 +6,16 @@
 
 #include "hrleBaseIterator.hpp"
 
-/// The hrleOffsetRunsIterator iterates over the runs exactly like
-/// hrleRunsIterator, but is set at indices given by the offset it was
+/// The hrleSparseOffsetIterator iterates over the runs exactly like
+/// hrleSparseIterator, but is set at indices given by the offset it was
 /// initialised with. So if the offset was (0,0,1) and this iterator is
 /// currently at the point (2,2,2), calling getValue() will return the value at
 /// (2,2,2), but calling indices() will return (2,2,3). By comparing its indices
-/// with those of an hrleRunsIterator and only incrementing when necessary, this
-/// iterator can be used to keep track of the cartesian neighbour of an
-/// hrleRunsIterator, taking into account boundary conditions.
+/// with those of an hrleSparseIterator and only incrementing when necessary,
+/// this iterator can be used to keep track of the cartesian neighbour of an
+/// hrleSparseIterator, taking into account boundary conditions.
 template <class hrleDomain>
-class hrleOffsetRunsIterator : public hrleBaseIterator<hrleDomain> {
+class hrleSparseOffsetIterator : public hrleBaseIterator<hrleDomain> {
 
   typedef typename hrleDomain::hrleDomainSegmentType hrleDomainSegmentType;
 
@@ -657,8 +657,8 @@ public:
   }
 
   template <class V>
-  hrleOffsetRunsIterator(hrleDomain &passedDomain, const V &o,
-                         bool reverse = false)
+  hrleSparseOffsetIterator(hrleDomain &passedDomain, const V &o,
+                           bool reverse = false)
       : hrleBaseIterator<hrleDomain>(passedDomain), offset(o) {
     if (reverse) {
       goToIndices(domain.getGrid().getMaxGridPoint());
@@ -668,12 +668,12 @@ public:
   }
 
   template <class V1, class V2>
-  hrleOffsetRunsIterator(hrleDomain &passedDomain, const V1 &o, const V2 &v)
+  hrleSparseOffsetIterator(hrleDomain &passedDomain, const V1 &o, const V2 &v)
       : hrleBaseIterator<hrleDomain>(passedDomain), offset(o) {
     goToIndices(v);
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &operator++() {
+  hrleSparseOffsetIterator<hrleDomain> &operator++() {
     while (true) {
       if (go_next_A())
         break;
@@ -708,13 +708,13 @@ public:
     return *this;
   }
 
-  hrleOffsetRunsIterator<hrleDomain> operator++(int) {
-    hrleOffsetRunsIterator<hrleDomain> temp(*this);
+  hrleSparseOffsetIterator<hrleDomain> operator++(int) {
+    hrleSparseOffsetIterator<hrleDomain> temp(*this);
     ++(*this);
     return temp;
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &operator--() {
+  hrleSparseOffsetIterator<hrleDomain> &operator--() {
     while (true) {
       if (go_previous_A())
         break;
@@ -754,8 +754,8 @@ public:
     return *this;
   }
 
-  hrleOffsetRunsIterator<hrleDomain> operator--(int) {
-    hrleOffsetRunsIterator<hrleDomain> temp(*this);
+  hrleSparseOffsetIterator<hrleDomain> operator--(int) {
+    hrleSparseOffsetIterator<hrleDomain> temp(*this);
     --(*this);
     return temp;
   }
@@ -821,6 +821,7 @@ public:
 
 // typedef for const iterator
 template <class hrleDomain>
-using hrleConstOffsetRunsIterator = hrleOffsetRunsIterator<const hrleDomain>;
+using hrleConstSparseOffsetIterator =
+    hrleSparseOffsetIterator<const hrleDomain>;
 
 #endif // HRLE_OFFSET_RUNS_ITERATOR_HPP

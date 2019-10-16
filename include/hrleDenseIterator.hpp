@@ -1,12 +1,12 @@
 #ifndef HRLE_ITERATOR_HPP
 #define HRLE_ITERATOR_HPP
 
-#include "hrleRunsIterator.hpp"
+#include "hrleSparseIterator.hpp"
 
 /// This iterator iterates over the entire structure and stops at every single
 /// grid point. It also stops on undefined grid points. Therefore, it can be
 /// used to easily generate a full grid from the sparse data set.
-template <class hrleDomain> class hrleIterator {
+template <class hrleDomain> class hrleDenseIterator {
 
   static constexpr int D = hrleDomain::dimension;
   typedef typename std::conditional<std::is_const<hrleDomain>::value,
@@ -15,7 +15,7 @@ template <class hrleDomain> class hrleIterator {
       hrleValueType;
 
   hrleDomain &domain;
-  hrleRunsIterator<hrleDomain> runsIterator;
+  hrleSparseIterator<hrleDomain> runsIterator;
   hrleVectorType<hrleIndexType, D> currentIndices;
   hrleVectorType<hrleIndexType, D> minIndex;
   hrleVectorType<hrleIndexType, D> maxIndex;
@@ -49,7 +49,7 @@ template <class hrleDomain> class hrleIterator {
   }
 
 public:
-  hrleIterator(hrleDomain &passedDomain, bool reverse = false)
+  hrleDenseIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain), runsIterator(passedDomain, reverse) {
     auto &grid = domain.getGrid();
     for (unsigned i = 0; i < D; ++i) {
@@ -65,10 +65,10 @@ public:
   }
 
   template <class V>
-  hrleIterator(hrleDomain &passedDomain, V &v)
+  hrleDenseIterator(hrleDomain &passedDomain, V &v)
       : domain(passedDomain), runsIterator(passedDomain, v) {}
 
-  hrleIterator<hrleDomain> &operator++() {
+  hrleDenseIterator<hrleDomain> &operator++() {
     // move iterator with currentIndices if they are the same
     switch (compare(runsIterator.getEndIndices(), currentIndices)) {
     case -1:
@@ -81,13 +81,13 @@ public:
     return *this;
   }
 
-  hrleIterator<hrleDomain> operator++(int) {
-    hrleIterator<hrleDomain> tmp(*this);
+  hrleDenseIterator<hrleDomain> operator++(int) {
+    hrleDenseIterator<hrleDomain> tmp(*this);
     ++(*this);
     return tmp;
   }
 
-  hrleIterator<hrleDomain> &operator--() {
+  hrleDenseIterator<hrleDomain> &operator--() {
     // move iterator with currentIndices if they are the same
     switch (compare(runsIterator.getStartIndices(), currentIndices)) {
     case 1:
@@ -100,8 +100,8 @@ public:
     return *this;
   }
 
-  hrleIterator<hrleDomain> operator--(int) {
-    hrleIterator<hrleDomain> tmp(*this);
+  hrleDenseIterator<hrleDomain> operator--(int) {
+    hrleDenseIterator<hrleDomain> tmp(*this);
     --(*this);
     return tmp;
   }
@@ -152,6 +152,6 @@ public:
 };
 
 template <class hrleDomain>
-using hrleConstIterator = hrleIterator<const hrleDomain>;
+using hrleConstDenseIterator = hrleDenseIterator<const hrleDomain>;
 
 #endif // HRLE_ITERATOR_HPP

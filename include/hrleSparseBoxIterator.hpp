@@ -1,14 +1,14 @@
 #ifndef HRLE_SQUARE_ITERATOR_HPP
 #define HRLE_SQUARE_ITERATOR_HPP
 
-#include "hrleOffsetRunsIterator.hpp"
-#include "hrleRunsIterator.hpp"
+#include "hrleSparseIterator.hpp"
+#include "hrleSparseOffsetIterator.hpp"
 
 /// This neighbor iterator consists of (2*order+1)^dimension
-/// hrleOffsetRunsIterator s for the cartesian neighbors and the center.
+/// hrleSparseOffsetIterator s for the cartesian neighbors and the center.
 /// Whenever one of these iterators reach a defined grid point, the square
 /// iterator stops.
-template <class hrleDomain> class hrleSquareIterator {
+template <class hrleDomain> class hrleSparseBoxIterator {
 
   typedef typename std::conditional<std::is_const<hrleDomain>::value,
                                     const typename hrleDomain::hrleValueType,
@@ -23,7 +23,7 @@ template <class hrleDomain> class hrleSquareIterator {
   const hrleIndexType sliceArea;
   const hrleIndexType centerIndex;
   hrleVectorType<hrleIndexType, D> currentCoords;
-  std::vector<hrleOffsetRunsIterator<hrleDomain>> neighborIterators;
+  std::vector<hrleSparseOffsetIterator<hrleDomain>> neighborIterators;
 
   bool isDefined() const {
     if (neighborIterators[centerIndex].isDefined())
@@ -35,7 +35,8 @@ template <class hrleDomain> class hrleSquareIterator {
     return false;
   }
 
-    hrleVectorType<hrleIndexType, D> indexToCoordinate(hrleIndexType index) const {
+  hrleVectorType<hrleIndexType, D>
+  indexToCoordinate(hrleIndexType index) const {
     hrleVectorType<hrleIndexType, D> coordinate;
 
     if (D > 2) {
@@ -78,23 +79,25 @@ template <class hrleDomain> class hrleSquareIterator {
     for (unsigned i = 0; i < numNeighbors; ++i) {
       hrleVectorType<hrleIndexType, D> offset = indexToCoordinate(i);
       neighborIterators.push_back(
-          hrleOffsetRunsIterator<hrleDomain>(domain, offset, v));
+          hrleSparseOffsetIterator<hrleDomain>(domain, offset, v));
     }
   }
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleSquareIterator<hrleDomain> operator++(int) { // use pre increment instead
+  hrleSparseBoxIterator<hrleDomain>
+  operator++(int) { // use pre increment instead
     return *this;
   }
-  hrleSquareIterator<hrleDomain> operator--(int) { // use pre decrement instead
+  hrleSparseBoxIterator<hrleDomain>
+  operator--(int) { // use pre decrement instead
     return *this;
   }
 
 public:
-  hrleSquareIterator(hrleDomain &passedDomain,
-                     const hrleVectorType<hrleIndexType, D> &v,
-                     const unsigned passedOrder = 1)
+  hrleSparseBoxIterator(hrleDomain &passedDomain,
+                        const hrleVectorType<hrleIndexType, D> &v,
+                        const unsigned passedOrder = 1)
       : domain(passedDomain), order(passedOrder),
         sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
         centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
@@ -103,7 +106,8 @@ public:
     initializeNeigbors(v);
   }
 
-  hrleSquareIterator(hrleDomain &passedDomain, const unsigned passedOrder = 1)
+  hrleSparseBoxIterator(hrleDomain &passedDomain,
+                        const unsigned passedOrder = 1)
       : domain(passedDomain), order(passedOrder),
         sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
         centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
@@ -112,12 +116,12 @@ public:
     initializeNeigbors(passedDomain.getGrid().getMinIndex());
   }
 
-  hrleSquareIterator<hrleDomain> &operator++() {
+  hrleSparseBoxIterator<hrleDomain> &operator++() {
     next();
     return *this;
   }
 
-  hrleSquareIterator<hrleDomain> &operator--() {
+  hrleSparseBoxIterator<hrleDomain> &operator--() {
     previous();
     return *this;
   }
@@ -179,28 +183,26 @@ public:
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &getNeighbor(int index) {
+  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(int index) {
     return neighborIterators[index];
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &getNeighbor(unsigned index) {
+  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(unsigned index) {
     return neighborIterators[index];
   }
 
   template <class V>
-  hrleOffsetRunsIterator<hrleDomain> &getNeighbor(V &relativeCoordinate) {
+  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(V &relativeCoordinate) {
     return neighborIterators[coordinateToIndex(relativeCoordinate)];
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &getCenter() {
+  hrleSparseOffsetIterator<hrleDomain> &getCenter() {
     return neighborIterators[centerIndex];
   }
 
   const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
 
-  unsigned getSize(){
-    return neighborIterators.size();
-  }
+  unsigned getSize() { return neighborIterators.size(); }
 
   bool isFinished() const { return getCenter().isFinished(); }
 
@@ -236,6 +238,6 @@ public:
 };
 
 template <class hrleDomain>
-using hrleConstSquareIterator = hrleSquareIterator<const hrleDomain>;
+using hrleConstSparseBoxIterator = hrleSparseBoxIterator<const hrleDomain>;
 
 #endif // HRLE_SQUARE_ITERATOR_HPP

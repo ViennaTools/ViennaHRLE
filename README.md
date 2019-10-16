@@ -26,7 +26,7 @@ Releases are tagged on the maser branch and available in the [releases section](
 Since this is a header only project, it does not require any installation. However, we recommend the following procedure:
 
 ```
-git clone github.com/viennahrle/viennahrle.git
+git clone github.com/ViennaTools/viennahrle.git
 cd viennahrle
 mkdir build && cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/your/custom/install/

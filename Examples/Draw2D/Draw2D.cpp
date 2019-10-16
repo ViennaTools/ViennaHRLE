@@ -1,5 +1,5 @@
 #include <hrleFillDomainFromPointList.hpp>
-#include <hrleRunsIterator.hpp>
+#include <hrleSparseIterator.hpp>
 
 #include <iostream>
 #include <string>
@@ -7,7 +7,7 @@
 // only output each run once, to draw the sparse data
 template <class hrleDomain> void draw2D(hrleDomain &domain) {
   // iterate over hrle structure and output the corresponding value
-  hrleRunsIterator<hrleDomain> it(domain, true);
+  hrleSparseIterator<hrleDomain> it(domain, true);
   int y = domain.getGrid().getMaxIndex(1);
   int x = domain.getGrid().getMinIndex(0);
   std::cout << it.getValue();

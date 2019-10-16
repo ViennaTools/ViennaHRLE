@@ -1,5 +1,5 @@
+#include <hrleDenseIterator.hpp>
 #include <hrleFillDomainFromPointList.hpp>
-#include <hrleIterator.hpp>
 #include <iostream>
 #include <string>
 
@@ -36,7 +36,7 @@ int main() {
   // iterate over hrle structure and output the values showing the dense data
   // set
   std::cout << "Dense Data Set filled with background value:" << std::endl;
-  hrleConstIterator<hrleDomain<char, D>> it(data);
+  hrleConstDenseIterator<hrleDomain<char, D>> it(data);
   int y = data.getGrid().getMinIndex(1);
   while (!it.isFinished()) {
     if (y < it.getIndex(1)) {

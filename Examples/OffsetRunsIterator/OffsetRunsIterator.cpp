@@ -1,6 +1,6 @@
 #include <hrleFillDomainFromPointList.hpp>
-#include <hrleOffsetRunsIterator.hpp>
-#include <hrleRunsIterator.hpp>
+#include <hrleSparseIterator.hpp>
+#include <hrleSparseOffsetIterator.hpp>
 #include <iostream>
 #include <string>
 
@@ -43,8 +43,8 @@ int main() {
 
   // iterate over hrle structure and output each value and the one above it
   hrleVectorType<hrleIndexType, D> offset(0, -1, 0);
-  hrleRunsIterator<hrleDomain<char, D>> it(data);
-  hrleOffsetRunsIterator<hrleDomain<char, D>> offsetIt(data, offset);
+  hrleSparseIterator<hrleDomain<char, D>> it(data);
+  hrleSparseOffsetIterator<hrleDomain<char, D>> offsetIt(data, offset);
   while (!it.isFinished()) {
     std::cout << it.getStartIndices() << " " << it.getValue() << "\t\t"
               << offsetIt.getStartIndices() - offset << " "

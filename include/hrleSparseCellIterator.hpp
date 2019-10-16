@@ -3,14 +3,14 @@
 
 #include <cassert>
 
-#include "hrleOffsetRunsIterator.hpp"
+#include "hrleSparseOffsetIterator.hpp"
 
-/// This neighbor iterator consists of 2*Dimensions hrleOffsetRunsIterator s
-/// for the cartesian neighbors and an hrleRunsIterator
+/// This neighbor iterator consists of 2*Dimensions hrleSparseOffsetIterator s
+/// for the cartesian neighbors and an hrleSparseIterator
 /// for the center.
 /// Whenever one of these (2*Dimensions+1) iterators reach a defined grid point,
 /// the iterator stops.
-template <class hrleDomain> class hrleCellIterator {
+template <class hrleDomain> class hrleSparseCellIterator {
 
   typedef typename std::conditional<std::is_const<hrleDomain>::value,
                                     const typename hrleDomain::hrleValueType,
@@ -21,23 +21,25 @@ template <class hrleDomain> class hrleCellIterator {
 
   hrleDomain &domain;
   hrleVectorType<hrleIndexType, D> currentCoords;
-  std::vector<hrleOffsetRunsIterator<hrleDomain>> cornerIterators;
+  std::vector<hrleSparseOffsetIterator<hrleDomain>> cornerIterators;
 
   template <class V> void initialize(const V &v) {
     for (int i = 0; i < (1 << D); ++i) {
-      cornerIterators.push_back(hrleOffsetRunsIterator<hrleDomain>(
+      cornerIterators.push_back(hrleSparseOffsetIterator<hrleDomain>(
           domain, BitMaskToVector<D, hrleIndexType>(i), v));
     }
   }
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleCellIterator<hrleDomain> operator++(int); // use pre increment instead
-  hrleCellIterator<hrleDomain> operator--(int); // use pre decrement instead
+  hrleSparseCellIterator<hrleDomain>
+  operator++(int); // use pre increment instead
+  hrleSparseCellIterator<hrleDomain>
+  operator--(int); // use pre decrement instead
 
 public:
-  hrleCellIterator(hrleDomain &passedDomain,
-                   const hrleVectorType<hrleIndexType, D> &v)
+  hrleSparseCellIterator(hrleDomain &passedDomain,
+                         const hrleVectorType<hrleIndexType, D> &v)
       : domain(passedDomain), currentCoords(v) {
 
     initialize(v);
@@ -45,7 +47,7 @@ public:
       next();
   }
 
-  hrleCellIterator(hrleDomain &passedDomain)
+  hrleSparseCellIterator(hrleDomain &passedDomain)
       : domain(passedDomain),
         currentCoords(domain.getGrid().getMinGridPoint()) {
 
@@ -68,12 +70,12 @@ public:
     return false;
   }
 
-  hrleCellIterator<hrleDomain> &operator++() {
+  hrleSparseCellIterator<hrleDomain> &operator++() {
     next();
     return *this;
   }
 
-  hrleCellIterator<hrleDomain> &operator--() {
+  hrleSparseCellIterator<hrleDomain> &operator--() {
     previous();
     return *this;
   }
@@ -130,15 +132,15 @@ public:
     } while (!isDefined() && !isFinished());
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &getCorner(unsigned index) {
+  hrleSparseOffsetIterator<hrleDomain> &getCorner(unsigned index) {
     return cornerIterators[index];
   }
 
-  hrleOffsetRunsIterator<hrleDomain> &getCorner(int index) {
+  hrleSparseOffsetIterator<hrleDomain> &getCorner(int index) {
     return cornerIterators[index];
   }
 
-  template <class V> hrleOffsetRunsIterator<hrleDomain> &getCorner(V vector) {
+  template <class V> hrleSparseOffsetIterator<hrleDomain> &getCorner(V vector) {
     unsigned index = 0;
     for (unsigned i = 0; i < D; ++i) {
       if (vector[i])
@@ -155,6 +157,6 @@ public:
 };
 
 template <class hrleDomain>
-using hrleConstCellIterator = hrleCellIterator<const hrleDomain>;
+using hrleConstSparseCellIterator = hrleSparseCellIterator<const hrleDomain>;
 
 #endif // HRLE_CELL_ITERATOR_HPP

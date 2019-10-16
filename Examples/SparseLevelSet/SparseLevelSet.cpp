@@ -1,6 +1,6 @@
+#include <hrleDenseIterator.hpp>
 #include <hrleDomain.hpp>
 #include <hrleFillDomainWithSignedDistance.hpp>
-#include <hrleIterator.hpp>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -55,7 +55,7 @@ int main() {
   hrleFillDomainWithSignedDistance(data, pointData, -1., 1.);
 
   // visualise signed distance field on command line
-  hrleConstIterator<hrleDomain<valueType, D>> it(data);
+  hrleConstDenseIterator<hrleDomain<valueType, D>> it(data);
   int y = data.getGrid().getMinIndex(1);
   while (!it.isFinished()) {
     if (y < it.getIndex(1)) {

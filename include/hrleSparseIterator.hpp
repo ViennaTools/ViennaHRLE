@@ -10,7 +10,7 @@
 /// run. A run can be defined or undefined: A defined run
 /// corresponds to a single defined grid point.
 template <class hrleDomain>
-class hrleRunsIterator : public hrleBaseIterator<hrleDomain> {
+class hrleSparseIterator : public hrleBaseIterator<hrleDomain> {
 
   typedef typename hrleDomain::hrleDomainSegmentType hrleDomainSegmentType;
 
@@ -201,7 +201,7 @@ private:
 public:
   void print() { hrleBaseIterator<hrleDomain>::print(); }
 
-  hrleRunsIterator(hrleDomain &passedDomain, bool reverse = false)
+  hrleSparseIterator(hrleDomain &passedDomain, bool reverse = false)
       : hrleBaseIterator<hrleDomain>(passedDomain) {
     if (reverse) {
       goToIndices(domain.getGrid().getMaxGridPoint());
@@ -211,7 +211,7 @@ public:
   }
 
   template <class V>
-  hrleRunsIterator(hrleDomain &lx, const V &v)
+  hrleSparseIterator(hrleDomain &lx, const V &v)
       : hrleBaseIterator<hrleDomain>(lx) {
     goToIndices(v);
   }
@@ -221,7 +221,7 @@ public:
   // iterator results in a segfault because r_level==D in
   // endRunAbsCoords[r_level] in go_next_B, it would make more sense to check
   // finished first, do nothing if it is and return false
-  hrleRunsIterator<hrleDomain> &operator++() {
+  hrleSparseIterator<hrleDomain> &operator++() {
     while (true) {
       if (go_next_A())
         break;
@@ -257,13 +257,13 @@ public:
     return *this;
   }
 
-  hrleRunsIterator<hrleDomain> operator++(int) {
-    hrleRunsIterator temp(*this);
+  hrleSparseIterator<hrleDomain> operator++(int) {
+    hrleSparseIterator temp(*this);
     operator++();
     return temp;
   }
 
-  hrleRunsIterator<hrleDomain> &operator--() {
+  hrleSparseIterator<hrleDomain> &operator--() {
     while (true) {
       if (go_previous_A())
         break;
@@ -303,8 +303,8 @@ public:
     return *this;
   }
 
-  hrleRunsIterator<hrleDomain> operator--(int) {
-    hrleRunsIterator temp(*this);
+  hrleSparseIterator<hrleDomain> operator--(int) {
+    hrleSparseIterator temp(*this);
     operator--();
     return temp;
   }
@@ -381,6 +381,6 @@ public:
 
 // typedef for const iterator
 template <class hrleDomain>
-using hrleConstRunsIterator = hrleRunsIterator<const hrleDomain>;
+using hrleConstSparseIterator = hrleSparseIterator<const hrleDomain>;
 
 #endif // HRLE_RUNS_ITERATOR_HPP

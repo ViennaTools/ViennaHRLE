@@ -1,5 +1,5 @@
-#include <hrleCrossIterator.hpp>
 #include <hrleFillDomainFromPointList.hpp>
+#include <hrleSparseStarIterator.hpp>
 #include <iostream>
 #include <string>
 
@@ -42,7 +42,7 @@ int main() {
 
   // go to the first 'l' and output all neighbors
   const int order = 3;
-  hrleConstCrossIterator<hrleDomain<char, D>> neighborIt(data, order);
+  hrleConstSparseStarIterator<hrleDomain<char, D>> neighborIt(data, order);
   while (!(neighborIt.getCenter().getValue() == 'l')) {
     neighborIt.next();
   }

@@ -1,5 +1,5 @@
 #include <hrleFillDomainFromPointList.hpp>
-#include <hrleRunsIterator.hpp>
+#include <hrleSparseIterator.hpp>
 #include <iostream>
 #include <string>
 
@@ -34,7 +34,7 @@ int main() {
       '.'); // last parameter is the background value to use
 
   // iterate over hrle structure and output the values
-  hrleRunsIterator<hrleDomain<char, D>> it(data);
+  hrleSparseIterator<hrleDomain<char, D>> it(data);
   while (!it.isFinished()) {
     // while iterating, change each 'o' to an 'a'
     if (it.getValue() == 'o')
