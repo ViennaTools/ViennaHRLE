@@ -87,7 +87,7 @@ public:
       maxIndex[i] = (grid.isPosBoundaryInfinite(i)) ? domain.getMaxRunBreak(i)
                                                     : grid.getMaxBounds(i);
     }
-    std::cout << "min: " << minIndex << ", max: " << maxIndex << std::endl;
+
     if (reverse)
       currentCoords = maxIndex;
     else
