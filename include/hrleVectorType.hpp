@@ -10,6 +10,7 @@ template <class T, int D> class hrleVectorType {
 
 public:
   typedef T value_type;
+  static constexpr int dimension = D;
 
   hrleVectorType(const hrleVectorType<T, D> &);
   template <class T1, int D1>

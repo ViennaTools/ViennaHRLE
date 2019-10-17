@@ -79,14 +79,25 @@ public:
       : grid(&g) {
     initialize();
     domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
-    // finalize();
   };
 
   hrleDomain(hrleGrid<D> *g, hrleSizeType runType = hrleRunTypeValues::UNDEF_PT)
       : grid(g) {
     initialize();
     domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
-    // finalize();
+  };
+
+  // create empty level set with one undefined value
+  hrleDomain(hrleGrid<D> &g, T value)
+      : grid(&g) {
+    initialize();
+    domainSegments[0].insertNextUndefinedPoint(grid->getMinIndex(), value);
+  };
+
+  hrleDomain(hrleGrid<D> *g, T value)
+      : grid(g) {
+    initialize();
+    domainSegments[0].insertNextUndefinedPoint(grid->getMinIndex(), value);
   };
 
   void deepCopy(hrleGrid<D> *passedGrid, const hrleDomain<T, D> &passedDomain) {
