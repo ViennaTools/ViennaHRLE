@@ -9,8 +9,8 @@ include(GNUInstallDirs)
 add_library(${PROJECT_NAME} INTERFACE)
 
 # set the correct paths for installation
-set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}-${PROJECT_VERSION}/")
-set(LOCAL_CONFIG_DIR "lib/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
+set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/")
+set(LOCAL_CONFIG_DIR "lib/cmake/${PROJECT_NAME}")
 
 # Adding the install interface generator expression makes sure that the include
 # files are installed to the proper location (provided by GNUInstallDirs)
