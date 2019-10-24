@@ -190,6 +190,23 @@ public:
       return false;
     }
   }
+
+  /// Advances the iterator to position v.
+  /// If v is lexicographically higher than the current position
+  /// the iterator will be moved back to v.
+  /// If v is lexicographically smaller than the current position
+  /// then the iterator will be moved until it reaches v
+  template <class V> void goToIndicesSequential(const V &v) {
+    if (v >= currentCoords) {
+      while (v > currentCoords) {
+        ++(*this);
+      }
+    } else {
+      while (v < currentCoords) {
+        --(*this);
+      }
+    }
+  }
 };
 
 template <class hrleDomain>
