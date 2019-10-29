@@ -700,7 +700,7 @@ public:
       go_down_BA(c);
     }
 
-    int s = hrleBaseIterator<hrleDomain>::getSegmentId();
+    int s = hrleBaseIterator<hrleDomain>::getSegmentRun();
     if (s != sub) {
       goToIndices(s, absCoords);
     }
@@ -740,7 +740,7 @@ public:
       go_down_BA(c);
     }
 
-    int s = hrleBaseIterator<hrleDomain>::getSegmentId();
+    int s = hrleBaseIterator<hrleDomain>::getSegmentRun();
     if (s != sub) {
       goToIndices(s, hrleBaseIterator<hrleDomain>::getEndIndices());
       /*if (s<it.l.segmentation.size()) {
@@ -782,7 +782,7 @@ public:
 
   template <class V> void goToIndices(const V &v) {
     goToIndices(0, v); // TODO
-    int s = hrleBaseIterator<hrleDomain>::getSegmentId();
+    int s = hrleBaseIterator<hrleDomain>::getSegmentRun();
     // std::cout << "got_to_indices, sub: " << s << std::endl;
     if (s != 0)
       goToIndices(s, v);

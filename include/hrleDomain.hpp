@@ -88,14 +88,12 @@ public:
   };
 
   // create empty level set with one undefined value
-  hrleDomain(hrleGrid<D> &g, T value)
-      : grid(&g) {
+  hrleDomain(hrleGrid<D> &g, T value) : grid(&g) {
     initialize();
     domainSegments[0].insertNextUndefinedPoint(grid->getMinIndex(), value);
   };
 
-  hrleDomain(hrleGrid<D> *g, T value)
-      : grid(g) {
+  hrleDomain(hrleGrid<D> *g, T value) : grid(g) {
     initialize();
     domainSegments[0].insertNextUndefinedPoint(grid->getMinIndex(), value);
   };
@@ -152,6 +150,10 @@ public:
 
   unsigned getNumberOfSegments() const {
     return unsigned(domainSegments.getNumberOfSegments());
+  }
+
+  unsigned getNumberOfRuns(int segmentId, int dimension) const {
+    return domainSegments[segmentId].getNumberOfRuns(dimension);
   }
 
   const hrleIndexPoints &getSegmentation() const { return segmentation; }
@@ -401,16 +403,17 @@ public:
 #endif
 
       hrleDomainSegmentType &s = newDomain.domainSegments[p];
-      hrleConstSparseIterator<hrleDomain> it(
-          *this,
-          (p == 0) ? grid->getMinIndex() : newDomain.segmentation[p - 1]);
+
+      hrleVectorType<hrleIndexType, D> startOfSegment =
+          (p == 0) ? grid->getMinIndex() : newDomain.segmentation[p - 1];
 
       hrleVectorType<hrleIndexType, D> endOfSegment =
           (p != static_cast<int>(newDomain.segmentation.size()))
               ? newDomain.segmentation[p]
               : grid->getMaxIndex();
 
-      for (; it.getStartIndices() < endOfSegment; it.next()) {
+      for (hrleConstSparseIterator<hrleDomain> it(*this, startOfSegment);
+           it.getStartIndices() < endOfSegment; it.next()) {
         if (it.isDefined()) {
           s.insertNextDefinedPoint(it.getStartIndices(), it.getValue());
         } else {

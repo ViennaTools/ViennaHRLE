@@ -56,7 +56,7 @@ public:
     std::cout << "value: " << getValue() << std::endl;
     // std::cout << "sign: " << sign() << std::endl;
     // std::cout << "active: " << is_active() << std::endl;
-    std::cout << "current segment: " << getSegmentId() << std::endl
+    std::cout << "current segment: " << getSegmentRun() << std::endl
               << std::endl;
   }
 
@@ -121,24 +121,16 @@ public:
 
   hrleSizeType getRunCode() const { return startIndicesPos[r_level]; }
 
-  hrleSizeType getSegmentId() const {
-    // std::cout << "getSegmentId, r_level: " << r_level << std::endl;
-    // std::cout << "getSegmentId, startIndicesPos[r_level]: " <<
-    // startIndicesPos[r_level] << std::endl;
+  hrleSizeType getSegmentRun() const {
     const hrleSizeType r = getRunCode();
-    // std::cout << "getSegmentId(): getRunCode: " << r << std::endl;
-    // shfdhsfhdskjhgf assert(POS_PT<hrleRunTypeValues::SEGMENT_PT);
-    // shfdhsfhdskjhgf assert(NEG_PT<hrleRunTypeValues::SEGMENT_PT);
     if (r >= hrleRunTypeValues::SEGMENT_PT) {
-      // std::cout << "getSegmentId(): crc - SEGPT: " << r -
-      // hrleRunTypeValues::SEGMENT_PT << std::endl;
       return r - hrleRunTypeValues::SEGMENT_PT;
     } else {
       return sub;
     }
   }
 
-  // hrleSizeType getSegmentId() const { return sub; }
+  hrleSizeType getSegmentId() const { return sub; }
 
   hrleSizeType getPointId() const {
     // returns the getPointId if it is a defined run
