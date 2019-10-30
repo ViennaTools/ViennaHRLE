@@ -233,8 +233,8 @@ public:
       go_up_BA();
       // shfdhsfhdskjhgf assert(it.r_level==it.s_level);
       if (r_level == D) {
-        absCoords =
-            domain.getGrid().incrementIndices(domain.getGrid().getMaxIndex());
+        absCoords = domain.getGrid().incrementIndices(
+            domain.getGrid().getMaxGridPoint());
         endAbsCoords = absCoords; // TODO
         // it.startIndicesPos[D]=it.l.num_pts();
         return *this;
@@ -242,7 +242,7 @@ public:
     }
 
     while (r_level == s_level && s_level > 0) {
-      const hrleIndexType c = domain.getGrid().getMinIndex(r_level - 1);
+      const hrleIndexType c = domain.getGrid().getMinGridPoint(r_level - 1);
       // go_down_AB(c);
       go_down_AB_first();
       go_down_BA(c);
@@ -275,15 +275,15 @@ public:
       go_up_BA();
       // shfdhsfhdskjhgf assert(it.r_level==it.s_level);
       if (r_level == D) {
-        absCoords =
-            domain.getGrid().decrementIndices(domain.getGrid().getMinIndex());
+        absCoords = domain.getGrid().decrementIndices(
+            domain.getGrid().getMinGridPoint());
         endAbsCoords = absCoords; // TODO
         return *this;
       }
     }
 
     while (r_level == s_level && s_level > 0) {
-      const hrleIndexType c = domain.getGrid().getMaxIndex(r_level - 1);
+      const hrleIndexType c = domain.getGrid().getMaxGridPoint(r_level - 1);
       // go_down_AB(c);
       go_down_AB_last();
       go_down_BA(c);
@@ -373,8 +373,8 @@ public:
     // shfdhsfhdskjhgf assert(!it.isFinished());
 
     for (int h = 0; h < r_level; ++h) {
-      absCoords[h] = domain.getGrid().getMinIndex(h);
-      endAbsCoords[h] = domain.getGrid().getMaxIndex(h);
+      absCoords[h] = domain.getGrid().getMinGridPoint(h);
+      endAbsCoords[h] = domain.getGrid().getMaxGridPoint(h);
     }
   }
 };

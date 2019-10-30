@@ -252,8 +252,8 @@ public:
       return; // in this case, do not add the point
 
     for (int dim = 0; dim < D - 1; ++dim) {
-      if (start_point[dim] != grid->getMinIndex(dim)) {
-        if (start_point[dim] <= grid->getMaxIndex(dim)) {
+      if (start_point[dim] != grid->getMinGridPoint(dim)) {
+        if (start_point[dim] <= grid->getMaxGridPoint(dim)) {
           insertNextUndefinedRunType(start_point, rt);
         }
 
@@ -265,7 +265,7 @@ public:
         return;
     }
 
-    if (start_point[D - 1] <= grid->getMaxIndex(D - 1)) {
+    if (start_point[D - 1] <= grid->getMaxGridPoint(D - 1)) {
       insertNextUndefinedRunType(start_point, rt);
     }
   }

@@ -61,9 +61,9 @@ public:
   }
 
   hrleBaseIterator(hrleDomain &passedDomain)
-      : domain(passedDomain), absCoords(domain.getGrid().getMinIndex()),
-        endAbsCoords(domain.getGrid().getMaxIndex()), r_level(D), s_level(D),
-        sub(0) {
+      : domain(passedDomain), absCoords(domain.getGrid().getMinGridPoint()),
+        endAbsCoords(domain.getGrid().getMaxGridPoint()), r_level(D),
+        s_level(D), sub(0) {
     startIndicesPos[D] = 0;
   }
 

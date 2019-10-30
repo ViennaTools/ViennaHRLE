@@ -197,7 +197,7 @@ public:
               hrleGrid<D>::NEG_INFINITE_BOUNDARY) {
         bounds[2 * i] = getMinRunBreak(i);
       } else {
-        bounds[2 * i] = grid->getMinIndex(i);
+        bounds[2 * i] = grid->getMinGridPoint(i);
       }
 
       if (grid->getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
@@ -205,7 +205,7 @@ public:
               hrleGrid<D>::POS_INFINITE_BOUNDARY) {
         bounds[2 * i + 1] = getMaxRunBreak(i);
       } else {
-        bounds[2 * i + 1] = grid->getMaxIndex(i);
+        bounds[2 * i + 1] = grid->getMaxGridPoint(i);
       }
     }
   }
@@ -276,7 +276,7 @@ public:
                                      grid->decrementIndices(segmentation[j]),
                                      hrleRunTypeValues::SEGMENT_PT + j);
       }
-      s.insertNextUndefinedRunType(segmentation.back(), grid->getMaxIndex(),
+      s.insertNextUndefinedRunType(segmentation.back(), grid->getMaxGridPoint(),
                                    hrleRunTypeValues::SEGMENT_PT +
                                        hrleSizeType(segmentation.size()));
     }
@@ -410,7 +410,7 @@ public:
       hrleVectorType<hrleIndexType, D> endOfSegment =
           (p != static_cast<int>(newDomain.segmentation.size()))
               ? newDomain.segmentation[p]
-              : grid->getMaxIndex();
+              : grid->getMaxGridPoint();
 
       for (hrleConstSparseIterator<hrleDomain> it(*this, startOfSegment);
            it.getStartIndices() < endOfSegment; it.next()) {

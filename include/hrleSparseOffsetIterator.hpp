@@ -817,6 +817,23 @@ public:
   }
 
   const hrleVectorType<hrleIndexType, D> getOffset() const { return offset; }
+
+  const hrleVectorType<hrleIndexType, D> getOffsetIndices() const {
+    hrleVectorType<hrleIndexType, D> indices =
+        hrleBaseIterator<hrleDomain>::getStartIndices();
+    auto &grid = domain.getGrid();
+    auto gridMin = grid.getMinGridPoint();
+    auto gridMax = grid.getMaxGridPoint();
+    for (unsigned i = 0; i < D; ++i) {
+      indices[i] += offset[i];
+      if (indices[i] > gridMax[i]) {
+        indices[i] = gridMin[i] + (indices[i] - gridMax[i] - 1);
+      } else if (indices[i] < gridMin[i]) {
+        indices[i] = gridMax[i] + (indices[i] - gridMin[i] + 1);
+      }
+    }
+    return indices;
+  }
 };
 
 // typedef for const iterator

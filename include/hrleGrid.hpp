@@ -12,7 +12,7 @@ template <int D> class hrleGrid {
 
 public:
   enum boundaryType : unsigned {
-    SYMMETRIC_BOUNDARY = 0,
+    REFLECTIVE_BOUNDARY = 0,
     INFINITE_BOUNDARY = 1,
     PERIODIC_BOUNDARY = 2,
     POS_INFINITE_BOUNDARY = 3,
@@ -63,7 +63,7 @@ public:
            const hrleCoordType delta = 1.0) {
     boundaryType boundaryCons[D];
     for (unsigned i = 0; i < D; ++i) {
-      boundaryCons[i] = SYMMETRIC_BOUNDARY; // Reflective boundary conditions
+      boundaryCons[i] = REFLECTIVE_BOUNDARY; // Reflective boundary conditions
     }
 
     *this = hrleGrid(min, max, delta, boundaryCons);

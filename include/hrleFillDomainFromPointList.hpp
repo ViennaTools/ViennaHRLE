@@ -35,8 +35,9 @@ void hrleFillDomainFromPointList(
 
   const hrleGrid<D> &grid = newDomain.getGrid();
 
-  if (pointData.front().first != grid.getMinIndex()) {
-    newDomain.insertNextUndefinedPoint(0, grid.getMinIndex(), backgroundValue);
+  if (pointData.front().first != grid.getMinGridPoint()) {
+    newDomain.insertNextUndefinedPoint(0, grid.getMinGridPoint(),
+                                       backgroundValue);
   }
 
   auto pointDataBegin = pointData.begin(); //+starts[t_num];
@@ -58,7 +59,7 @@ void hrleFillDomainFromPointList(
 
     // choose correct next index
     if (pointDataIt == pointDataEnd) {
-      next_index = grid.getMaxIndex();
+      next_index = grid.getMaxGridPoint();
       next_index[D - 1]++;
     } else {
       next_index = pointDataIt->first;
@@ -67,10 +68,10 @@ void hrleFillDomainFromPointList(
     for (int q = 0; q < D; q++) {
       hrleVectorType<hrleIndexType, D> tmp = index;
       tmp[q]++;
-      if (tmp[q] > grid.getMaxIndex(q))
+      if (tmp[q] > grid.getMaxGridPoint(q))
         continue;
       for (int r = 0; r < q; ++r)
-        tmp[r] = grid.getMinIndex(r);
+        tmp[r] = grid.getMinGridPoint(r);
 
       if (tmp >= next_index)
         break;
