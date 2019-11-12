@@ -426,11 +426,22 @@ public:
     return a + (b - a) * ((c - ac) / (bc - ac));
   }
 
-  /// Transforms a global coordinate in direction dir to a global index.
+  /// Transforms a local coordinate in direction dir to a local index.
   hrleCoordType localCoordinate2LocalIndex(int dir, hrleCoordType c) const {
     hrleIndexType a = getMinIndex(dir);
     hrleIndexType b = getMaxIndex(dir);
     return localCoordinate2LocalIndex(c, a, b);
+  }
+
+  /// Transforms a global coordinate in direction dir to a global index.
+  hrleCoordType globalCoordinate2LocalIndex(int dir, hrleCoordType c) const {
+    // a is closest grid point less than c
+    hrleIndexType a = std::floor(c / gridDelta);
+    // get normalised distance within grid
+    hrleCoordType l = c - (a * gridDelta);
+    a = globalIndex2LocalIndex(dir, a);
+
+    return hrleCoordType(a) + l / gridDelta;
   }
 
   /*hrleCoordType globalCoordinate2GlobalIndex(int dim, hrleCoordType
