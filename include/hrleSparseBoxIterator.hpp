@@ -8,6 +8,14 @@
 /// hrleSparseOffsetIterator s for the cartesian neighbors and the center.
 /// Whenever one of these iterators reach a defined grid point, the square
 /// iterator stops.
+/// Neighbors are indexed lexicographically from negative cartesian directions:
+/// order 1:            order 2:
+///                     20 21 22 23 24
+/// 6 7 8               15 16 17 18 19
+/// 3 4 5               10 11 12 13 14
+/// 0 1 2               5  6  7  8  9
+///                     0  1  2  3  4
+/// center: 4           center: 12
 template <class hrleDomain> class hrleSparseBoxIterator {
 
   typedef typename std::conditional<std::is_const<hrleDomain>::value,
@@ -192,7 +200,7 @@ public:
   }
 
   template <class V>
-  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(V &relativeCoordinate) {
+  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(V relativeCoordinate) {
     return neighborIterators[coordinateToIndex(relativeCoordinate)];
   }
 
