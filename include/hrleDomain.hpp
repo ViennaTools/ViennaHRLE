@@ -98,6 +98,13 @@ public:
     domainSegments[0].insertNextUndefinedPoint(grid->getMinIndex(), value);
   };
 
+  void deepCopy(const hrleDomain<T, D> &passedDomain) {
+    assert(grid == &(passedDomain.getGrid()));
+    pointIdOffsets = passedDomain.pointIdOffsets;
+    segmentation = passedDomain.segmentation;
+    domainSegments.deepCopy(grid, passedDomain.domainSegments);
+  }
+
   void deepCopy(hrleGrid<D> *passedGrid, const hrleDomain<T, D> &passedDomain) {
     deepCopy(*passedGrid, passedDomain);
   }
@@ -125,6 +132,8 @@ public:
   }
 
   const hrleGrid<D> &getGrid() const { return *grid; }
+
+  hrleGrid<D> &getGrid() { return *grid; }
 
   hrleDomainSegmentType &getDomainSegment(unsigned i) {
     return domainSegments[i];

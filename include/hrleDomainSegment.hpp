@@ -552,7 +552,7 @@ public:
       if (c % 10 == 0)
         out << std::endl;
       ++c;
-      out << std::setw(8) << std::fixed << *it;
+      out << std::setw(8) << std::fixed << *it << " ";
     }
     out << std::endl;
     out << std::endl;
