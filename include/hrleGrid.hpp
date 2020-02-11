@@ -590,6 +590,8 @@ public:
 
   // Serialize the grid
   std::ostream &serialize(std::ostream &stream) const {
+    // set identifier
+    stream << "hrleGrid";
     // GRID PROPERTIES
     hrleIndexType bounds[2 * D];
     // get the bounds to save
@@ -638,6 +640,16 @@ public:
 
   /// Deserialize from serialized input
   std::istream &deserialize(std::istream &stream) {
+    // check identifier
+    char identifier[8];
+    stream.read(identifier, 8);
+    if (std::string(identifier).compare(0, 8, "hrleGrid")) {
+      std::cout
+          << "Reading hrleGrid from stream failed. Header could not be found."
+          << std::endl;
+      return stream;
+    }
+
     char gridBoundaryBytes = 0;
     stream.read(&gridBoundaryBytes, 1);
 

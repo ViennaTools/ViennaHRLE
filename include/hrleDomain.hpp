@@ -546,6 +546,9 @@ public:
   /// anew since only a serial (non-parallelized) hrle structure
   /// can be serialized.
   std::ostream &serialize(std::ostream &stream) {
+    // write identifier
+    stream << "hrleDomain";
+
     bool structureIsSerial = true;
     if (getNumberOfSegments() > 1) {
       desegment();
@@ -711,6 +714,16 @@ public:
   }
 
   std::istream &deserialize(std::istream &stream) {
+    // check identifier
+    char identifier[10];
+    stream.read(identifier, 10);
+    if (std::string(identifier).compare(0, 10, "hrleDomain")) {
+      std::cout
+          << "Reading hrleDomain from stream failed. Header could not be found."
+          << std::endl;
+      return stream;
+    }
+
     // READ HRLE PROPERTIES
     for (int dim = D - 1; dim >= 0; --dim) {
       // get the start indices, runtypes and runbreaks vectors

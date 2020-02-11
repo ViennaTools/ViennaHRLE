@@ -103,15 +103,8 @@ public:
 
     // read grid
     domain->getGrid().deserialize(fin);
-
-    // create new hrleDomain with new grid
-    hrleDomain newDomain(domain->getGrid());
-
-    // deserialize into new domain
-    newDomain.deserialize(fin);
-
-    // now copy into old domain
-    domain->deepCopy(newDomain);
+    // read hrleDomain
+    domain->deserialize(fin);
   }
 };
 
