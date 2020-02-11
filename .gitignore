@@ -4,4 +4,4 @@
 *.vs
 !foxDomain.hrle
 Examples/build/
-build/
+build*/

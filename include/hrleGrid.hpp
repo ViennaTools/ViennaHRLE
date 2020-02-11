@@ -6,6 +6,7 @@
 #include "hrleVectorType.hpp"
 #include <cmath>
 #include <memory>
+#include <ostream>
 #include <vector>
 
 template <int D> class hrleGrid {
@@ -51,6 +52,16 @@ private:
                 // false if the grid_position function is strictly monotonic
                 // increasing and true if the grid_position function is
                 // strictly monotonic decreasing
+
+  static char getByteSizeOfNumber(int number) {
+    number = std::abs(number);
+    char size = 0;
+    while (number != 0) {
+      number >>= 8;
+      ++size;
+    }
+    return size;
+  }
 
 public:
   /// empty constructor
@@ -124,6 +135,7 @@ public:
     std::cout << "MinGridPoint: " << minGridPointCoord << std::endl;
     std::cout << "MaxGridPoint: " << maxGridPointCoord << std::endl;
     std::cout << "BNC: " << boundaryConditions << std::endl;
+    std::cout << "GridDelta: " << gridDelta << std::endl;
   }
 
   bool parity(int dim) const {
@@ -575,8 +587,80 @@ public:
     }
     return false;
   }
-};
 
-// };
+  // Serialize the grid
+  std::ostream &serialize(std::ostream &stream) const {
+    // GRID PROPERTIES
+    hrleIndexType bounds[2 * D];
+    // get the bounds to save
+    for (unsigned i = 0; i < D; ++i) {
+      if (getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
+          getBoundaryConditions(i) == hrleGrid<D>::NEG_INFINITE_BOUNDARY) {
+        // set to zero as it will be changed during deserialization
+        bounds[2 * i] = 0;
+      } else {
+        bounds[2 * i] = minIndex[i];
+      }
+
+      if (getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
+          getBoundaryConditions(i) == hrleGrid<D>::POS_INFINITE_BOUNDARY) {
+        bounds[2 * i + 1] = 0;
+      } else {
+        bounds[2 * i + 1] = maxIndex[i];
+      }
+    }
+
+    {
+      // find number of bytes needed to represent the highest grid extent
+      char gridBoundaryBytes;
+      for (unsigned i = 0; i < 2 * D; ++i) {
+        if (bounds[i] != 0) {
+          gridBoundaryBytes =
+              std::max(getByteSizeOfNumber(bounds[i]), gridBoundaryBytes);
+        }
+      }
+      gridBoundaryBytes =
+          std::min(gridBoundaryBytes, char(8)); // maximum of 8 Bytes
+
+      // grid properties
+      stream.write(reinterpret_cast<char *>(&gridBoundaryBytes), sizeof(char));
+      for (int dim = D - 1; dim >= 0; --dim) {
+        stream.write((char *)&bounds[2 * dim], gridBoundaryBytes);
+        stream.write((char *)&bounds[2 * dim + 1], gridBoundaryBytes);
+        auto boundaryCondition = getBoundaryConditions(dim);
+        stream.write((char *)&boundaryCondition, 1);
+      }
+      stream.write((char *)&gridDelta, sizeof(double));
+    }
+
+    return stream;
+  }
+
+  /// Deserialize from serialized input
+  std::istream &deserialize(std::istream &stream) {
+    char gridBoundaryBytes = 0;
+    stream.read(&gridBoundaryBytes, 1);
+
+    // READ GRID
+    hrleIndexType gridMin[D], gridMax[D];
+    typename hrleGrid<D>::boundaryType boundaryCons[D];
+    double gridDelta;
+    for (int i = D - 1; i >= 0; --i) {
+      unsigned condition = 0;
+      char min, max;
+      stream.read(&min, gridBoundaryBytes);
+      stream.read(&max, gridBoundaryBytes);
+      stream.read((char *)&condition, 1);
+      boundaryConditions[i] = boundaryType(condition);
+      gridMin[i] = hrleIndexType(min);
+      gridMax[i] = hrleIndexType(max);
+    }
+    stream.read((char *)&gridDelta, sizeof(double));
+    // initialize new grid
+    *this = hrleGrid(gridMin, gridMax, gridDelta, boundaryCons);
+
+    return stream;
+  }
+};
 
 #endif // HRLE_GRID_HPP

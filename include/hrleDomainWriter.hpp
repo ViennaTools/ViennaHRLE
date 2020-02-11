@@ -1,7 +1,7 @@
 #ifndef HRLE_DOMAIN_WRITER_HPP
 #define HRLE_DOMAIN_WRITER_HPP
 
-#define HRLE_FILE_VERSION_NUMBER 0
+#define HRLE_FILE_VERSION_NUMBER 1
 
 #include <cmath>
 #include <fstream>
@@ -57,11 +57,14 @@
 *********************************************************************
 *    Values Header: 4 Bytes    *
 ***********************************
-* 4 Bytes  Number of distances
+* 4 Bytes  Number of defined values
+* 4 Bytes  Number of undefined values
 *********************************************************************
 *    Values Data    *
 ************************
-* Distances - using sizeOf Bytes per value
+* Defined Values - using sizeOf Bytes per value or
+                   serialize/deserialize of underlying data structure
+* Undefined Values - same as Defined Values
 *********************************************************************
 */
 
@@ -88,21 +91,6 @@ template <class hrleDomain> class hrleDomainWriter {
     return test_endianness.charVar[0] != 0;
   }
 
-  char getBitSizeOfNumber(int number) {
-    number = std::abs(number);
-    int numBits = 0;
-    while (number != 0) {
-      number /= 2;
-      ++numBits;
-    }
-    return numBits;
-  }
-
-  char getByteSizeOfNumber(int number) {
-    int numBits = getBitSizeOfNumber(number);
-    return numBits / 8 + (numBits % 8) ? 1 : 0;
-  }
-
 public:
   hrleDomainWriter() {}
 
@@ -114,8 +102,6 @@ public:
   void setDomain(hrleDomain *domainPointer) { domain = domainPointer; }
   void setDomain(hrleDomain &passedDomain) { domain = &passedDomain; }
   hrleDomain &getDomain() { return *domain; }
-  // void setValueTypeByteSize(int size) { valueTypeByteSize = size; }
-  const int &getValueTypeByteSize() const { return valueTypeByteSize; }
   void setFilePath(std::string path) {
     if (path.find(".hrle") != path.size() - 5) {
       std::cout << "File path not ending in '.hrle'!" << std::endl;
@@ -126,11 +112,11 @@ public:
   }
   const std::string &getFilePath() const { return filePath; }
 
-  bool write() {
-    std::ofstream fout(filePath);
+  void apply() {
+    std::ofstream fout(filePath, std::ofstream::binary);
     if (!fout.is_open()) {
       std::cout << "ERROR: Could not open the file: " << filePath << std::endl;
-      return false;
+      return;
     }
 
     // write file header
@@ -142,197 +128,11 @@ public:
       fout << char(valueTypeByteSize);
     }
 
-    // GRID PROPERTIES
-    hrleIndexType bounds[2 * D];
-    domain->getDomainBounds(bounds);
-    {
-      // find number of bytes needed to represent the highest grid extent
-      char gridBoundaryBytes;
-      for (unsigned i = 0; i < 2 * D; ++i) {
-        if (bounds[i] != 0) {
-          gridBoundaryBytes =
-              std::max(getByteSizeOfNumber(bounds[i]), gridBoundaryBytes);
-        }
-      }
-      gridBoundaryBytes =
-          std::min(gridBoundaryBytes, char(8)); // maximum of 8 Bytes
+    // now write grid serialization
+    domain->getGrid().serialize(fout);
 
-      // grid properties
-      fout << gridBoundaryBytes;
-      for (int dim = D - 1; dim >= 0; --dim) {
-        fout.write((char *)&bounds[2 * dim], gridBoundaryBytes);
-        fout.write((char *)&bounds[2 * dim + 1], gridBoundaryBytes);
-        auto boundaryCondition = domain->getGrid().getBoundaryConditions(dim);
-        fout.write((char *)&boundaryCondition, 1);
-      }
-      double gridDelta = domain->getGrid().getGridDelta();
-      // std::cout << gridDelta << std::endl;
-      fout.write((char *)&gridDelta, sizeof(double));
-      // fout << gridDelta;
-    }
-
-    bool structureIsSerial = true;
-    if (domain->getNumberOfSegments() > 1) {
-      domain->serialize();
-      structureIsSerial = false;
-    }
-
-    // START INDICES, RUN TYPES, RUN BREAKS FOR EACH DIMENSION
-    for (int dim = D - 1; dim >= 0; --dim) {
-      // get start indices, runbreaks and runtypes
-      const std::vector<hrleSizeType> &startIndices =
-          domain->domainSegments[0].startIndices[dim];
-      const std::vector<hrleSizeType> &runTypes =
-          domain->domainSegments[0].runTypes[dim];
-      const std::vector<hrleIndexType> &runBreaks =
-          domain->domainSegments[0].runBreaks[dim];
-
-      const char bytesPerIndex =
-          getByteSizeOfNumber(bounds[2 * dim + 1] - bounds[2 * dim]);
-
-      char bitsPerRunType =
-          getBitSizeOfNumber(domain->getNumberOfUndefinedValues());
-      if (bitsPerRunType == 3) {
-        ++bitsPerRunType;
-      } else if (bitsPerRunType > 4 && bitsPerRunType < 8) {
-        bitsPerRunType = 8;
-      } else if (bitsPerRunType > 8 && (bitsPerRunType % 8)) {
-        bitsPerRunType += 8 - bitsPerRunType % 8;
-      }
-
-      const char bytesPerRunBreak =
-          std::max(getBitSizeOfNumber(bounds[2 * dim]),
-                   getBitSizeOfNumber(bounds[2 * dim + 1])) /
-              8 +
-          1;
-
-      // HRLE BLOCK HEADER
-      fout.write((char *)&bytesPerIndex, 1);
-      fout.write((char *)&bitsPerRunType, 1);
-      fout.write((char *)&bytesPerRunBreak, 1);
-      {
-        uint32_t numberOfValues = uint32_t(startIndices.size());
-        fout.write((char *)&numberOfValues, 4);
-        numberOfValues = uint32_t(runTypes.size());
-        fout.write((char *)&numberOfValues, 4);
-        numberOfValues = uint32_t(runBreaks.size());
-        fout.write((char *)&numberOfValues, 4);
-      }
-
-      // uint32_t values_written = 0;
-      // Write start indices; only save the difference to the next start index
-      // (delta encoding)
-
-      // First index is always 0, no need to write explicitly
-      for (unsigned int i = 1; i < startIndices.size(); i++) {
-        unsigned long diff = startIndices[i] - startIndices[i - 1];
-        fout.write((char *)&diff, bytesPerIndex);
-        // values_written++;
-      }
-
-      // write all runtypes to the file, skipping all segments and indices
-      int count = 8 / bitsPerRunType - 1;
-      unsigned char byte = 0;
-      std::vector<hrleSizeType>
-          definedRunIndices; // store all indices of defined runtypes
-
-      // each runType needs at least one byte
-      if (bitsPerRunType > 4) {
-        for (typename std::vector<hrleSizeType>::const_iterator it =
-                 runTypes.begin();
-             it != runTypes.end(); ++it) {
-          hrleSizeType PtId = 0;
-          // if undefined point, need to shift id
-          if (*it >= hrleRunTypeValues::UNDEF_PT)
-            PtId = (*it) - hrleRunTypeValues::UNDEF_PT + 1;
-          else
-            definedRunIndices.push_back(*it);
-
-          fout.write((char *)&PtId, (bitsPerRunType - 1) / 8 + 1);
-        }
-      } else { // can fit more than one value in a byte
-        for (typename std::vector<hrleSizeType>::const_iterator it =
-                 runTypes.begin();
-             it != runTypes.end(); ++it) {
-          hrleSizeType PtId = 0;
-          if (*it >= hrleRunTypeValues::UNDEF_PT)
-            PtId = (*it) - hrleRunTypeValues::UNDEF_PT + 1;
-          else
-            definedRunIndices.push_back(*it);
-
-          byte |= (PtId << (count * bitsPerRunType));
-          --count;
-
-          if (count < 0) { // push byte to stream and start again
-            fout << byte;
-            count = 8 / bitsPerRunType - 1;
-            byte = 0;
-          }
-        }
-        // if last byte is not completely filled, just push it
-        if (count >= 0 && count != 8 / bitsPerRunType - 1) {
-          fout << byte;
-        }
-      }
-
-      // Write indices of defined runtypes; only save the difference to the next
-      // defined runtype write the first runtype(always 0) explicitly; makes
-      // reading easier
-      fout.write((char *)&definedRunIndices[0], bytesPerIndex);
-      for (unsigned int i = 0; i < definedRunIndices.size() - 1; i++) {
-        unsigned long diff = definedRunIndices[i + 1] - definedRunIndices[i];
-        fout.write((char *)&diff, bytesPerIndex);
-      }
-
-      // Write runbreaks
-      for (typename std::vector<hrleIndexType>::const_iterator it =
-               runBreaks.begin();
-           it != runBreaks.end(); ++it) {
-        fout.write((char *)&(*it), bytesPerRunBreak);
-      }
-    }
-
-    // DEFINED VALUES, UNDEFINED VALUES
-    // IMPORTANT NOTE:
-    // in order for this to work, you have to make sure that the type
-    // you store in the HRLE structure is serializable, i.e.: has an
-    // operator overload of the form:
-    // ostream& operator<<(ostream&, hrleValueType)
-    // HEADER
-    {
-      uint32_t numberOfDefinedValues = domain->getNumberOfPoints();
-      uint32_t numberOfUndefinedValues = domain->getNumberOfUndefinedValues();
-      fout.write((char *)&numberOfDefinedValues, 4);
-      fout.write((char *)&numberOfUndefinedValues, 4);
-    }
-    // DATA
-    {
-      std::vector<hrleValueType> &definedValues =
-          domain->domainSegments[0].definedValues;
-      for (typename std::vector<hrleValueType>::const_iterator it =
-               definedValues.begin();
-           it != definedValues.end(); ++it) {
-        fout << *it;
-      }
-
-      std::vector<hrleValueType> &undefinedValues =
-          domain->domainSegments[0].undefinedValues;
-      for (typename std::vector<hrleValueType>::const_iterator it =
-               undefinedValues.begin();
-           it != undefinedValues.end(); ++it) {
-        fout << *it;
-      }
-    }
-
-    // CLEANUP
-    fout.close();
-
-    // if the hrleDomain was segmented before, segment it again
-    if (!structureIsSerial) {
-      domain->segment();
-    }
-
-    return fout.good();
+    // now write hrle structure
+    domain->serialize(fout);
   }
 };
 

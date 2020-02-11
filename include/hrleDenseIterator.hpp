@@ -25,7 +25,7 @@ template <class hrleDomain> class hrleDenseIterator {
     for (; dim < D - 1; ++dim) {
       bool posInfinite = domain.getGrid().isPosBoundaryInfinite(dim);
       bool negInfinite = domain.getGrid().isNegBoundaryInfinite(dim);
-      if (v[dim] < (posInfinite ? domain.getMaxRunBreak(dim)-1
+      if (v[dim] < (posInfinite ? domain.getMaxRunBreak(dim) - 1
                                 : domain.getGrid().getMaxGridPoint(dim)))
         break;
       v[dim] = (negInfinite ? domain.getMinRunBreak(dim)
@@ -42,7 +42,7 @@ template <class hrleDomain> class hrleDenseIterator {
       if (v[dim] > (negInfinite ? domain.getMinRunBreak(dim)
                                 : domain.getGrid().getMinGridPoint(dim)))
         break;
-      v[dim] = (posInfinite ? domain.getMaxRunBreak(dim)-1
+      v[dim] = (posInfinite ? domain.getMaxRunBreak(dim) - 1
                             : domain.getGrid().getMaxGridPoint(dim));
     }
     --v[dim];
@@ -55,8 +55,9 @@ public:
     for (unsigned i = 0; i < D; ++i) {
       minIndex[i] = (grid.isNegBoundaryInfinite(i)) ? domain.getMinRunBreak(i)
                                                     : grid.getMinBounds(i);
-      maxIndex[i] = (grid.isPosBoundaryInfinite(i)) ? domain.getMaxRunBreak(i)-1
-                                                    : grid.getMaxBounds(i);
+      maxIndex[i] = (grid.isPosBoundaryInfinite(i))
+                        ? domain.getMaxRunBreak(i) - 1
+                        : grid.getMaxBounds(i);
     }
     if (reverse)
       currentIndices = maxIndex;
@@ -72,8 +73,9 @@ public:
     for (unsigned i = 0; i < D; ++i) {
       minIndex[i] = (grid.isNegBoundaryInfinite(i)) ? domain.getMinRunBreak(i)
                                                     : grid.getMinBounds(i);
-      maxIndex[i] = (grid.isPosBoundaryInfinite(i)) ? domain.getMaxRunBreak(i)-1
-                                                    : grid.getMaxBounds(i);
+      maxIndex[i] = (grid.isPosBoundaryInfinite(i))
+                        ? domain.getMaxRunBreak(i) - 1
+                        : grid.getMaxBounds(i);
     }
     currentIndices = minIndex;
   }
@@ -81,7 +83,8 @@ public:
   hrleDenseIterator<hrleDomain> &operator++() {
     // move iterator with currentIndices if they are the same
     incrementIndices(currentIndices);
-    while(runsIterator.getEndIndices() < currentIndices && !runsIterator.isFinished()){
+    while (runsIterator.getEndIndices() < currentIndices &&
+           !runsIterator.isFinished()) {
       runsIterator.next();
     }
 
@@ -97,7 +100,8 @@ public:
   hrleDenseIterator<hrleDomain> &operator--() {
     // move iterator with currentIndices if they are the same
     decrementIndices(currentIndices);
-    while(runsIterator.getEndIndices() > currentIndices && !runsIterator.isFinished()){
+    while (runsIterator.getEndIndices() > currentIndices &&
+           !runsIterator.isFinished()) {
       runsIterator.previous();
     }
 
@@ -149,7 +153,9 @@ public:
 
   hrleVectorType<hrleIndexType, D> getIndices() { return currentIndices; }
 
-  hrleVectorType<hrleIndexType, D> getIteratorIndices() { return runsIterator.getStartIndices(); }
+  hrleVectorType<hrleIndexType, D> getIteratorIndices() {
+    return runsIterator.getStartIndices();
+  }
 
   void print() {
     std::cout << currentIndices << std::endl;

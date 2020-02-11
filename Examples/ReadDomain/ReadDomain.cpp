@@ -15,7 +15,7 @@ int main() {
 
   hrleDomainReader<hrleDomainType> reader(data);
   reader.setFilePath("foxDomain.hrle");
-  reader.read();
+  reader.apply();
 
   data.print();
 

@@ -1,3 +1,4 @@
+#include <hrleDomainReader.hpp>
 #include <hrleDomainWriter.hpp>
 #include <hrleFillDomainFromPointList.hpp>
 #include <iostream>
@@ -39,7 +40,14 @@ int main() {
 
   hrleDomainWriter<hrleDomainType> writer(data);
   writer.setFilePath("test.hrle");
-  writer.write();
+  writer.apply();
+
+  hrleDomainType newData(grid);
+  hrleDomainReader<hrleDomainType> reader(newData);
+  reader.setFilePath("test.hrle");
+  reader.apply();
+
+  newData.print();
 
   return 0;
 }
