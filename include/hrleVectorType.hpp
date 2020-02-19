@@ -65,31 +65,38 @@ public:
   void reverse_sort();
 
   struct hash {
+  private:
+    std::size_t hash_combine(std::size_t lhs, std::size_t rhs) const {
+      lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
+      return lhs;
+    }
+
+  public:
     std::size_t operator()(const hrleVectorType<T, D> &v) const {
       using std::hash;
       using std::size_t;
       // using std::string;
 
-      /* Better hash combine functions might be:
-        hash(a)<<1 + hash(a) + hash(b)
-        or from boost:
-        size_t hash_combine( size_t lhs, size_t rhs ) {
-          lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
-          return lhs;
-        }
+      /*
         https://stackoverflow.com/questions/5889238/why-is-xor-the-default-way-to-combine-hashes
       */
+      std::size_t result = hash<T>()(v[0]);
+      result = hash_combine(result, hash<T>()(v[1]));
+      if (D == 3) {
+        result = hash_combine(result, hash<T>()(v[2]));
+      }
+      return result;
 
       // Compute individual hash values for first,
       // second and third and combine them using XOR
       // and bit shifting:
 
-      size_t result = hash<T>()(v[0]);
-      result ^= hash<T>()(v[1]) << 1;
-      if (D == 3) {
-        result = (result >> 1) ^ (hash<T>()(v[3]) << 1);
-      }
-      return result;
+      // size_t result = hash<T>()(v[0]);
+      // result ^= hash<T>()(v[1]) << 1;
+      // if (D == 3) {
+      //   result = (result >> 1) ^ (hash<T>()(v[2]) << 1);
+      // }
+      // return result;
     }
   };
 };
