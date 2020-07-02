@@ -43,8 +43,6 @@ void hrleFillDomainFromPointList(
   auto pointDataBegin = pointData.begin(); //+starts[t_num];
   auto pointDataEnd = pointData.end();     // pointData.begin()+starts[t_num+1];
 
-  hrleVectorType<hrleIndexType, D> currentIndex = pointDataBegin->first;
-
   auto pointDataIt = pointDataBegin;
   while (pointDataIt != pointDataEnd) {
 

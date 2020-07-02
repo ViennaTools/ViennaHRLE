@@ -12,7 +12,6 @@ public:
   typedef T value_type;
   static constexpr int dimension = D;
 
-  hrleVectorType(const hrleVectorType<T, D> &);
   template <class T1, int D1>
   explicit hrleVectorType(const hrleVectorType<T1, D1> &);
   explicit hrleVectorType(const T[]);
@@ -125,12 +124,6 @@ inline hrleVectorType<T, D> &hrleVectorType<T, D>::operator=(const V &v) {
   for (int i = 0; i < D; i++)
     x[i] = v[i];
   return *this;
-}
-
-template <class T, int D>
-inline hrleVectorType<T, D>::hrleVectorType(const hrleVectorType<T, D> &v) {
-  for (int i = 0; i < D; i++)
-    x[i] = v[i];
 }
 
 template <class T, int D> inline T &hrleVectorType<T, D>::operator[](int i) {
