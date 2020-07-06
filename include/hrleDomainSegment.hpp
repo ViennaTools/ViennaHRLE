@@ -395,6 +395,8 @@ public:
     insertNextUndefinedRunType(point, runType);
   }
 
+  /// Inserts an undefined point into the HRLE structure.
+  /// CAREFUL: If the same point is inserted twice, the structure might break!
   template <class V>
   void insertNextDefinedPoint(const V &point, hrleValueType distance) {
 
@@ -416,7 +418,7 @@ public:
         runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
         startIndices[dim - 1].push_back(hrleSizeType(runTypes[dim - 1].size()));
       } else if (!isPtIdDefined(
-                     runTypes[dim].back())) { // if there is an defined run
+                     runTypes[dim].back())) { // if there is an undefined run
         old_sign = runTypes[dim].back();
         if (runTypes[dim].size() ==
             startIndices[dim].back() + 1) { // if there is a single run
@@ -441,7 +443,7 @@ public:
           }
         }
         startIndices[dim - 1].push_back(hrleSizeType(runTypes[dim - 1].size()));
-      } else {
+      } else { // it is a defined run
         if (dim <= level)
           startIndices[dim - 1].push_back(
               hrleSizeType(runTypes[dim - 1].size()));
@@ -455,7 +457,7 @@ public:
       }
       runTypes[0].push_back(hrleSizeType(definedValues.size()));
     } else if (!isPtIdDefined(
-                   runTypes[0].back())) { // if there is an defined run
+                   runTypes[0].back())) { // if there is an undefined run
       old_sign = runTypes[0].back();
       if (runTypes[0].size() ==
           startIndices[0].back() + 1) { // if there is a single run
