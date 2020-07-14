@@ -183,7 +183,7 @@ public:
     centerIterator.goToIndices(v);
     for (int i = 0; i < int(order); ++i) {
       for (int j = 0; j < 2 * D; ++j) {
-        neighborIterators[j].goToIndices(v);
+        neighborIterators[i * 2 * D + j].goToIndices(v);
       }
     }
   }
