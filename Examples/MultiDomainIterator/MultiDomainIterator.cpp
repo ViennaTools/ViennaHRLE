@@ -1,17 +1,18 @@
-#include <hrleSparseMultiDomainIterator.hpp>
 #include <hrleFillDomainFromPointList.hpp>
+#include <hrleSparseMultiDomainIterator.hpp>
 #include <iostream>
 #include <string>
 
 int main() {
 
   constexpr int D = 2;
+  omp_set_num_threads(1);
 
   // set domain bounds
   hrleIndexType min[D], max[D];
   for (unsigned i = 0; i < D; ++i) {
     min[i] = -5;
-    max[i] = 25;
+    max[i] = 30;
   }
 
   // declare domain with bounds min,max
@@ -33,20 +34,46 @@ int main() {
       data, pointData,
       '.'); // last parameter is the background value to use
 
+  // make second domain to check if multidomainiterator works
+  hrleDomain<char, D> data2(grid);
+
+  std::cout << "Filling domain 2" << std::endl;
+
+  pointData.clear();
+  index = hrleVectorType<hrleIndexType, D>(3, 1, 0);
+  for (unsigned i = 0; i < helloString.size(); ++i) {
+    pointData.push_back(std::make_pair(index, helloString[i]));
+    index[0] += 2;
+    index[1] += 1;
+  }
+
+  hrleFillDomainFromPointList(data2, pointData, '.');
+
   // iterate over hrle structures and output the values showing the dense data
   // set
-  // std::cout << "Dense Data Set filled with background value:" << std::endl;
-  // hrleConstDenseIterator<hrleDomain<char, D>> it(data);
-  // int y = data.getGrid().getMinIndex(1);
-  // while (!it.isFinished()) {
-  //   if (y < it.getIndex(1)) {
-  //     y = it.getIndex(1);
-  //     std::cout << std::endl;
-  //   }
-  //   std::cout << (it++).getValue() << " ";
-  // }
+  std::cout << "Data Sets filled with background value:" << std::endl;
+  hrleConstSparseMultiDomainIterator<hrleDomain<char, D>> it(data);
+  it.insertNextDomain(data2);
+  int x = data.getGrid().getMinIndex(0);
+  int y = data.getGrid().getMinIndex(1);
+  while (!it.isFinished()) {
+    if (y < it.getIndex(1)) {
+      y = it.getIndex(1);
+      x = data.getGrid().getMinIndex(0);
+      std::cout << std::endl;
+    }
 
-  // std::cout << it.getValue() << std::endl;
+    for (; x < int(it.getIndex(0)); ++x) {
+      std::cout << " ";
+    }
+
+    auto definedIts = it.getDefinedIterators();
+    for (auto &it : definedIts) {
+      std::cout << it.getValue();
+    }
+
+    ++it;
+  }
 
   return 0;
 }

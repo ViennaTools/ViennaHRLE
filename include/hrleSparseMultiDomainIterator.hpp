@@ -22,17 +22,9 @@ template <class hrleDomain> class hrleSparseMultiDomainIterator {
 
   static constexpr int D = hrleDomain::dimension;
 
-  std::vector<hrleDomain*> domains;
-  hrleVectorType<hrleIndexType, D> currentCoords;
+  std::vector<hrleDomain *> domains;
+  hrleVectorType<hrleIndexType, D> currentIndices;
   std::vector<hrleSparseIterator<hrleDomain>> iterators;
-
-  bool isDefined() const {
-    for (unsigned i = 0; i < iterators.size(); i++) {
-      if (iterators[i].isDefined())
-        return true;
-    }
-    return false;
-  }
 
   template <class V> void initializeIterators(const V &v) {
     iterators.clear();
@@ -53,16 +45,37 @@ template <class hrleDomain> class hrleSparseMultiDomainIterator {
   }
 
 public:
-  hrleSparseMultiDomainIterator(std::vector<hrleDomain*> passedDomains,
-                         const hrleVectorType<hrleIndexType, D> &v)
-      : domains(passedDomains), currentCoords(v) {
-    initializeIterators(v);
+  /// A vector with pointers to hrleDomains to iterate over.
+  /// The passed hrleVector contains the indices from which to start iterating.
+  hrleSparseMultiDomainIterator(std::vector<hrleDomain *> passedDomains,
+                                const hrleVectorType<hrleIndexType, D> v)
+      : domains(passedDomains), currentIndices(v) {
+    initializeIterators(currentIndices);
   }
 
+  /// A vector with pointers to hrleDomains to iterate over.
+  /// The iteration will start from the minimum index of the grid.
+  hrleSparseMultiDomainIterator(std::vector<hrleDomain *> passedDomains)
+      : domains(passedDomains),
+        currentIndices(*(passedDomains[0]).getGrid().getGridMin()) {
+    initializeIterators(currentIndices);
+  }
+
+  /// When this constructor is used, the iteration is started from the minimum
+  /// grid index.
   hrleSparseMultiDomainIterator(hrleDomain &passedDomain)
-      : currentCoords(passedDomain.getGrid().getMinGridPoint()) {
+      : currentIndices(passedDomain.getGrid().getMinGridPoint()) {
     domains.push_back(&passedDomain);
     initializeIterators(passedDomain.getGrid().getMinIndex());
+  }
+
+  /// Add a domain over which to iterate. This does not affect the current index
+  /// in the iteration, so if this should trigger a restart from some start
+  /// indices, this has to be done manually.
+  void insertNextDomain(hrleDomain &passedDomain) {
+    domains.push_back(&passedDomain);
+    iterators.push_back(
+        hrleSparseIterator<hrleDomain>(passedDomain, currentIndices));
   }
 
   hrleSparseMultiDomainIterator<hrleDomain> &operator++() {
@@ -77,89 +90,101 @@ public:
 
   /// go to next defined point in any domain
   void next() {
-    if(isFinished) {
+    if (isFinished()) {
       return;
     }
 
     do {
       // find shortest current run to find next run
-      hrleVectorType<hrleIndexType, D> end_coords = iterators[0].getEndIndices();
-      for(unsigned i = 1; i < iterators.size(); ++i) {
-        if(iterators[i].getEndIndices() < end_coords) {
-          end_coords = iterators[i].getEndIndices();
+      hrleVectorType<hrleIndexType, D> endIndices =
+          iterators[0].getEndIndices();
+      for (unsigned i = 1; i < iterators.size(); ++i) {
+        if (!iterators[i].isFinished() &&
+            iterators[i].getEndIndices() < endIndices) {
+          endIndices = iterators[i].getEndIndices();
         }
       }
 
+      endIndices = domains[0]->getGrid().incrementIndices(endIndices);
+
       // now advance all iterators to reach next defined run
+      for (auto &it : iterators) {
+        it.goToIndicesSequential(endIndices);
+      }
 
+      currentIndices = endIndices;
 
-    } while(!isDefined() && !isFinished());
-    
-
-
-    // const int numNeighbors = 2 * order * D;
-    // std::vector<bool> increment(numNeighbors + 1, false);
-    // increment[numNeighbors] = true;
-
-    // hrleVectorType<hrleIndexType, D> end_coords =
-    //     centerIterator.getEndIndices();
-    // for (int i = 0; i < numNeighbors; i++) {
-    //   switch (compare(end_coords, neighborIterators[i].getEndIndices())) {
-    //   case 1:
-    //     end_coords = neighborIterators[i].getEndIndices();
-    //     increment = std::vector<bool>(numNeighbors + 1, false);
-    //   case 0:
-    //     increment[i] = true;
-    //   }
-    // }
-
-    // if (increment[numNeighbors])
-    //   centerIterator.next();
-    // for (int i = 0; i < numNeighbors; ++i)
-    //   if (increment[i])
-    //     neighborIterators[i].next();
-
-    // currentCoords = domain.getGrid().incrementIndices(end_coords);
+    } while (!isDefined() && !isFinished());
   }
 
+  /// got to previous defined point in any domain
   void previous() {
-    // const int numNeighbors = 2 * order * D;
-    // std::vector<bool> decrement(numNeighbors + 1, false);
-    // decrement[numNeighbors] = true;
+    if (isFinished()) {
+      return;
+    }
 
-    // hrleVectorType<hrleIndexType, D> start_coords =
-    //     centerIterator.getStartIndices();
-    // for (int i = 0; i < numNeighbors; i++) {
-    //   switch (compare(start_coords, neighborIterators[i].getStartIndices())) {
-    //   case -1:
-    //     start_coords = neighborIterators[i].getStartIndices();
-    //     decrement = std::vector<bool>(numNeighbors + 1, false);
-    //   case 0:
-    //     decrement[i] = true;
-    //   }
-    // }
+    do {
+      // find shortest current run to find next run
+      hrleVectorType<hrleIndexType, D> startIndices =
+          iterators[0].getStartIndices();
+      for (unsigned i = 1; i < iterators.size(); ++i) {
+        if (!iterators[i].isFinished() &&
+            iterators[i].getStartIndices() < startIndices) {
+          startIndices = iterators[i].getStartIndices();
+        }
+      }
 
-    // if (decrement[numNeighbors])
-    //   centerIterator.previous();
-    // for (int i = 0; i < numNeighbors; ++i) {
-    //   if (decrement[i])
-    //     neighborIterators[i].previous();
-    // }
-    // currentCoords = domain.getGrid().decrementIndices(start_coords);
+      startIndices = domains[0]->getGrid().decrementIndices(startIndices);
+
+      // now advance all iterators to reach next defined run
+      for (auto &it : iterators) {
+        it.goToIndicesSequential(startIndices);
+      }
+
+      currentIndices = startIndices;
+
+    } while (!isDefined() && !isFinished());
   }
 
   /// Returns the iterator used for the domain at index. This is the index
   /// the domain had in the std::vector upon initialisation, or the index
   /// it obtained through calls to insertNextDomain.
-  hrleSparseOffsetIterator<hrleDomain> &getDomainIterator(int index) {
+  hrleSparseIterator<hrleDomain> &getIterator(int index) {
     return iterators[index];
   }
 
-  const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
+  hrleIndexType getIndex(int i) { return currentIndices[i]; }
 
+  const hrleVectorType<hrleIndexType, D> &getIndices() {
+    return currentIndices;
+  }
+
+  std::size_t getNumberOfDomains() { return domains.size(); }
+
+  /// Returns whether there is any defined point at the current index.
+  bool isDefined() const {
+    for (unsigned i = 0; i < iterators.size(); i++) {
+      if (iterators[i].isDefined())
+        return true;
+    }
+    return false;
+  }
+
+  /// Returns a vector with all iterators currently on defined points.
+  std::vector<hrleSparseIterator<hrleDomain>> getDefinedIterators() {
+    std::vector<hrleSparseIterator<hrleDomain>> definedIterators;
+    for (auto &it : iterators) {
+      if (it.isDefined()) {
+        definedIterators.push_back(it);
+      }
+    }
+    return definedIterators;
+  }
+
+  /// If all iterators in all domains are finished, this will return true.
   bool isFinished() const {
-    for(auto &it : iterators) {
-      if(!it.isFinished()) {
+    for (auto &it : iterators) {
+      if (!it.isFinished()) {
         return false;
       }
     }
@@ -181,12 +206,12 @@ public:
   /// If v is lexicographically smaller than the current position
   /// then the iterator will be moved until it reaches v
   template <class V> void goToIndicesSequential(const V &v) {
-    if (v >= currentCoords) {
-      while (v > currentCoords) {
+    if (v >= currentIndices) {
+      while (v > currentIndices) {
         next();
       }
     } else {
-      while (v < currentCoords) {
+      while (v < currentIndices) {
         previous();
       }
     }
@@ -194,6 +219,7 @@ public:
 };
 
 template <class hrleDomain>
-using hrleConstSparseStarIterator = hrleSparseMultiDomainIterator<const hrleDomain>;
+using hrleConstSparseMultiDomainIterator =
+    hrleSparseMultiDomainIterator<const hrleDomain>;
 
 #endif // HRLE_SPARSE_MULTI_DOMAIN_ITERATOR_HPP
