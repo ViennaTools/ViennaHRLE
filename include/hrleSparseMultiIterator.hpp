@@ -8,12 +8,12 @@
 
 /// This class iterates over multiple hrleDomains by using an iterator
 /// for each domain and keeping them in sync. A call to next() results
-/// in the iterator advancing until the next defined point in any
+/// in the iterator advancing until the next run in any
 /// domain is reached. Therefore, all defined points in multiple
 /// domains can be visited sequentially with this iterator. If multiple
 /// points are defined at one index (i.e.: the point is defined in more
 /// than one domain), it will only stop once.
-template <class hrleDomain> class hrleSparseMultiDomainIterator {
+template <class hrleDomain> class hrleSparseMultiIterator {
 
   typedef typename std::conditional<std::is_const<hrleDomain>::value,
                                     const typename hrleDomain::hrleValueType,
@@ -35,11 +35,11 @@ template <class hrleDomain> class hrleSparseMultiDomainIterator {
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleSparseMultiDomainIterator<hrleDomain>
+  hrleSparseMultiIterator<hrleDomain>
   operator++(int) { // use pre increment instead
     return *this;
   }
-  hrleSparseMultiDomainIterator<hrleDomain>
+  hrleSparseMultiIterator<hrleDomain>
   operator--(int) { // use pre decrement instead
     return *this;
   }
@@ -47,7 +47,7 @@ template <class hrleDomain> class hrleSparseMultiDomainIterator {
 public:
   /// A vector with pointers to hrleDomains to iterate over.
   /// The passed hrleVector contains the indices from which to start iterating.
-  hrleSparseMultiDomainIterator(std::vector<hrleDomain *> passedDomains,
+  hrleSparseMultiIterator(std::vector<hrleDomain *> passedDomains,
                                 const hrleVectorType<hrleIndexType, D> v)
       : domains(passedDomains), currentIndices(v) {
     initializeIterators(currentIndices);
@@ -55,15 +55,15 @@ public:
 
   /// A vector with pointers to hrleDomains to iterate over.
   /// The iteration will start from the minimum index of the grid.
-  hrleSparseMultiDomainIterator(std::vector<hrleDomain *> passedDomains)
+  hrleSparseMultiIterator(std::vector<hrleDomain *> passedDomains)
       : domains(passedDomains),
-        currentIndices(*(passedDomains[0]).getGrid().getGridMin()) {
+        currentIndices(passedDomains.back()->getGrid().getMinGridPoint()) {
     initializeIterators(currentIndices);
   }
 
   /// When this constructor is used, the iteration is started from the minimum
   /// grid index.
-  hrleSparseMultiDomainIterator(hrleDomain &passedDomain)
+  hrleSparseMultiIterator(hrleDomain &passedDomain)
       : currentIndices(passedDomain.getGrid().getMinGridPoint()) {
     domains.push_back(&passedDomain);
     initializeIterators(passedDomain.getGrid().getMinIndex());
@@ -74,16 +74,18 @@ public:
   /// indices, this has to be done manually.
   void insertNextDomain(hrleDomain &passedDomain) {
     domains.push_back(&passedDomain);
+    currentIndices = passedDomain.getGrid().getMinGridPoint();
     iterators.push_back(
         hrleSparseIterator<hrleDomain>(passedDomain, currentIndices));
+    goToIndices(currentIndices);
   }
 
-  hrleSparseMultiDomainIterator<hrleDomain> &operator++() {
+  hrleSparseMultiIterator<hrleDomain> &operator++() {
     next();
     return *this;
   }
 
-  hrleSparseMultiDomainIterator<hrleDomain> &operator--() {
+  hrleSparseMultiIterator<hrleDomain> &operator--() {
     previous();
     return *this;
   }
@@ -94,10 +96,11 @@ public:
       return;
     }
 
-    do {
+    // do {
       // find shortest current run to find next run
       hrleVectorType<hrleIndexType, D> endIndices =
           iterators[0].getEndIndices();
+      // std::cout << "End Indices: " << endIndices << std::endl;
       for (unsigned i = 1; i < iterators.size(); ++i) {
         if (!iterators[i].isFinished() &&
             iterators[i].getEndIndices() < endIndices) {
@@ -109,12 +112,12 @@ public:
 
       // now advance all iterators to reach next defined run
       for (auto &it : iterators) {
-        it.goToIndicesSequential(endIndices);
+        it.goToIndices(endIndices);
       }
 
       currentIndices = endIndices;
 
-    } while (!isDefined() && !isFinished());
+    // } while (!isDefined() && !isFinished());
   }
 
   /// got to previous defined point in any domain
@@ -123,7 +126,7 @@ public:
       return;
     }
 
-    do {
+    // do {
       // find shortest current run to find next run
       hrleVectorType<hrleIndexType, D> startIndices =
           iterators[0].getStartIndices();
@@ -138,12 +141,12 @@ public:
 
       // now advance all iterators to reach next defined run
       for (auto &it : iterators) {
-        it.goToIndicesSequential(startIndices);
+        it.goToIndices(startIndices);
       }
 
       currentIndices = startIndices;
 
-    } while (!isDefined() && !isFinished());
+    // } while (!isDefined() && !isFinished());
   }
 
   /// Returns the iterator used for the domain at index. This is the index
@@ -170,12 +173,12 @@ public:
     return false;
   }
 
-  /// Returns a vector with all iterators currently on defined points.
-  std::vector<hrleSparseIterator<hrleDomain>> getDefinedIterators() {
-    std::vector<hrleSparseIterator<hrleDomain>> definedIterators;
-    for (auto &it : iterators) {
-      if (it.isDefined()) {
-        definedIterators.push_back(it);
+  /// Returns a vector of pairs with the domain index and all iterators currently on defined points.
+  std::vector<std::pair<std::size_t, hrleSparseIterator<hrleDomain>>> getDefinedIterators() {
+    std::vector<std::pair<std::size_t, hrleSparseIterator<hrleDomain>>> definedIterators;
+    for (std::size_t i = 0; i < iterators.size(); ++i) {
+      if (iterators[i].isDefined()) {
+        definedIterators.push_back(std::make_pair(i, iterators[i]));
       }
     }
     return definedIterators;
@@ -198,6 +201,7 @@ public:
     for (auto &it : iterators) {
       it.goToIndices(v);
     }
+    currentIndices = v;
   }
 
   /// Advances the iterator to position v.
@@ -215,11 +219,12 @@ public:
         previous();
       }
     }
+    currentIndices = v;
   }
 };
 
 template <class hrleDomain>
-using hrleConstSparseMultiDomainIterator =
-    hrleSparseMultiDomainIterator<const hrleDomain>;
+using hrleConstSparseMultiIterator =
+    hrleSparseMultiIterator<const hrleDomain>;
 
 #endif // HRLE_SPARSE_MULTI_DOMAIN_ITERATOR_HPP
