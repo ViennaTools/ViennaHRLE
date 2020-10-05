@@ -1,5 +1,5 @@
 #include <hrleFillDomainFromPointList.hpp>
-#include <hrleSparseMultiDomainIterator.hpp>
+#include <hrleSparseMultiIterator.hpp>
 #include <iostream>
 #include <string>
 
@@ -52,7 +52,7 @@ int main() {
   // iterate over hrle structures and output the values showing the dense data
   // set
   std::cout << "Data Sets filled with background value:" << std::endl;
-  hrleConstSparseMultiDomainIterator<hrleDomain<char, D>> it(data);
+  hrleConstSparseMultiIterator<hrleDomain<char, D>> it(data);
   it.insertNextDomain(data2);
   int x = data.getGrid().getMinIndex(0);
   int y = data.getGrid().getMinIndex(1);
@@ -68,12 +68,14 @@ int main() {
     }
 
     auto definedIts = it.getDefinedIterators();
-    for (auto &it : definedIts) {
-      std::cout << it.getValue();
+    for (auto &defined : definedIts) {
+      std::cout << defined.second.getValue();
     }
 
     ++it;
   }
+
+  std::cout << "Finished" << std::endl;
 
   return 0;
 }

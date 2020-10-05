@@ -66,8 +66,7 @@ int main() {
     ++it;
   }
 
-  std::cout << std::setw(8) << std::setprecision(2) << it.getValue()
-            << std::endl;
+  std::cout << std::endl;
 
   return 0;
 }

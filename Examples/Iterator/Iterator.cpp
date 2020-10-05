@@ -46,7 +46,7 @@ int main() {
     std::cout << (it++).getValue() << " ";
   }
 
-  std::cout << it.getValue() << std::endl;
+  std::cout << std::endl;
 
   return 0;
 }

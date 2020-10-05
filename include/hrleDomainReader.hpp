@@ -72,7 +72,7 @@ public:
     }
 
     // FILE HEADER
-    char buff[8] = {};
+    char buff[9] = {}; // 1 extra byte for string constructor
     fin.read(buff, 8);
     // Comparing Identification Bytes
     if (std::string(buff).compare(0, 4, "HRLE")) {

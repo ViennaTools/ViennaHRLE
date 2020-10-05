@@ -40,19 +40,23 @@ public:
     domainSegmentPointers.swap(s.domainSegmentPointers);
   }
 
+  void clear() {
+    for (typename hrleDomainSegmentPointerArray::iterator it =
+             domainSegmentPointers.begin();
+         it != domainSegmentPointers.end(); ++it)
+      if (*it != 0)
+        delete *it;
+    domainSegmentPointers.clear();
+  }
+
   /// initialize the parallelization by implementing i number of
   /// hrleDomainSegment objects through a segmentPointer object, that
   /// each correspond to a parallel core
   void initialize(size_type i, const hrleGrid<D> &g,
                   hrleAllocationType<hrleSizeType, D> a =
                       hrleAllocationType<hrleSizeType, D>()) {
-    for (typename hrleDomainSegmentPointerArray::iterator it =
-             domainSegmentPointers.begin();
-         it != domainSegmentPointers.end(); ++it)
-      if (*it != 0)
-        delete *it;
+    clear(); // delete all data in the array
 
-    domainSegmentPointers.clear();
     domainSegmentPointers.resize(i);
 
     a *= a.allocationFactor; // increase allocation by extra margin defined in
@@ -74,6 +78,7 @@ public:
   }
 
   void deepCopy(const hrleGrid<D> *g, const hrleDomainSegmentArray &s) {
+    clear(); // deallocate all domain segments
     domainSegmentPointers.resize(s.getNumberOfSegments());
 
 #pragma omp parallel for schedule(static, 1)
@@ -96,11 +101,7 @@ public:
   /// hrleDomainSegmentArray destructor used to delete all pointers for
   /// clean-up
   ~hrleDomainSegmentArray() {
-    for (typename hrleDomainSegmentPointerArray::iterator it =
-             domainSegmentPointers.begin();
-         it != domainSegmentPointers.end(); ++it)
-      if (*it != 0)
-        delete *it;
+    clear(); // deallocate all data
   }
 };
 

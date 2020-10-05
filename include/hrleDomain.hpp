@@ -715,7 +715,7 @@ public:
 
   std::istream &deserialize(std::istream &stream) {
     // check identifier
-    char identifier[10];
+    char identifier[11] = {}; // 1 more for string constructor
     stream.read(identifier, 10);
     if (std::string(identifier).compare(0, 10, "hrleDomain")) {
       std::cout

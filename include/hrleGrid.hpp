@@ -641,7 +641,7 @@ public:
   /// Deserialize from serialized input
   std::istream &deserialize(std::istream &stream) {
     // check identifier
-    char identifier[8];
+    char identifier[9] = {}; // 1 more for string constructor
     stream.read(identifier, 8);
     if (std::string(identifier).compare(0, 8, "hrleGrid")) {
       std::cout

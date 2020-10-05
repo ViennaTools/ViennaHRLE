@@ -72,7 +72,7 @@ int main() {
     std::cout << (pit++).getValue() << " ";
   }
 
-  std::cout << pit.getValue() << std::endl;
+  std::cout << std::endl;
 
   return 0;
 }
