@@ -215,7 +215,7 @@ public:
   bool isFinished() const { return getCenter().isFinished(); }
 
   /// Sets the iterator to position v.
-  /// Uses random access to move, so it is be slower
+  /// Uses random access to move, so it is slower
   /// than goToIndicesSequential for repeated serial calls.
   template <class V> void goToIndices(V &v) {
     const unsigned numNeighbors = neighborIterators.size();

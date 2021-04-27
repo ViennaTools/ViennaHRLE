@@ -4,14 +4,14 @@
 #include "hrleSparseIterator.hpp"
 #include "hrleSparseOffsetIterator.hpp"
 
-/// This neighbor iterator is an adabtation of the box iterator, which only
-/// moves the iterators that lie in a cartesian plan (2 dimensional linear
+/// This neighbor iterator is an adaptation of the box iterator, which only
+/// moves the iterators that lie in a cartesian plane (2 dimensional linear
 /// subspace created by all pairs of basis vectors). Whenever one of these
 /// iterators reach a defined grid point, the iterator stops. In 2D this
 /// iterator is equivalent to a hrleBoxIterator.
 ///
 /// The indices of the planeCoords coords array for D > 2 are like star
-/// iterators along the x axis exept for the slice that contains the center
+/// iterators along the x axis except for the slice that contains the center
 /// iterator which contains the whole plane
 ///
 ///   5        12 13 14        19
@@ -108,9 +108,7 @@ template <class hrleDomain> class hrleCartesianPlaneIterator {
       // if more than 2 coordinates are not equal to 0 the point lies not in a
       // cartesian plane
       if (coords < 3) {
-        neighborIterators.push_back(
-            std::unique_ptr<hrleSparseOffsetIterator<hrleDomain>>(
-                new hrleSparseOffsetIterator<hrleDomain>(domain, offset, v)));
+        neighborIterators.push_back(std::make_unique<hrleSparseOffsetIterator<hrleDomain>>(hrleSparseOffsetIterator<hrleDomain>(domain, offset, v)));
         planeCoords.push_back(i);
       } else {
         neighborIterators.push_back(nullptr);
@@ -248,7 +246,7 @@ public:
   bool isFinished() const { return getCenter().isFinished(); }
 
   /// Sets the iterator to position v.
-  /// Uses random access to move, so it is be slower
+  /// Uses random access to move, so it is slower
   /// than goToIndicesSequential for repeated serial calls.
   template <class V> void goToIndices(V &v) {
     const unsigned numPlaneNeighbours = planeCoords.size();
