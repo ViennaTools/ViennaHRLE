@@ -446,6 +446,9 @@ public:
   /// distribute points evenly across domainSegments, so that they can be
   /// iterated over by separate threads efficiently
   void segment() {
+    if (getNumberOfPoints() == 0) {
+      return;
+    }
     hrleDomain newDomain(grid);
     newDomain.initialize(getNewSegmentation(), getAllocation());
 

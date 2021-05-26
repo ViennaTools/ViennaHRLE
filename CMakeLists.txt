@@ -14,17 +14,13 @@ set(LOCAL_CONFIG_DIR "lib/cmake/${PROJECT_NAME}")
 
 # Adding the install interface generator expression makes sure that the include
 # files are installed to the proper location (provided by GNUInstallDirs)
-set(VIENNAHRLE_BUILD_INCLUDE_DIR "${${PROJECT_NAME}_SOURCE_DIR}/include")
+set(VIENNAHRLE_BUILD_INCLUDE_DIRS "${${PROJECT_NAME}_SOURCE_DIR}/include")
 target_include_directories(
   ${PROJECT_NAME}
-  INTERFACE $<BUILD_INTERFACE:${VIENNAHRLE_BUILD_INCLUDE_DIR}>
+  INTERFACE $<BUILD_INTERFACE:${VIENNAHRLE_BUILD_INCLUDE_DIRS}>
           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_11)
-
-# Run tests
-#enable_testing()
-#add_subdirectory(test)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
@@ -36,6 +32,15 @@ configure_package_config_file(
   "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
   INSTALL_DESTINATION
   ${LOCAL_CONFIG_DIR})
+
+
+# Build tests
+option(VIENNAHRLE_BUILD_TESTS "Build tests." OFF)
+if(VIENNAHRLE_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(Tests)
+endif()
+
 
 # build examples
 # Do we want examples built?

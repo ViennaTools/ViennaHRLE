@@ -614,7 +614,7 @@ public:
 
     {
       // find number of bytes needed to represent the highest grid extent
-      char gridBoundaryBytes;
+      char gridBoundaryBytes = 0;
       for (unsigned i = 0; i < 2 * D; ++i) {
         if (bounds[i] != 0) {
           gridBoundaryBytes =
@@ -629,7 +629,7 @@ public:
       for (int dim = D - 1; dim >= 0; --dim) {
         stream.write((char *)&bounds[2 * dim], gridBoundaryBytes);
         stream.write((char *)&bounds[2 * dim + 1], gridBoundaryBytes);
-        auto boundaryCondition = getBoundaryConditions(dim);
+        char boundaryCondition = (char)getBoundaryConditions(dim);
         stream.write((char *)&boundaryCondition, 1);
       }
       stream.write((char *)&gridDelta, sizeof(double));
@@ -656,14 +656,14 @@ public:
     // READ GRID
     hrleIndexType gridMin[D], gridMax[D];
     typename hrleGrid<D>::boundaryType boundaryCons[D];
-    double gridDelta;
+    double gridDelta = 0.;
     for (int i = D - 1; i >= 0; --i) {
-      unsigned condition = 0;
+      char condition = 0;
       char min, max;
       stream.read(&min, gridBoundaryBytes);
       stream.read(&max, gridBoundaryBytes);
-      stream.read((char *)&condition, 1);
-      boundaryConditions[i] = boundaryType(condition);
+      stream.read(&condition, 1);
+      boundaryCons[i] = boundaryType(condition);
       gridMin[i] = hrleIndexType(min);
       gridMax[i] = hrleIndexType(max);
     }
@@ -673,6 +673,20 @@ public:
 
     return stream;
   }
+
+  bool operator==(const hrleGrid &other) const {
+    for (unsigned i = 0; i < D; ++i) {
+      if (minIndex[i] != other.minIndex[i] ||
+          maxIndex[i] != other.maxIndex[i] ||
+          boundaryConditions[i] != other.boundaryConditions[i] ||
+          minGridPointCoord[i] != other.minGridPointCoord[i] ||
+          maxGridPointCoord[i] != other.maxGridPointCoord[i])
+        return false;
+    }
+    return true;
+  }
+
+  bool operator!=(const hrleGrid &other) const { return !(*this == other); }
 };
 
 #endif // HRLE_GRID_HPP

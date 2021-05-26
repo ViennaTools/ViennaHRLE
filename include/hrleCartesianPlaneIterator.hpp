@@ -108,7 +108,9 @@ template <class hrleDomain> class hrleCartesianPlaneIterator {
       // if more than 2 coordinates are not equal to 0 the point lies not in a
       // cartesian plane
       if (coords < 3) {
-        neighborIterators.push_back(std::make_unique<hrleSparseOffsetIterator<hrleDomain>>(domain, offset, v));
+        neighborIterators.push_back(
+            std::make_unique<hrleSparseOffsetIterator<hrleDomain>>(domain,
+                                                                   offset, v));
         planeCoords.push_back(i);
       } else {
         neighborIterators.push_back(nullptr);
