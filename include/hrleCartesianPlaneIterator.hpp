@@ -247,6 +247,8 @@ public:
 
   unsigned getSize() { return planeCoords.size(); }
 
+  const DomainType& getDomain() { return domain; }
+
   bool isFinished() const { return getCenter().isFinished(); }
 
   /// Sets the iterator to position v.

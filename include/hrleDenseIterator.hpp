@@ -159,6 +159,8 @@ public:
     return runsIterator.getStartIndices();
   }
 
+  const DomainType& getDomain() { return domain; }
+
   void print() {
     std::cout << currentIndices << std::endl;
     runsIterator.print();

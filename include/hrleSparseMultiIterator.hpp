@@ -14,6 +14,10 @@
 /// points are defined at one index (i.e.: the point is defined in more
 /// than one domain), it will only stop once.
 template <class hrleDomain> class hrleSparseMultiIterator {
+  public:
+  using DomainType = hrleDomain;
+  using DomainsType = std::vector<DomainType *>;
+  private:
 
   typedef typename std::conditional<std::is_const<hrleDomain>::value,
                                     const typename hrleDomain::hrleValueType,
@@ -22,7 +26,7 @@ template <class hrleDomain> class hrleSparseMultiIterator {
 
   static constexpr int D = hrleDomain::dimension;
 
-  std::vector<hrleDomain *> domains;
+  DomainsType domains;
   hrleVectorType<hrleIndexType, D> currentIndices;
   std::vector<hrleSparseIterator<hrleDomain>> iterators;
 
@@ -45,11 +49,9 @@ template <class hrleDomain> class hrleSparseMultiIterator {
   }
 
 public:
-  using DomainType = hrleDomain;
-
   /// A vector with pointers to hrleDomains to iterate over.
   /// The passed hrleVector contains the indices from which to start iterating.
-  hrleSparseMultiIterator(std::vector<hrleDomain *> passedDomains,
+  hrleSparseMultiIterator(DomainsType passedDomains,
                           const hrleVectorType<hrleIndexType, D> v)
       : domains(passedDomains), currentIndices(v) {
     initializeIterators(currentIndices);
@@ -57,7 +59,7 @@ public:
 
   /// A vector with pointers to hrleDomains to iterate over.
   /// The iteration will start from the minimum index of the grid.
-  hrleSparseMultiIterator(std::vector<hrleDomain *> passedDomains)
+  hrleSparseMultiIterator(DomainsType passedDomains)
       : domains(passedDomains),
         currentIndices(passedDomains.back()->getGrid().getMinGridPoint()) {
     initializeIterators(currentIndices);
@@ -187,6 +189,8 @@ public:
     }
     return definedIterators;
   }
+
+  const DomainsType& getDomains() { return domains; }
 
   /// If all iterators in all domains are finished, this will return true.
   bool isFinished() const {

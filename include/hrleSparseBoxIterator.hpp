@@ -214,6 +214,8 @@ public:
 
   unsigned getSize() { return neighborIterators.size(); }
 
+  const DomainType& getDomain() { return domain; }
+
   bool isFinished() const { return getCenter().isFinished(); }
 
   /// Sets the iterator to position v.

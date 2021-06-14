@@ -185,6 +185,8 @@ public:
 
   const hrleIndexType &getIndices(unsigned i) { return currentCoords[i]; }
 
+  const DomainType& getDomain() { return domain; }
+
   bool isFinished() const {
     if (compare(currentCoords, maxIndex) > 0) {
       return true;

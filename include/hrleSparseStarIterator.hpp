@@ -176,6 +176,8 @@ public:
 
   const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
 
+  const DomainType& getDomain() { return domain; }
+
   bool isFinished() const { return centerIterator.isFinished(); }
 
   /// Sets the iterator to position v.

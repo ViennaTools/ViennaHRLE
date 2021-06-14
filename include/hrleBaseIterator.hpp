@@ -43,6 +43,8 @@ protected:
   }
 
 public:
+  using DomainType = hrleDomain;
+
   void print() { // TODO
     std::cout << "startIndicesPos: " << startIndicesPos << std::endl;
     std::cout << "runTypePos: " << runTypePos << std::endl;
@@ -67,7 +69,7 @@ public:
     startIndicesPos[D] = 0;
   }
 
-  hrleDomain &getDomain() { return domain; }
+  DomainType &getDomain() { return domain; }
 
   // const hrleBaseIterator &operator=(const hrleBaseIterator &it) {
   //   // copy assignment
