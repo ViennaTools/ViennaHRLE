@@ -199,6 +199,8 @@ private:
   }
 
 public:
+  using DomainType = hrleDomain;
+
   void print() { hrleBaseIterator<hrleDomain>::print(); }
 
   hrleSparseIterator(hrleDomain &passedDomain, bool reverse = false)

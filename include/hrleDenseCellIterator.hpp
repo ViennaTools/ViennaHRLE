@@ -67,6 +67,8 @@ template <class hrleDomain> class hrleDenseCellIterator {
   operator--(int); // use pre decrement instead
 
 public:
+  using DomainType = hrleDomain;
+
   hrleDenseCellIterator(hrleDomain &passedDomain,
                         const hrleVectorType<hrleIndexType, D> &v)
       : domain(passedDomain), currentCoords(v) {

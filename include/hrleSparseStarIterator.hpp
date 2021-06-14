@@ -62,6 +62,8 @@ template <class hrleDomain> class hrleSparseStarIterator {
   }
 
 public:
+  using DomainType = hrleDomain;
+
   hrleSparseStarIterator(hrleDomain &passedDomain,
                          const hrleVectorType<hrleIndexType, D> &v,
                          const unsigned passedOrder = 1)

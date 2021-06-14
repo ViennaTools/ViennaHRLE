@@ -45,6 +45,8 @@ template <class hrleDomain> class hrleSparseMultiIterator {
   }
 
 public:
+  using DomainType = hrleDomain;
+
   /// A vector with pointers to hrleDomains to iterate over.
   /// The passed hrleVector contains the indices from which to start iterating.
   hrleSparseMultiIterator(std::vector<hrleDomain *> passedDomains,

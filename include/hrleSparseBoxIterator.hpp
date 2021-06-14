@@ -103,6 +103,8 @@ template <class hrleDomain> class hrleSparseBoxIterator {
   }
 
 public:
+  using DomainType = hrleDomain;
+
   hrleSparseBoxIterator(hrleDomain &passedDomain,
                         const hrleVectorType<hrleIndexType, D> &v,
                         const unsigned passedOrder = 1)

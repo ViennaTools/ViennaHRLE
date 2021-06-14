@@ -647,6 +647,8 @@ protected:
   }
 
 public:
+  using DomainType = hrleDomain;
+
   void print() const {
     hrleBaseIterator<hrleDomain>::print();
     std::cout << "start_run_rel_coords: " << start_run_rel_coords << std::endl;

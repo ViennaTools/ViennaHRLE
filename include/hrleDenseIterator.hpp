@@ -49,6 +49,8 @@ template <class hrleDomain> class hrleDenseIterator {
   }
 
 public:
+  using DomainType = hrleDomain;
+
   hrleDenseIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain), runsIterator(passedDomain, reverse) {
     auto &grid = domain.getGrid();

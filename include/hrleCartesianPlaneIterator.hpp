@@ -130,6 +130,8 @@ template <class hrleDomain> class hrleCartesianPlaneIterator {
   }
 
 public:
+  using DomainType = hrleDomain;
+
   hrleCartesianPlaneIterator(hrleDomain &passedDomain,
                              const hrleVectorType<hrleIndexType, D> &v,
                              const unsigned passedOrder = 1)

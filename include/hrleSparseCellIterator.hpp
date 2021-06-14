@@ -38,6 +38,8 @@ template <class hrleDomain> class hrleSparseCellIterator {
   operator--(int); // use pre decrement instead
 
 public:
+  using DomainType = hrleDomain;
+
   hrleSparseCellIterator(hrleDomain &passedDomain,
                          const hrleVectorType<hrleIndexType, D> &v)
       : domain(passedDomain), currentCoords(v) {
