@@ -54,18 +54,31 @@ private:
                 // strictly monotonic decreasing
 
   static char getBitSizeOfNumber(long number) {
+    const bool isNegative = number < 0;
     number = std::abs(number);
     char bitSize = 0;
     while (number != 0) {
       number >>= 1;
       ++bitSize;
     }
-    return (number<0)?bitSize+1:bitSize;
+    return isNegative ? bitSize + 1 : bitSize;
   }
 
   static char getByteSizeOfNumber(long number) {
     auto bitSize = getBitSizeOfNumber(number);
-    return bitSize/8 + (bitSize % 8 != 0);
+    return bitSize / 8 + (bitSize % 8 != 0);
+  }
+
+  hrleIndexType readGridBoundary(std::istream &stream, char gridBoundaryBytes) {
+    char number[sizeof(hrleIndexType)] = {};
+    for (unsigned i = 0; i < gridBoundaryBytes; ++i)
+      stream.read(number + i, 1);
+
+    if (number[gridBoundaryBytes - 1] >> 7) {
+      for (unsigned i = gridBoundaryBytes; i < sizeof(hrleIndexType); ++i)
+        number[i] = 0xFF;
+    }
+    return *reinterpret_cast<hrleIndexType *>(number);
   }
 
 public:
@@ -657,21 +670,16 @@ public:
 
     char gridBoundaryBytes = 0;
     stream.read(&gridBoundaryBytes, 1);
-
     // READ GRID
     hrleIndexType gridMin[D], gridMax[D];
     typename hrleGrid<D>::boundaryType boundaryCons[D];
     double gridDelta = 0.;
     for (int i = D - 1; i >= 0; --i) {
+      gridMin[i] = readGridBoundary(stream, gridBoundaryBytes);
+      gridMax[i] = readGridBoundary(stream, gridBoundaryBytes);
       char condition = 0;
-      hrleIndexType min = 0;
-      hrleIndexType max = 0;
-      stream.read(reinterpret_cast<char*>(&min), gridBoundaryBytes);
-      stream.read(reinterpret_cast<char*>(&max), gridBoundaryBytes);
       stream.read(&condition, 1);
       boundaryCons[i] = boundaryType(condition);
-      gridMin[i] = min;
-      gridMax[i] = max;
     }
     stream.read((char *)&gridDelta, sizeof(double));
     // initialize new grid

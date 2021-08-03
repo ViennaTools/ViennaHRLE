@@ -21,8 +21,8 @@ int main() {
   // Initialise example grid
   auto grid = hrleGrid<D>(min, max, gridDelta, boundaryCons);
 
-  grid.print();
-  std::cout << "\n\n" << std::flush;
+  // grid.print();
+  // std::cout << "\n\n" << std::flush;
 
   // grid.print();
 
@@ -42,7 +42,7 @@ int main() {
 
   fin.close();
 
-  newGrid.print();
+  // newGrid.print();
 
   HRLETEST_ASSERT(grid == newGrid)
 

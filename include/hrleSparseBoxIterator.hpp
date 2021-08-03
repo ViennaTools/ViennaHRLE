@@ -214,7 +214,7 @@ public:
 
   unsigned getSize() { return neighborIterators.size(); }
 
-  const DomainType& getDomain() { return domain; }
+  const DomainType &getDomain() { return domain; }
 
   bool isFinished() const { return getCenter().isFinished(); }
 

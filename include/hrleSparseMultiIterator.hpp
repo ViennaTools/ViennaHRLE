@@ -14,11 +14,11 @@
 /// points are defined at one index (i.e.: the point is defined in more
 /// than one domain), it will only stop once.
 template <class hrleDomain> class hrleSparseMultiIterator {
-  public:
+public:
   using DomainType = hrleDomain;
   using DomainsType = std::vector<DomainType *>;
-  private:
 
+private:
   typedef typename std::conditional<std::is_const<hrleDomain>::value,
                                     const typename hrleDomain::hrleValueType,
                                     typename hrleDomain::hrleValueType>::type
@@ -190,7 +190,7 @@ public:
     return definedIterators;
   }
 
-  const DomainsType& getDomains() { return domains; }
+  const DomainsType &getDomains() { return domains; }
 
   /// If all iterators in all domains are finished, this will return true.
   bool isFinished() const {

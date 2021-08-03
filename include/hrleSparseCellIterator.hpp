@@ -155,7 +155,7 @@ public:
 
   const hrleIndexType &getIndices(unsigned i) { return currentCoords[i]; }
 
-  const DomainType& getDomain() { return domain; }
+  const DomainType &getDomain() { return domain; }
 
   bool isFinished() const { return cornerIterators[0].isFinished(); }
 };
