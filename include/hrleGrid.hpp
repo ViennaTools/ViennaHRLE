@@ -53,14 +53,19 @@ private:
                 // increasing and true if the grid_position function is
                 // strictly monotonic decreasing
 
-  static char getByteSizeOfNumber(int number) {
+  static char getBitSizeOfNumber(long number) {
     number = std::abs(number);
-    char size = 0;
+    char bitSize = 0;
     while (number != 0) {
-      number >>= 8;
-      ++size;
+      number >>= 1;
+      ++bitSize;
     }
-    return size;
+    return (number<0)?bitSize+1:bitSize;
+  }
+
+  static char getByteSizeOfNumber(long number) {
+    auto bitSize = getBitSizeOfNumber(number);
+    return bitSize/8 + (bitSize % 8 != 0);
   }
 
 public:
@@ -659,13 +664,14 @@ public:
     double gridDelta = 0.;
     for (int i = D - 1; i >= 0; --i) {
       char condition = 0;
-      char min, max;
-      stream.read(&min, gridBoundaryBytes);
-      stream.read(&max, gridBoundaryBytes);
+      hrleIndexType min = 0;
+      hrleIndexType max = 0;
+      stream.read(reinterpret_cast<char*>(&min), gridBoundaryBytes);
+      stream.read(reinterpret_cast<char*>(&max), gridBoundaryBytes);
       stream.read(&condition, 1);
       boundaryCons[i] = boundaryType(condition);
-      gridMin[i] = hrleIndexType(min);
-      gridMax[i] = hrleIndexType(max);
+      gridMin[i] = min;
+      gridMax[i] = max;
     }
     stream.read((char *)&gridDelta, sizeof(double));
     // initialize new grid

@@ -8,7 +8,7 @@ int main() {
   constexpr int D = 2;
   using BNCType = typename hrleGrid<D>::boundaryType;
 
-  hrleIndexType min[D] = {-10, -10};
+  hrleIndexType min[D] = {-10000000, -100000000};
   hrleIndexType max[D] = {10, 10};
   const double gridDelta = 1.0;
   BNCType boundaryCons[D];
@@ -20,6 +20,9 @@ int main() {
 
   // Initialise example grid
   auto grid = hrleGrid<D>(min, max, gridDelta, boundaryCons);
+
+  grid.print();
+  std::cout << "\n\n" << std::flush;
 
   // grid.print();
 
@@ -38,6 +41,8 @@ int main() {
   newGrid.deserialize(fin);
 
   fin.close();
+
+  newGrid.print();
 
   HRLETEST_ASSERT(grid == newGrid)
 
