@@ -640,7 +640,7 @@ public:
         }
       }
       gridBoundaryBytes =
-          std::min(gridBoundaryBytes, char(8)); // maximum of 8 Bytes // why 8 bytes when bounds is at max 4 bytes?
+          std::min(gridBoundaryBytes, char(sizeof(hrleIndexType)));
 
       // grid properties
       stream.write(reinterpret_cast<char *>(&gridBoundaryBytes), sizeof(char));
