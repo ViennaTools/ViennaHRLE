@@ -54,14 +54,14 @@ private:
                 // strictly monotonic decreasing
 
   static char getBitSizeOfNumber(long number) {
-    const bool isNegative = number < 0;
     number = std::abs(number);
     char bitSize = 0;
     while (number != 0) {
       number >>= 1;
       ++bitSize;
     }
-    return isNegative ? bitSize + 1 : bitSize;
+    // one additional bit for the sign
+    return bitSize + 1;
   }
 
   static char getByteSizeOfNumber(long number) {
@@ -640,7 +640,7 @@ public:
         }
       }
       gridBoundaryBytes =
-          std::min(gridBoundaryBytes, char(8)); // maximum of 8 Bytes
+          std::min(gridBoundaryBytes, char(8)); // maximum of 8 Bytes // why 8 bytes when bounds is at max 4 bytes?
 
       // grid properties
       stream.write(reinterpret_cast<char *>(&gridBoundaryBytes), sizeof(char));
