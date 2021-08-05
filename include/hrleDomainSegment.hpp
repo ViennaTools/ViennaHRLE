@@ -173,10 +173,14 @@ public:
   }
 
   hrleIndexType getMaxRunBreak(int dim) const {
+    if(runBreaks[dim].size() == 0)
+      return 0;
     return *std::max_element(runBreaks[dim].begin(), runBreaks[dim].end());
   }
 
   hrleIndexType getMinRunBreak(int dim) const {
+    if(runBreaks[dim].size() == 0)
+      return 0;
     return *std::min_element(runBreaks[dim].begin(), runBreaks[dim].end());
   }
 
