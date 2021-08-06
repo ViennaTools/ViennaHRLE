@@ -149,6 +149,10 @@ public:
     }
   }
 
+  bool isDefined() const { return runsIterator.isDefined(); }
+
+  hrleSizeType getPointId() const { return runsIterator.getPointId(); }
+
   hrleValueType &getValue() { return runsIterator.getValue(); }
 
   hrleIndexType getIndex(int dimension) { return currentIndices[dimension]; }
