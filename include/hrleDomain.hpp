@@ -620,16 +620,16 @@ public:
 
       // write all runtypes to the file, skipping all segments and indices
       std::vector<hrleSizeType>
-            definedRunIndices; // store all indices of defined runtypes
-      if(bitsPerRunType > 0) {
+          definedRunIndices; // store all indices of defined runtypes
+      if (bitsPerRunType > 0) {
         int count = 8 / bitsPerRunType - 1;
         unsigned char byte = 0;
 
         // each runType needs at least one byte
         if (bitsPerRunType > 4) {
           for (typename std::vector<hrleSizeType>::const_iterator it =
-                  runTypes.begin();
-              it != runTypes.end(); ++it) {
+                   runTypes.begin();
+               it != runTypes.end(); ++it) {
             hrleSizeType PtId = 0;
             // if undefined point, need to shift id
             if (*it >= hrleRunTypeValues::UNDEF_PT)
@@ -641,8 +641,8 @@ public:
           }
         } else { // can fit more than one value in a byte
           for (typename std::vector<hrleSizeType>::const_iterator it =
-                  runTypes.begin();
-              it != runTypes.end(); ++it) {
+                   runTypes.begin();
+               it != runTypes.end(); ++it) {
             hrleSizeType PtId = 0;
             if (*it >= hrleRunTypeValues::UNDEF_PT)
               PtId = (*it) - hrleRunTypeValues::UNDEF_PT + 1;
@@ -668,7 +668,7 @@ public:
       // Write indices of defined runtypes; only save the difference to the next
       // defined runtype write the first runtype(always 0) explicitly; makes
       // reading easier
-      if(definedRunIndices.size() > 0) {
+      if (definedRunIndices.size() > 0) {
         stream.write((char *)&definedRunIndices[0], bytesPerIndex);
         for (unsigned int i = 0; i < definedRunIndices.size() - 1; i++) {
           unsigned long diff = definedRunIndices[i + 1] - definedRunIndices[i];
@@ -758,12 +758,14 @@ public:
         startIndices.clear();
         unsigned long long sum = 0;
         // push the 0, it was not written to the file
-        startIndices.push_back(0);
-        for (unsigned i = 0; i < numberOfStartIndices - 1; ++i) {
-          unsigned long long current = 0;
-          stream.read((char *)&current, bytesPerIndex);
-          sum += current;
-          startIndices.push_back(hrleSizeType(sum));
+        if (numberOfStartIndices > 0) {
+          startIndices.push_back(0);
+          for (unsigned i = 1; i < numberOfStartIndices; ++i) {
+            unsigned long long current = 0;
+            stream.read((char *)&current, bytesPerIndex);
+            sum += current;
+            startIndices.push_back(hrleSizeType(sum));
+          }
         }
       }
 
