@@ -167,16 +167,22 @@ public:
 
   hrleIndexType
   getRunBreak(int dim, int runbreak = std::numeric_limits<int>::max()) const {
+    if (runBreaks[dim].size() == 0)
+      return 0;
     if (runbreak == std::numeric_limits<int>::max())
       return runBreaks[dim].back();
     return runBreaks[dim][runbreak];
   }
 
   hrleIndexType getMaxRunBreak(int dim) const {
+    if (runBreaks[dim].size() == 0)
+      return 0;
     return *std::max_element(runBreaks[dim].begin(), runBreaks[dim].end());
   }
 
   hrleIndexType getMinRunBreak(int dim) const {
+    if (runBreaks[dim].size() == 0)
+      return 0;
     return *std::min_element(runBreaks[dim].begin(), runBreaks[dim].end());
   }
 

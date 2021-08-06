@@ -619,57 +619,61 @@ public:
       }
 
       // write all runtypes to the file, skipping all segments and indices
-      int count = 8 / bitsPerRunType - 1;
-      unsigned char byte = 0;
       std::vector<hrleSizeType>
           definedRunIndices; // store all indices of defined runtypes
+      if (bitsPerRunType > 0) {
+        int count = 8 / bitsPerRunType - 1;
+        unsigned char byte = 0;
 
-      // each runType needs at least one byte
-      if (bitsPerRunType > 4) {
-        for (typename std::vector<hrleSizeType>::const_iterator it =
-                 runTypes.begin();
-             it != runTypes.end(); ++it) {
-          hrleSizeType PtId = 0;
-          // if undefined point, need to shift id
-          if (*it >= hrleRunTypeValues::UNDEF_PT)
-            PtId = (*it) - hrleRunTypeValues::UNDEF_PT + 1;
-          else
-            definedRunIndices.push_back(*it);
+        // each runType needs at least one byte
+        if (bitsPerRunType > 4) {
+          for (typename std::vector<hrleSizeType>::const_iterator it =
+                   runTypes.begin();
+               it != runTypes.end(); ++it) {
+            hrleSizeType PtId = 0;
+            // if undefined point, need to shift id
+            if (*it >= hrleRunTypeValues::UNDEF_PT)
+              PtId = (*it) - hrleRunTypeValues::UNDEF_PT + 1;
+            else
+              definedRunIndices.push_back(*it);
 
-          stream.write((char *)&PtId, (bitsPerRunType - 1) / 8 + 1);
-        }
-      } else { // can fit more than one value in a byte
-        for (typename std::vector<hrleSizeType>::const_iterator it =
-                 runTypes.begin();
-             it != runTypes.end(); ++it) {
-          hrleSizeType PtId = 0;
-          if (*it >= hrleRunTypeValues::UNDEF_PT)
-            PtId = (*it) - hrleRunTypeValues::UNDEF_PT + 1;
-          else
-            definedRunIndices.push_back(*it);
-
-          byte |= (PtId << (count * bitsPerRunType));
-          --count;
-
-          if (count < 0) { // push byte to stream and start again
-            stream << byte;
-            count = 8 / bitsPerRunType - 1;
-            byte = 0;
+            stream.write((char *)&PtId, (bitsPerRunType - 1) / 8 + 1);
           }
-        }
-        // if last byte is not completely filled, just push it
-        if (count >= 0 && count != 8 / bitsPerRunType - 1) {
-          stream << byte;
+        } else { // can fit more than one value in a byte
+          for (typename std::vector<hrleSizeType>::const_iterator it =
+                   runTypes.begin();
+               it != runTypes.end(); ++it) {
+            hrleSizeType PtId = 0;
+            if (*it >= hrleRunTypeValues::UNDEF_PT)
+              PtId = (*it) - hrleRunTypeValues::UNDEF_PT + 1;
+            else
+              definedRunIndices.push_back(*it);
+
+            byte |= (PtId << (count * bitsPerRunType));
+            --count;
+
+            if (count < 0) { // push byte to stream and start again
+              stream << byte;
+              count = 8 / bitsPerRunType - 1;
+              byte = 0;
+            }
+          }
+          // if last byte is not completely filled, just push it
+          if (count >= 0 && count != 8 / bitsPerRunType - 1) {
+            stream << byte;
+          }
         }
       }
 
       // Write indices of defined runtypes; only save the difference to the next
       // defined runtype write the first runtype(always 0) explicitly; makes
       // reading easier
-      stream.write((char *)&definedRunIndices[0], bytesPerIndex);
-      for (unsigned int i = 0; i < definedRunIndices.size() - 1; i++) {
-        unsigned long diff = definedRunIndices[i + 1] - definedRunIndices[i];
-        stream.write((char *)&diff, bytesPerIndex);
+      if (definedRunIndices.size() > 0) {
+        stream.write((char *)&definedRunIndices[0], bytesPerIndex);
+        for (unsigned int i = 0; i < definedRunIndices.size() - 1; i++) {
+          unsigned long diff = definedRunIndices[i + 1] - definedRunIndices[i];
+          stream.write((char *)&diff, bytesPerIndex);
+        }
       }
 
       // Write runbreaks
@@ -754,17 +758,19 @@ public:
         startIndices.clear();
         unsigned long long sum = 0;
         // push the 0, it was not written to the file
-        startIndices.push_back(0);
-        for (unsigned i = 0; i < numberOfStartIndices - 1; ++i) {
-          unsigned long long current = 0;
-          stream.read((char *)&current, bytesPerIndex);
-          sum += current;
-          startIndices.push_back(hrleSizeType(sum));
+        if (numberOfStartIndices > 0) {
+          startIndices.push_back(0);
+          for (unsigned i = 1; i < numberOfStartIndices; ++i) {
+            unsigned long long current = 0;
+            stream.read((char *)&current, bytesPerIndex);
+            sum += current;
+            startIndices.push_back(hrleSizeType(sum));
+          }
         }
       }
 
       // READ RUN TYPES
-      {
+      if (bitsPerRunType > 0) {
         runTypes.clear();
         unsigned numberOfValuesPerByte = 8 / bitsPerRunType;
         unsigned numberOfBytes =
