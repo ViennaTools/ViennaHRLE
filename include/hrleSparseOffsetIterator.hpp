@@ -829,9 +829,17 @@ public:
     for (unsigned i = 0; i < D; ++i) {
       indices[i] += offset[i];
       if (indices[i] > gridMax[i]) {
-        indices[i] = gridMin[i] + (indices[i] - gridMax[i] - 1);
+        if(grid.isBoundaryReflective(i)){
+          indices[i] = gridMax[i] - 1;
+        }else{
+          indices[i] = gridMin[i] + (indices[i] - gridMax[i] - 1);
+        }
       } else if (indices[i] < gridMin[i]) {
-        indices[i] = gridMax[i] + (indices[i] - gridMin[i] + 1);
+        if(grid.isBoundaryReflective(i)){
+          indices[i] = gridMin[i] + 1;
+        }else{
+          indices[i] = gridMax[i] + (indices[i] - gridMin[i] + 1);
+        }
       }
     }
     return indices;
