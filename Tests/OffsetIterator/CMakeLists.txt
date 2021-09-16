@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4)
 
-project("OffsetIteratorReflective")
+project("OffsetIterator")
 
 find_package(ViennaHRLE REQUIRED)
 

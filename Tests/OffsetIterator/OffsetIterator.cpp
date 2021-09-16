@@ -13,13 +13,6 @@ constexpr int D = 2;
 using DataType = char;
 using VectorType = hrleVectorType<hrleIndexType, D>;
 
-const std::array<hrleIndexType, D> min = {-10, -10};
-const std::array<hrleIndexType, D> max = {10, 10};
-
-std::array<hrleGrid<D>::boundaryType, D> bounds = {
-      hrleGrid<D>::REFLECTIVE_BOUNDARY,
-      hrleGrid<D>::INFINITE_BOUNDARY};
-
 void printDenseDomain(hrleDomain<DataType, D> &data) {
   hrleConstDenseIterator<hrleDomain<char, D>> it(data);
   int y = data.getGrid().getMinIndex(1);
@@ -68,7 +61,7 @@ bool checkOffset(hrleGrid<D> &grid, VectorType coord, VectorType nbor, VectorTyp
   for(unsigned i = 0; i < D; ++i) {
     // if neighbour is outside of domain
     if(coord[i] > gridMax[i]) {
-      if(bounds[i] == hrleGrid<D>::REFLECTIVE_BOUNDARY) {
+      if(grid.isBoundaryReflective(i)) {
         // reflect
         coord[i] = gridMax[i] - (coord[i] - gridMax[i]);
       } else {
@@ -76,7 +69,7 @@ bool checkOffset(hrleGrid<D> &grid, VectorType coord, VectorType nbor, VectorTyp
         coord[i] = gridMin[i] + (coord[i] - gridMax[i] - 1);
       }
     } else if(coord[i] < gridMin[i]) {
-      if(bounds[i] == hrleGrid<D>::REFLECTIVE_BOUNDARY) {
+      if(grid.isBoundaryReflective(i)) {
         // reflect
         coord[i] = gridMin[i] + (gridMin[i] - coord[i]);
       } else {
@@ -93,12 +86,8 @@ bool checkOffset(hrleGrid<D> &grid, VectorType coord, VectorType nbor, VectorTyp
   return true;
 }
 
-int main() {
-  omp_set_num_threads(1);
-
-  hrleGrid<D> grid(min.data(), max.data(), 1.0, bounds.data());
-
-  hrleDomain<DataType, D> domain(&grid);
+void runTest(hrleDomain<DataType, D> &domain) {
+  auto &grid = domain.getGrid();
 
   fillDomain(domain);
 
@@ -119,6 +108,42 @@ int main() {
       HRLETEST_ASSERT(checkOffset(grid, it.getIndices(), it.getNeighbor(i).getOffsetIndices(), it.getNeighbor(i).getOffset()));
     }
   }
+}
+
+int main() {
+  omp_set_num_threads(1);
+
+  const std::array<hrleIndexType, D> min = {-10, -10};
+  const std::array<hrleIndexType, D> max = {10, 10};
+
+  // Test for periodic boundary condition
+  {
+    std::array<hrleGrid<D>::boundaryType, D> bounds = {
+        hrleGrid<D>::PERIODIC_BOUNDARY,
+        hrleGrid<D>::INFINITE_BOUNDARY};
+
+    hrleGrid<D> grid(min.data(), max.data(), 1.0, bounds.data());
+    hrleDomain<DataType, D> domain(&grid);
+
+    runTest(domain);
+    std::cout << "Passed periodic" << std::endl;
+  }
+
+  // Test for reflective boundary condition
+  {
+    std::array<hrleGrid<D>::boundaryType, D> bounds = {
+        hrleGrid<D>::REFLECTIVE_BOUNDARY,
+        hrleGrid<D>::INFINITE_BOUNDARY};
+
+    hrleGrid<D> grid(min.data(), max.data(), 1.0, bounds.data());
+    hrleDomain<DataType, D> domain(&grid);
+
+    runTest(domain);
+    std::cout << "Passed reflective" << std::endl;
+  }
+  
+
+  
 
   return 0;
 }
