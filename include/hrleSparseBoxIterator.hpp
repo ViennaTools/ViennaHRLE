@@ -210,6 +210,10 @@ public:
     return neighborIterators[centerIndex];
   }
 
+  const hrleSparseOffsetIterator<hrleDomain> &getCenter() const {
+    return neighborIterators[centerIndex];
+  }
+
   const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
 
   unsigned getSize() { return neighborIterators.size(); }
