@@ -200,6 +200,11 @@ public:
     return boundaryConditions[dim] == PERIODIC_BOUNDARY;
   }
 
+  /// returns wheter the boundary condition in direction dim is reflective
+  bool isBoundaryReflective(int dim) const {
+    return boundaryConditions[dim] == REFLECTIVE_BOUNDARY;
+  }
+
   /// returns wheter the boundary condition in direction +dim is infinite
   bool isPosBoundaryInfinite(int dim) const {
     return ((boundaryConditions[dim] == INFINITE_BOUNDARY) ||
