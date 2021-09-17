@@ -149,7 +149,7 @@ public:
     return (s_level == 0);
   }
 
-  hrleValueType &getValue() {
+  const hrleValueType &getValue() const {
     // returns the level set value for the current run
     // if the run is undefined either POS_VALUE or NEG_VALUE is returned
     if (isDefined()) {
@@ -161,7 +161,12 @@ public:
     }
   }
 
-  hrleValueType &getDefinedValue() {
+  hrleValueType &getValue() {
+    return const_cast<hrleValueType &>(
+        const_cast<const hrleBaseIterator *>(this)->getValue());
+  }
+
+  const hrleValueType &getDefinedValue() const {
     // the same as "value", however this function assumes
     // that the current run is defined, and therefore no check is required
     // if the run is undefined or not
@@ -169,6 +174,11 @@ public:
     // shfdhsfhdskjhgf
     // assert(getRunCode()<l.sub_levelsets[sub].distances.size());
     return domain.domainSegments[sub].definedValues[getRunCode()];
+  }
+
+  hrleValueType &getDefinedValue() {
+    return const_cast<hrleValueType &>(
+        const_cast<const hrleBaseIterator *>(this)->getDefinedValue());
   }
 };
 
