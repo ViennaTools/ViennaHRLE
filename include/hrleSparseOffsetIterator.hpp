@@ -830,16 +830,16 @@ public:
       indices[i] += offset[i];
       if (indices[i] > gridMax[i]) {
         const auto lengthDiff = indices[i] - gridMax[i];
-        if(grid.isBoundaryReflective(i)){
+        if (grid.isBoundaryReflective(i)) {
           indices[i] = gridMax[i] - lengthDiff;
-        }else{
+        } else {
           indices[i] = gridMin[i] + (lengthDiff - 1);
         }
       } else if (indices[i] < gridMin[i]) {
         const auto lengthDiff = indices[i] - gridMin[i];
-        if(grid.isBoundaryReflective(i)){
+        if (grid.isBoundaryReflective(i)) {
           indices[i] = gridMin[i] - lengthDiff;
-        }else{
+        } else {
           indices[i] = gridMax[i] + (lengthDiff + 1);
         }
       }

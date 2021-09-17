@@ -63,6 +63,7 @@ template <class hrleDomain> class hrleSparseStarIterator {
 
 public:
   using DomainType = hrleDomain;
+  using OffsetIterator = hrleSparseOffsetIterator<hrleDomain>;
 
   hrleSparseStarIterator(hrleDomain &passedDomain,
                          const hrleVectorType<hrleIndexType, D> &v,
@@ -144,16 +145,25 @@ public:
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
-  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(unsigned index) {
+  const OffsetIterator &getNeighbor(unsigned index) const {
     return neighborIterators[index];
   }
 
-  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(int index) {
+  OffsetIterator &getNeighbor(unsigned index) {
+    return const_cast<OffsetIterator &>(
+        const_cast<const hrleSparseStarIterator *>(this)->getNeighbor(index));
+  }
+
+  const OffsetIterator &getNeighbor(int index) const {
     return neighborIterators[index];
   }
 
-  template <class V>
-  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(V &relativeIndex) {
+  OffsetIterator &getNeighbor(int index) {
+    return const_cast<OffsetIterator &>(
+        const_cast<const hrleSparseStarIterator *>(this)->getNeighbor(index));
+  }
+
+  template <class V> const OffsetIterator &getNeighbor(V &relativeIndex) const {
     // check first if it is a valid index
     unsigned char directions = 0;
     unsigned neighborIndex;
@@ -172,11 +182,23 @@ public:
     return neighborIterators[neighborIndex];
   }
 
+  template <class V> OffsetIterator &getNeighbor(V &relativeIndex) {
+    return const_cast<OffsetIterator &>(
+        const_cast<const hrleSparseStarIterator *>(this)->getNeighbor(
+            relativeIndex));
+  }
+
   hrleSparseIterator<hrleDomain> &getCenter() { return centerIterator; }
 
-  const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
+  const hrleSparseIterator<hrleDomain> &getCenter() const {
+    return centerIterator;
+  }
 
-  const DomainType &getDomain() { return domain; }
+  const hrleVectorType<hrleIndexType, D> &getIndices() const {
+    return currentCoords;
+  }
+
+  const DomainType &getDomain() const { return domain; }
 
   bool isFinished() const { return centerIterator.isFinished(); }
 
