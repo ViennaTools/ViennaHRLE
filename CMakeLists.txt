@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.8)
 
 project(
   "ViennaHRLE"
@@ -9,7 +9,9 @@ include(GNUInstallDirs)
 add_library(${PROJECT_NAME} INTERFACE)
 
 # set the correct paths for installation
-set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/")
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/")
+endif()
 set(LOCAL_CONFIG_DIR "lib/cmake/${PROJECT_NAME}")
 
 # Adding the install interface generator expression makes sure that the include
