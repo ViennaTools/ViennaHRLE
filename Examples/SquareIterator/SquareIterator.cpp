@@ -42,7 +42,7 @@ int main() {
       '.'); // last parameter is the background value to use
 
   // go to the first 'l' and output all neighbors
-  const int order = 2;
+  constexpr int order = 2;
   hrleSparseBoxIterator<hrleDomain<char, D>> neighborIt(data, order);
   while (!(neighborIt.getCenter().getValue() == 'l')) {
     neighborIt.next();
@@ -61,7 +61,7 @@ int main() {
   }
 
   // make cross iterator for comparison and advance to the first 'l'
-  hrleConstSparseStarIterator<hrleDomain<char, D>> crossIt(data, order);
+  hrleConstSparseStarIterator<hrleDomain<char, D>, order> crossIt(data);
   while (!(crossIt.getCenter().getValue() == 'l')) {
     crossIt.next();
   }

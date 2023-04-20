@@ -126,8 +126,8 @@ public:
 
   void next() {
     const int numCorners = 1 << D;
-    std::vector<bool> increment(numCorners, false);
-    increment[0] = true;
+    // std::vector<bool> increment(numCorners, false);
+    // increment[0] = true;
 
     hrleVectorType<hrleIndexType, D> end_coords = currentCoords;
     // cornerIterators[0].getEndIndices();
@@ -146,8 +146,8 @@ public:
 
   void previous() {
     const int numCorners = 1 << D;
-    std::vector<bool> decrement(numCorners, false);
-    decrement[0] = true;
+    // std::vector<bool> decrement(numCorners, false);
+    // decrement[0] = true;
 
     hrleVectorType<hrleIndexType, D> start_coords = currentCoords;
     // cornerIterators[0].getStartIndices();

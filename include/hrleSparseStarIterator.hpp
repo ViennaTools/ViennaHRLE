@@ -11,7 +11,7 @@
 /// for the center.
 /// Whenever one of these (2*Dimensions+1) iterators reach a defined grid point,
 /// the iterator stops.
-template <class hrleDomain> class hrleSparseStarIterator {
+template <class hrleDomain, int order> class hrleSparseStarIterator {
 
   typedef typename std::conditional<std::is_const<hrleDomain>::value,
                                     const typename hrleDomain::hrleValueType,
@@ -21,7 +21,6 @@ template <class hrleDomain> class hrleSparseStarIterator {
   static constexpr int D = hrleDomain::dimension;
 
   hrleDomain &domain;
-  const unsigned order;
   hrleVectorType<hrleIndexType, D> currentCoords;
   hrleSparseIterator<hrleDomain> centerIterator;
   std::vector<hrleSparseOffsetIterator<hrleDomain>> neighborIterators;
@@ -52,11 +51,11 @@ template <class hrleDomain> class hrleSparseStarIterator {
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleSparseStarIterator<hrleDomain>
+  hrleSparseStarIterator<hrleDomain, order>
   operator++(int) { // use pre increment instead
     return *this;
   }
-  hrleSparseStarIterator<hrleDomain>
+  hrleSparseStarIterator<hrleDomain, order>
   operator--(int) { // use pre decrement instead
     return *this;
   }
@@ -66,36 +65,34 @@ public:
   using OffsetIterator = hrleSparseOffsetIterator<hrleDomain>;
 
   hrleSparseStarIterator(hrleDomain &passedDomain,
-                         const hrleVectorType<hrleIndexType, D> &v,
-                         const unsigned passedOrder = 1)
-      : domain(passedDomain), order(passedOrder), currentCoords(v),
+                         const hrleVectorType<hrleIndexType, D> &v)
+      : domain(passedDomain), currentCoords(v),
         centerIterator(passedDomain, v) {
 
     initializeNeigbors(v);
   }
 
-  hrleSparseStarIterator(hrleDomain &passedDomain,
-                         const unsigned passedOrder = 1)
-      : domain(passedDomain), order(passedOrder),
-        currentCoords(domain.getGrid().getMinGridPoint()),
+  hrleSparseStarIterator(hrleDomain &passedDomain)
+      : domain(passedDomain), currentCoords(domain.getGrid().getMinGridPoint()),
         centerIterator(passedDomain) {
 
     initializeNeigbors(passedDomain.getGrid().getMinIndex());
   }
 
-  hrleSparseStarIterator<hrleDomain> &operator++() {
+  hrleSparseStarIterator<hrleDomain, order> &operator++() {
     next();
     return *this;
   }
 
-  hrleSparseStarIterator<hrleDomain> &operator--() {
+  hrleSparseStarIterator<hrleDomain, order> &operator--() {
     previous();
     return *this;
   }
 
   void next() {
-    const int numNeighbors = 2 * order * D;
-    std::vector<bool> increment(numNeighbors + 1, false);
+    constexpr int numNeighbors = 2 * order * D;
+    std::array<bool, numNeighbors + 1> increment;
+    increment.fill(false);
     increment[numNeighbors] = true;
 
     hrleVectorType<hrleIndexType, D> end_coords =
@@ -104,7 +101,7 @@ public:
       switch (compare(end_coords, neighborIterators[i].getEndIndices())) {
       case 1:
         end_coords = neighborIterators[i].getEndIndices();
-        increment = std::vector<bool>(numNeighbors + 1, false);
+        increment.fill(false);
       case 0:
         increment[i] = true;
       }
@@ -120,8 +117,9 @@ public:
   }
 
   void previous() {
-    const int numNeighbors = 2 * order * D;
-    std::vector<bool> decrement(numNeighbors + 1, false);
+    constexpr int numNeighbors = 2 * order * D;
+    std::array<bool, numNeighbors + 1> decrement;
+    decrement.fill(false);
     decrement[numNeighbors] = true;
 
     hrleVectorType<hrleIndexType, D> start_coords =
@@ -130,7 +128,7 @@ public:
       switch (compare(start_coords, neighborIterators[i].getStartIndices())) {
       case -1:
         start_coords = neighborIterators[i].getStartIndices();
-        decrement = std::vector<bool>(numNeighbors + 1, false);
+        decrement.fill(false);
       case 0:
         decrement[i] = true;
       }
@@ -238,7 +236,8 @@ public:
   // hrleIndexType getStartIndex(int dir) const { return startCoords[dir]; }
 };
 
-template <class hrleDomain>
-using hrleConstSparseStarIterator = hrleSparseStarIterator<const hrleDomain>;
+template <class hrleDomain, int order>
+using hrleConstSparseStarIterator =
+    hrleSparseStarIterator<const hrleDomain, order>;
 
 #endif // HRLE_CROSS_ITERATOR_HPP

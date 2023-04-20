@@ -41,8 +41,8 @@ int main() {
       '.'); // last parameter is the background value to use
 
   // go to the first 'l' and output all neighbors
-  const int order = 3;
-  hrleConstSparseStarIterator<hrleDomain<char, D>> neighborIt(data, order);
+  constexpr int order = 3;
+  hrleConstSparseStarIterator<hrleDomain<char, D>, order> neighborIt(data);
   while (!(neighborIt.getCenter().getValue() == 'l')) {
     neighborIt.next();
   }
