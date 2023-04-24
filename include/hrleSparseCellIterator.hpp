@@ -85,7 +85,8 @@ public:
   void next() {
     do {
       const int numCorners = 1 << D;
-      std::vector<bool> increment(numCorners, false);
+      std::array<bool, 1 << D> increment;
+      increment.fill(false);
       increment[0] = true;
 
       hrleVectorType<hrleIndexType, D> end_coords =
@@ -94,7 +95,7 @@ public:
         switch (compare(end_coords, cornerIterators[i].getEndIndices())) {
         case 1:
           end_coords = cornerIterators[i].getEndIndices();
-          increment = std::vector<bool>(numCorners, false);
+          increment.fill(false);
         case 0:
           increment[i] = true;
         }
@@ -111,7 +112,8 @@ public:
   void previous() {
     do {
       const int numCorners = 1 << D;
-      std::vector<bool> decrement(numCorners, false);
+      std::array<bool, 1 << D> decrement;
+      decrement.fill(false);
       decrement[0] = true;
 
       hrleVectorType<hrleIndexType, D> start_coords =
@@ -120,7 +122,7 @@ public:
         switch (compare(start_coords, cornerIterators[i].getStartIndices())) {
         case -1:
           start_coords = cornerIterators[i].getStartIndices();
-          decrement = std::vector<bool>(numCorners, false);
+          decrement.fill(false);
         case 0:
           decrement[i] = true;
         }
