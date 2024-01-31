@@ -289,7 +289,7 @@ template <class T, int D> inline void hrleVectorType<T, D>::reverse_sort() {
   std::sort(x, x + D, std::greater<T>());
 }
 
-//###################################################################
+// ###################################################################
 
 template <class T, int D>
 inline hrleVectorType<T, D> Min(const hrleVectorType<T, D> &v1,
