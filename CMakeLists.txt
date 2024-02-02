@@ -1,76 +1,112 @@
-cmake_minimum_required(VERSION 3.8)
-
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 project(
-  "ViennaHRLE"
-  VERSION 0.3.0)
+  ViennaHRLE
+  LANGUAGES CXX
+  VERSION 0.4.0)
 
-include(GNUInstallDirs)
+# --------------------------------------------------------------------------------------------------------
+# Library options
+# --------------------------------------------------------------------------------------------------------
+
+option(VIENNAHRLE_OPENMP "Build OpenMP" OFF)
+
+option(VIENNAHRLE_BUILD_TESTS "Build tests" OFF)
+option(VIENNAHRLE_BUILD_EXAMPLES "Build examples" OFF)
+
+option(VIENNAHRLE_ENABLE_SANITIZER "Enable Sanitizer for debug buidlds" OFF)
+option(VIENNAHRLE_USE_SANITIZER "Enable Sanitizer (Requires GCC or Clang)" OFF)
+
+# --------------------------------------------------------------------------------------------------------
+# Ensure valid library options
+# --------------------------------------------------------------------------------------------------------
+
+if(VIENNAHRLE_BUILD_TESTS)
+  set(VIENNAHRLE_OPENMP ON)
+endif()
+
+# --------------------------------------------------------------------------------------------------------
+# Configuration
+# --------------------------------------------------------------------------------------------------------
+
+if((VIENNAHRLE_ENABLE_SANITIZER AND CMAKE_BUILD_TYPE STREQUAL "Debug") OR VIENNAHRLE_USE_SANITIZER)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-fno-omit-frame-pointer -fsanitize=address -fsanitize=memory)
+    add_link_options(-fno-omit-frame-pointer -fsanitize=address -fsanitize=memory)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-fno-omit-frame-pointer -fsanitize=address -fsanitize=leak)
+    add_link_options(-fno-omit-frame-pointer -fsanitize=address -fsanitize=leak)
+  endif()
+
+  message(STATUS "[ViennaHRLE] Using Sanitizer")
+endif()
+
+# --------------------------------------------------------------------------------------------------------
+# Setup Library
+# --------------------------------------------------------------------------------------------------------
 
 add_library(${PROJECT_NAME} INTERFACE)
-
-# set the correct paths for installation
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/")
-endif()
-set(LOCAL_CONFIG_DIR "lib/cmake/${PROJECT_NAME}")
-
-# Adding the install interface generator expression makes sure that the include
-# files are installed to the proper location (provided by GNUInstallDirs)
-set(VIENNAHRLE_BUILD_INCLUDE_DIRS "${${PROJECT_NAME}_SOURCE_DIR}/include")
-target_include_directories(
-  ${PROJECT_NAME}
-  INTERFACE $<BUILD_INTERFACE:${VIENNAHRLE_BUILD_INCLUDE_DIRS}>
-          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+add_library(ViennaTools::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_11)
+set_target_properties(
+  ${PROJECT_NAME}
+  PROPERTIES CXX_STANDARD 11
+             CXX_EXTENSIONS OFF
+             CXX_STANDARD_REQUIRED ON)
 
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
-                                 VERSION ${PROJECT_VERSION}
-                               COMPATIBILITY AnyNewerVersion)
+# --------------------------------------------------------------------------------------------------------
+# Include directories
+# --------------------------------------------------------------------------------------------------------
 
-configure_package_config_file(
-  "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
-  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-  INSTALL_DESTINATION
-  ${LOCAL_CONFIG_DIR})
+target_include_directories(
+  ${PROJECT_NAME} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/viennahrle>
+                            $<INSTALL_INTERFACE:include/viennahrle-${PROJECT_VERSION}>)
 
+# --------------------------------------------------------------------------------------------------------
+# Setup Dependencies
+# --------------------------------------------------------------------------------------------------------
 
-# Build tests
-option(VIENNAHRLE_BUILD_TESTS "Build tests." OFF)
+include("cmake/cpm.cmake")
+
+CPMAddPackage(
+  NAME PackageProject
+  VERSION 1.11.1
+  GIT_REPOSITORY "https://github.com/TheLartians/PackageProject.cmake")
+
+if(VIENNAHRLE_OPENMP)
+  message(STATUS "[ViennaHRLE] Enabling OMP Support")
+
+  find_package(OpenMP REQUIRED)
+  target_link_libraries(${PROJECT_NAME} INTERFACE OpenMP::OpenMP_CXX)
+endif()
+
+# --------------------------------------------------------------------------------------------------------
+# Setup Examples
+# --------------------------------------------------------------------------------------------------------
+
+if(VIENNAHRLE_BUILD_EXAMPLES)
+  message(STATUS "[ViennaHRLE] Building Examples")
+  add_subdirectory(Examples)
+endif()
+
+# --------------------------------------------------------------------------------------------------------
+# Setup Tests
+# --------------------------------------------------------------------------------------------------------
+
 if(VIENNAHRLE_BUILD_TESTS)
+  message(STATUS "[ViennaHRLE] Building Tests")
+
   enable_testing()
   add_subdirectory(Tests)
 endif()
 
+# --------------------------------------------------------------------------------------------------------
+# Install Target
+# --------------------------------------------------------------------------------------------------------
 
-# build examples
-# Do we want examples built?
-option(VIENNAHRLE_BUILD_EXAMPLES "Build examples." OFF)
-if(VIENNAHRLE_BUILD_EXAMPLES)
-  add_subdirectory(Examples)
-endif()
-
-#################################################
-# INSTALL
-#################################################
-# install config files
-# locations are provided by GNUInstallDirs
-install(TARGETS ${PROJECT_NAME}
-        EXPORT ${PROJECT_NAME}_Targets
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-install(EXPORT ${PROJECT_NAME}_Targets
-        FILE ${PROJECT_NAME}Targets.cmake
-        DESTINATION ${LOCAL_CONFIG_DIR})
-
-
-install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-              "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-        DESTINATION ${LOCAL_CONFIG_DIR})
-
-# install include files
-file(GLOB_RECURSE HEADER_FILES "${PROJECT_SOURCE_DIR}/include/*")
-install(FILES ${HEADER_FILES} DESTINATION include)
+packageProject(
+  NAME ${PROJECT_NAME}
+  VERSION ${PROJECT_VERSION}
+  BINARY_DIR ${PROJECT_BINARY_DIR}
+  INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/viennahrle
+  INCLUDE_DESTINATION include/viennahrle-${PROJECT_VERSION})

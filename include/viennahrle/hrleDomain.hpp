@@ -457,7 +457,7 @@ public:
     newDomain.initialize(getNewSegmentation(), getAllocation());
 
 #pragma omp parallel num_threads(                                              \
-    int(newDomain.domainSegments.getNumberOfSegments()))
+        int(newDomain.domainSegments.getNumberOfSegments()))
     {
       int p = 0;
 #ifdef _OPENMP
