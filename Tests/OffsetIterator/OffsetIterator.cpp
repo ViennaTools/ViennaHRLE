@@ -124,8 +124,9 @@ int main() {
 
   // Test for periodic boundary condition
   {
-    std::array<hrleGrid<D>::boundaryType, D> bounds = {
-        hrleGrid<D>::PERIODIC_BOUNDARY, hrleGrid<D>::INFINITE_BOUNDARY};
+    std::array<hrleBoundaryType, D> bounds = {
+        hrleBoundaryType::PERIODIC_BOUNDARY,
+        hrleBoundaryType::INFINITE_BOUNDARY};
 
     hrleGrid<D> grid(min.data(), max.data(), 1.0, bounds.data());
     hrleDomain<DataType, D> domain(&grid);
@@ -136,8 +137,9 @@ int main() {
 
   // Test for reflective boundary condition
   {
-    std::array<hrleGrid<D>::boundaryType, D> bounds = {
-        hrleGrid<D>::REFLECTIVE_BOUNDARY, hrleGrid<D>::INFINITE_BOUNDARY};
+    std::array<hrleBoundaryType, D> bounds = {
+        hrleBoundaryType::REFLECTIVE_BOUNDARY,
+        hrleBoundaryType::INFINITE_BOUNDARY};
 
     hrleGrid<D> grid(min.data(), max.data(), 1.0, bounds.data());
     hrleDomain<DataType, D> domain(&grid);

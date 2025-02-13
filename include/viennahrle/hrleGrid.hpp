@@ -9,17 +9,16 @@
 #include <ostream>
 #include <vector>
 
+enum class hrleBoundaryType : unsigned {
+  REFLECTIVE_BOUNDARY = 0,
+  INFINITE_BOUNDARY = 1,
+  PERIODIC_BOUNDARY = 2,
+  POS_INFINITE_BOUNDARY = 3,
+  NEG_INFINITE_BOUNDARY = 4
+};
+
 template <int D> class hrleGrid {
-
 public:
-  enum boundaryType : unsigned {
-    REFLECTIVE_BOUNDARY = 0,
-    INFINITE_BOUNDARY = 1,
-    PERIODIC_BOUNDARY = 2,
-    POS_INFINITE_BOUNDARY = 3,
-    NEG_INFINITE_BOUNDARY = 4
-  };
-
   static const int dimension = D;
 
 private:
@@ -32,7 +31,7 @@ private:
 
   hrleCoordType gridDelta;
 
-  hrleVectorType<boundaryType, D>
+  hrleVectorType<hrleBoundaryType, D>
       boundaryConditions; // here the boundary conditions for
                           // all grid directions are stored
 
@@ -90,16 +89,18 @@ public:
 
   hrleGrid(const hrleIndexType *min, const hrleIndexType *max,
            const hrleCoordType delta = 1.0) {
-    boundaryType boundaryCons[D];
+    hrleBoundaryType boundaryCons[D];
     for (unsigned i = 0; i < D; ++i) {
-      boundaryCons[i] = REFLECTIVE_BOUNDARY; // Reflective boundary conditions
+      boundaryCons[i] =
+          hrleBoundaryType::REFLECTIVE_BOUNDARY; // Reflective boundary
+                                                 // conditions
     }
 
     *this = hrleGrid(min, max, delta, boundaryCons);
   }
 
   hrleGrid(const hrleIndexType *min, const hrleIndexType *max,
-           const hrleCoordType delta, const boundaryType *boundaryCons) {
+           const hrleCoordType delta, const hrleBoundaryType *boundaryCons) {
 
     gridDelta = delta;
 
@@ -113,17 +114,17 @@ public:
       minBounds[i] = min[i];
       maxBounds[i] = max[i];
 
-      if ((boundaryConditions[i] == INFINITE_BOUNDARY) ||
-          (boundaryConditions[i] == NEG_INFINITE_BOUNDARY)) {
+      if ((boundaryConditions[i] == hrleBoundaryType::INFINITE_BOUNDARY) ||
+          (boundaryConditions[i] == hrleBoundaryType::NEG_INFINITE_BOUNDARY)) {
         minGridPointCoord[i] = -INF_EXTENSION;
         minIndex[i] = -INF_EXTENSION;
       }
-      if ((boundaryConditions[i] == INFINITE_BOUNDARY) ||
-          (boundaryConditions[i] == POS_INFINITE_BOUNDARY)) {
+      if ((boundaryConditions[i] == hrleBoundaryType::INFINITE_BOUNDARY) ||
+          (boundaryConditions[i] == hrleBoundaryType::POS_INFINITE_BOUNDARY)) {
         maxGridPointCoord[i] = INF_EXTENSION;
         maxIndex[i] = INF_EXTENSION;
       }
-      if (boundaryConditions[i] == PERIODIC_BOUNDARY) {
+      if (boundaryConditions[i] == hrleBoundaryType::PERIODIC_BOUNDARY) {
         maxGridPointCoord[i]--;
         maxBounds[i]--;
       }
@@ -186,35 +187,38 @@ public:
   }
 
   /// returns all 2 or 3 boundary conditions
-  inline const hrleVectorType<boundaryType, D> &getBoundaryConditions() const {
+  inline const hrleVectorType<hrleBoundaryType, D> &
+  getBoundaryConditions() const {
     return boundaryConditions;
   }
 
   /// returns the boundary conditions in the specified direction
-  inline boundaryType getBoundaryConditions(int dir) const {
+  inline hrleBoundaryType getBoundaryConditions(int dir) const {
     return boundaryConditions[dir];
   }
 
   /// returns wheter the boundary condition in direction dim is periodic
   bool isBoundaryPeriodic(int dim) const {
-    return boundaryConditions[dim] == PERIODIC_BOUNDARY;
+    return boundaryConditions[dim] == hrleBoundaryType::PERIODIC_BOUNDARY;
   }
 
   /// returns wheter the boundary condition in direction dim is reflective
   bool isBoundaryReflective(int dim) const {
-    return boundaryConditions[dim] == REFLECTIVE_BOUNDARY;
+    return boundaryConditions[dim] == hrleBoundaryType::REFLECTIVE_BOUNDARY;
   }
 
   /// returns wheter the boundary condition in direction +dim is infinite
   bool isPosBoundaryInfinite(int dim) const {
-    return ((boundaryConditions[dim] == INFINITE_BOUNDARY) ||
-            (boundaryConditions[dim] == POS_INFINITE_BOUNDARY));
+    return (
+        (boundaryConditions[dim] == hrleBoundaryType::INFINITE_BOUNDARY) ||
+        (boundaryConditions[dim] == hrleBoundaryType::POS_INFINITE_BOUNDARY));
   }
 
   /// returns wheter the boundary condition in direction -dim is infinite
   bool isNegBoundaryInfinite(int dim) const {
-    return ((boundaryConditions[dim] == INFINITE_BOUNDARY) ||
-            (boundaryConditions[dim] == NEG_INFINITE_BOUNDARY));
+    return (
+        (boundaryConditions[dim] == hrleBoundaryType::INFINITE_BOUNDARY) ||
+        (boundaryConditions[dim] == hrleBoundaryType::NEG_INFINITE_BOUNDARY));
   }
 
   /// return whether the point given by vec is within the simulation domain
@@ -601,9 +605,10 @@ public:
   // the direction of the infinite boundary.
   template <class V> bool isOutsideOfDomain(V v) const {
     for (unsigned i = 0; i < D; ++i) {
-      if (boundaryConditions[i] == INFINITE_BOUNDARY)
+      if (boundaryConditions[i] == hrleBoundaryType::INFINITE_BOUNDARY)
         continue;
-      if (boundaryConditions[i] == PERIODIC_BOUNDARY && v[i] == maxIndex[i])
+      if (boundaryConditions[i] == hrleBoundaryType::PERIODIC_BOUNDARY &&
+          v[i] == maxIndex[i])
         return true;
       if (v[i] < minIndex[i] || v[i] > maxIndex[i])
         return true;
@@ -619,16 +624,16 @@ public:
     hrleIndexType bounds[2 * D];
     // get the bounds to save
     for (unsigned i = 0; i < D; ++i) {
-      if (getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
-          getBoundaryConditions(i) == hrleGrid<D>::NEG_INFINITE_BOUNDARY) {
+      if (getBoundaryConditions(i) == hrleBoundaryType::INFINITE_BOUNDARY ||
+          getBoundaryConditions(i) == hrleBoundaryType::NEG_INFINITE_BOUNDARY) {
         // set to zero as it will be changed during deserialization
         bounds[2 * i] = 0;
       } else {
         bounds[2 * i] = minIndex[i];
       }
 
-      if (getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
-          getBoundaryConditions(i) == hrleGrid<D>::POS_INFINITE_BOUNDARY) {
+      if (getBoundaryConditions(i) == hrleBoundaryType::INFINITE_BOUNDARY ||
+          getBoundaryConditions(i) == hrleBoundaryType::POS_INFINITE_BOUNDARY) {
         bounds[2 * i + 1] = 0;
       } else {
         bounds[2 * i + 1] = maxIndex[i];
@@ -677,14 +682,14 @@ public:
     stream.read(&gridBoundaryBytes, 1);
     // READ GRID
     hrleIndexType gridMin[D], gridMax[D];
-    typename hrleGrid<D>::boundaryType boundaryCons[D];
+    hrleBoundaryType boundaryCons[D];
     double gridDelta = 0.;
     for (int i = D - 1; i >= 0; --i) {
       gridMin[i] = readGridBoundary(stream, gridBoundaryBytes);
       gridMax[i] = readGridBoundary(stream, gridBoundaryBytes);
       char condition = 0;
       stream.read(&condition, 1);
-      boundaryCons[i] = boundaryType(condition);
+      boundaryCons[i] = hrleBoundaryType(condition);
     }
     stream.read((char *)&gridDelta, sizeof(double));
     // initialize new grid
