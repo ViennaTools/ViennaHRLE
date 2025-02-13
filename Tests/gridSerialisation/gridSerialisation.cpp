@@ -6,17 +6,16 @@
 
 int main() {
   constexpr int D = 2;
-  using BNCType = typename hrleGrid<D>::boundaryType;
 
   hrleIndexType min[D] = {-10000000, -100000000};
   hrleIndexType max[D] = {10, 10};
   const double gridDelta = 1.0;
-  BNCType boundaryCons[D];
+  hrleBoundaryType boundaryCons[D];
   for (unsigned i = 0; i < D; ++i) {
     boundaryCons[i] =
-        BNCType::REFLECTIVE_BOUNDARY; // Reflective boundary conditions
+        hrleBoundaryType::REFLECTIVE_BOUNDARY; // Reflective boundary conditions
   }
-  boundaryCons[D - 1] = BNCType::INFINITE_BOUNDARY;
+  boundaryCons[D - 1] = hrleBoundaryType::INFINITE_BOUNDARY;
 
   // Initialise example grid
   auto grid = hrleGrid<D>(min, max, gridDelta, boundaryCons);

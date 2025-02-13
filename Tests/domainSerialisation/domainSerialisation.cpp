@@ -83,9 +83,10 @@ int main() {
 
   std::array<hrleIndexType, D> min = {-20, -20, -20};
   std::array<hrleIndexType, D> max = {20, 20, 20};
-  std::array<hrleGrid<D>::boundaryType, D> bounds = {
-      hrleGrid<D>::REFLECTIVE_BOUNDARY, hrleGrid<D>::INFINITE_BOUNDARY,
-      hrleGrid<D>::REFLECTIVE_BOUNDARY};
+  std::array<hrleBoundaryType, D> bounds = {
+      hrleBoundaryType::REFLECTIVE_BOUNDARY,
+      hrleBoundaryType::INFINITE_BOUNDARY,
+      hrleBoundaryType::REFLECTIVE_BOUNDARY};
 
   hrleGrid<D> grid(min.data(), max.data(), 1.0, bounds.data());
 

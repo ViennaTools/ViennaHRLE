@@ -251,17 +251,19 @@ public:
 
   void getDomainBounds(hrleIndexType *bounds) {
     for (unsigned i = 0; i < D; ++i) {
-      if (grid->getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
+      if (grid->getBoundaryConditions(i) ==
+              hrleBoundaryType::INFINITE_BOUNDARY ||
           grid->getBoundaryConditions(i) ==
-              hrleGrid<D>::NEG_INFINITE_BOUNDARY) {
+              hrleBoundaryType::NEG_INFINITE_BOUNDARY) {
         bounds[2 * i] = getMinRunBreak(i);
       } else {
         bounds[2 * i] = grid->getMinGridPoint(i);
       }
 
-      if (grid->getBoundaryConditions(i) == hrleGrid<D>::INFINITE_BOUNDARY ||
+      if (grid->getBoundaryConditions(i) ==
+              hrleBoundaryType::INFINITE_BOUNDARY ||
           grid->getBoundaryConditions(i) ==
-              hrleGrid<D>::POS_INFINITE_BOUNDARY) {
+              hrleBoundaryType::POS_INFINITE_BOUNDARY) {
         bounds[2 * i + 1] = getMaxRunBreak(i);
       } else {
         bounds[2 * i + 1] = grid->getMaxGridPoint(i);
