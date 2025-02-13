@@ -54,7 +54,7 @@ We recommend using [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) to consum
 
 * Installation with CPM
   ```cmake
-  CPMAddPackage("gh:viennatools/viennahrle@0.4.0")
+  CPMAddPackage("gh:viennatools/viennahrle@0.5.0")
   ```
 
 * With a local installation
