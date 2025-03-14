@@ -1,10 +1,10 @@
 #ifndef HRLE_RUNS_ITERATOR_HPP
 #define HRLE_RUNS_ITERATOR_HPP
 
-#include <vector>
-
 #include "hrleBaseIterator.hpp"
 #include "hrleIndexType.hpp"
+
+#include <cassert>
 
 /// This iterator iterates over all runs and stops at every start index of each
 /// run. A run can be defined or undefined: A defined run
@@ -28,7 +28,6 @@ class hrleSparseIterator : public hrleBaseIterator<hrleDomain> {
   using hrleBaseIterator<hrleDomain>::go_up_BA;
   using hrleBaseIterator<hrleDomain>::D;
 
-private:
   void go_down_AB(hrleIndexType c) { // find right runTypePos
     const hrleDomainSegmentType &sl = domain.domainSegments[sub];
     const hrleSizeType &s = startIndicesPos[s_level];
@@ -36,23 +35,20 @@ private:
     --r_level;
     hrleSizeType r = sl.startIndices[r_level][s];
 
-    typename std::vector<hrleIndexType>::const_iterator start_breaks =
-        sl.runBreaks[r_level].begin() + (r - s);
-    typename std::vector<hrleIndexType>::const_iterator end_breaks =
-        sl.runBreaks[r_level].begin() +
-        (sl.getStartIndex(r_level, s + 1) - (s + 1));
+    auto start_breaks = sl.runBreaks[r_level].begin() + (r - s);
+    auto end_breaks = sl.runBreaks[r_level].begin() +
+                      (sl.getStartIndex(r_level, s + 1) - (s + 1));
 
-    // shfdhsfhdskjhgf assert(start_breaks<=end_breaks);
+    assert(start_breaks <= end_breaks);
 
-    typename std::vector<hrleIndexType>::const_iterator pos_breaks =
-        std::upper_bound(start_breaks, end_breaks, c);
+    auto pos_breaks = std::upper_bound(start_breaks, end_breaks, c);
 
-    r += hrleSizeType(pos_breaks - start_breaks);
+    r += static_cast<hrleSizeType>(pos_breaks - start_breaks);
 
     if (pos_breaks == start_breaks) {
       startRunAbsCoords[r_level] = domain.getGrid().getMinGridPoint(r_level);
     } else {
-      // shfdhsfhdskjhgf assert(pos_breaks>start_breaks);
+      assert(pos_breaks > start_breaks);
       startRunAbsCoords[r_level] = *(pos_breaks - 1);
     }
 
@@ -64,13 +60,13 @@ private:
 
     runTypePos[r_level] = r;
 
-    // shfdhsfhdskjhgf assert(s_level>=1);
-    // shfdhsfhdskjhgf assert(s_level==r_level+1);
+    assert(s_level >= 1);
+    assert(s_level == r_level + 1);
   }
 
   void go_down_AB_first() { // find right runTypePos
 
-    // shfdhsfhdskjhgf assert(s_level==r_level);
+    assert(s_level == r_level);
 
     const hrleDomainSegmentType &sl = domain.domainSegments[sub];
 
@@ -86,13 +82,13 @@ private:
 
     runTypePos[r_level] = r;
 
-    // shfdhsfhdskjhgf assert(s_level>=1);
-    // shfdhsfhdskjhgf assert(s_level==r_level+1);
+    assert(s_level >= 1);
+    assert(s_level == r_level + 1);
   }
 
   void go_down_AB_last() { // find right runTypePos
 
-    // shfdhsfhdskjhgf assert(s_level==r_level);
+    assert(s_level == r_level);
 
     const hrleDomainSegmentType &sl = domain.domainSegments[sub];
 
@@ -108,13 +104,13 @@ private:
 
     runTypePos[r_level] = r;
 
-    // shfdhsfhdskjhgf assert(s_level>=1);
-    // shfdhsfhdskjhgf assert(s_level==r_level+1);
+    assert(s_level >= 1);
+    assert(s_level == r_level + 1);
   }
 
   bool go_down_BA(hrleIndexType c) {
-    // shfdhsfhdskjhgf assert(s_level==r_level+1);
-    // shfdhsfhdskjhgf assert(s_level>=1);
+    assert(s_level == r_level + 1);
+    assert(s_level >= 1);
     // std::cout << "go_down_BA:" << std::endl;
     // print();
 
@@ -150,8 +146,7 @@ private:
   }
 
   bool go_next_B() {
-    // shfdhsfhdskjhgf assert(s_level==r_level+1);
-    // shfdhsfhdskjhgf
+    assert(s_level == r_level + 1);
     // assert(endRunAbsCoords[r_level]<=domain.getGrid().getMaxIndex(r_level));
 
     const hrleDomainSegmentType &sl = domain.domainSegments[sub];
@@ -180,8 +175,7 @@ private:
   }
 
   bool go_previous_B() {
-    // shfdhsfhdskjhgf assert(s_level==r_level+1);
-    // shfdhsfhdskjhgf
+    assert(s_level == r_level + 1);
     // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinIndex(r_level));
 
     const hrleDomainSegmentType &sl = domain.domainSegments[sub];
@@ -203,7 +197,7 @@ public:
 
   void print() { hrleBaseIterator<hrleDomain>::print(); }
 
-  hrleSparseIterator(hrleDomain &passedDomain, bool reverse = false)
+  explicit hrleSparseIterator(hrleDomain &passedDomain, bool reverse = false)
       : hrleBaseIterator<hrleDomain>(passedDomain) {
     if (reverse) {
       goToIndices(domain.getGrid().getMaxGridPoint());
@@ -315,7 +309,7 @@ public:
   /// or not before incrementing. Returns false if iterator was already
   /// finished
   bool next() {
-    if (hrleBaseIterator<hrleDomain>::isFinished())
+    if (this->isFinished())
       return false;
     operator++();
     return true;
@@ -325,7 +319,7 @@ public:
   /// or not before incrementing. Returns false if iterator was already
   /// finished
   bool previous() {
-    if (hrleBaseIterator<hrleDomain>::isFinished())
+    if (this->isFinished())
       return false;
     operator--();
     return true;

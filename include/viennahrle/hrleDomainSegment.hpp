@@ -12,8 +12,6 @@ template <class T = double, int D = 3> class hrleDomainSegment {
 
   const hrleGrid<D> *grid;
 
-  hrleDomainSegment(){};
-
 public:
   // TYPEDEFS
   typedef T hrleValueType;
@@ -50,26 +48,24 @@ public:
   hrleSizeType numberOfActivePoints; // numberOfActivePoints stores the number
                                      // of active points
 
-  // STATIC CONSTANTS
-
   // STATIC FUNCTIONS
-  static bool isPtIdDefined(
-      hrleSizeType r) { // returns if the grid point given by the "getPointId"
-    return (r < hrleRunTypeValues::UNDEF_PT); // is a defined grid point
+  static bool isPtIdDefined(const hrleSizeType r) { // returns if the grid point
+                                                    // given by the "getPointId"
+    return (r < hrleRunTypeValues::UNDEF_PT);       // is a defined grid point
   }
 
   // DYNAMIC FUNCTIONS
   hrleAllocationType<hrleSizeType, D> getAllocation() const {
-    // hrleAllocationType allocates the requried sizes to num_values and
+    // hrleAllocationType allocates the required sizes to num_values and
     // num_runs num_values[0] is to contain defined values, num_values[i]
     // contains the start indices at the i-th dimension num_runs[i] is to
     // contain the run types at the i-th dimension
     hrleAllocationType<hrleSizeType, D> a;
-    a.num_values[0] = hrleSizeType(definedValues.size());
-    a.num_runs[0] = hrleSizeType(runTypes[0].size());
+    a.num_values[0] = static_cast<hrleSizeType>(definedValues.size());
+    a.num_runs[0] = static_cast<hrleSizeType>(runTypes[0].size());
     for (int i = 1; i < D; ++i) {
-      a.num_values[i] = hrleSizeType(startIndices[i - 1].size());
-      a.num_runs[i] = hrleSizeType(runTypes[i].size());
+      a.num_values[i] = static_cast<hrleSizeType>(startIndices[i - 1].size());
+      a.num_runs[i] = static_cast<hrleSizeType>(runTypes[i].size());
     }
 
     // Check that the vector sizes make sense for the H-RLE structure
@@ -80,9 +76,12 @@ public:
     return a;
   }
 
+  // No default ctor
+  hrleDomainSegment() = delete;
+
   /// Constructor for the hrleDomainSegment class
   /// Takes a pointer to a grid_type and an hrleAllocationType to reserve the
-  /// memory required for the start indeces, run types and run breaks arays, as
+  /// memory required for the start indexes, run types and run breaks arrays, as
   /// well as the LS values
   hrleDomainSegment(const hrleGrid<D> &g,
                     const hrleAllocationType<hrleSizeType, D> &a)
@@ -114,7 +113,10 @@ public:
     grid = &g;
   };
 
-  const hrleDomainSegment &operator=(const hrleDomainSegment &s) {
+  hrleDomainSegment &operator=(const hrleDomainSegment &s) {
+    if (this == &s) // handle self-assignment
+      return *this;
+
     for (int i = 0; i < D; ++i)
       startIndices[i] = s.startIndices[i];
     for (int i = 0; i < D; ++i)
@@ -158,11 +160,9 @@ public:
   /// if startIndicesPos is equal to the size of startIndices array
   /// the size of the run_types array is returned
   hrleSizeType getStartIndex(int dim, hrleSizeType startIndicesPos) const {
-    if (startIndicesPos == startIndices[dim].size()) {
-      return hrleSizeType(runTypes[dim].size());
-    } else {
-      return startIndices[dim][startIndicesPos];
-    }
+    if (startIndicesPos == startIndices[dim].size())
+      return static_cast<hrleSizeType>(runTypes[dim].size());
+    return startIndices[dim][startIndicesPos];
   }
 
   hrleIndexType
@@ -232,22 +232,20 @@ public:
 
   /// this function returns the number of defined grid points
   hrleSizeType getNumberOfPoints() const {
-    return hrleSizeType(definedValues.size());
+    return static_cast<hrleSizeType>(definedValues.size());
   };
 
   /// this function returns the number of distinct undefined values
   hrleSizeType getNumberOfUndefinedValues() const {
-    return hrleSizeType(undefinedValues.size());
+    return static_cast<hrleSizeType>(undefinedValues.size());
   }
 
   /// returns the number of distinct runs in the dimension <dimension>
   /// for negative <dimension> it returns the number of defined points
   hrleSizeType getNumberOfRuns(int dimension) const {
-    if (dimension >= 0) {
+    if (dimension >= 0)
       return runTypes[dimension].size();
-    } else {
-      return definedValues.size();
-    }
+    return definedValues.size();
   }
 
   template <class V>
@@ -299,7 +297,7 @@ public:
         runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
         startIndices[dim - 1].push_back(hrleSizeType(runTypes[dim - 1].size()));
       } else if (!isPtIdDefined(
-                     runTypes[dim].back())) { // if there is an defined run
+                     runTypes[dim].back())) { // if there is a defined run
         old_sign = runTypes[dim].back();
         if (old_sign == rt)
           return;
@@ -366,7 +364,7 @@ public:
   void insertNextUndefinedPoint(const V &startPoint, const V &endPoint,
                                 hrleValueType value) {
     // if undefined value already exists, use its runtype,
-    // if it does not use the next available udnefined runtype
+    // if it does not use the next available undefined runtype
     auto it = std::find(undefinedValues.begin(), undefinedValues.end(), value);
     hrleSizeType runType;
     if (it != undefinedValues.end()) {
@@ -510,9 +508,8 @@ public:
     for (int dim = D - 1; dim >= 0; --dim) {
       out << dim << " startIndices: " << startIndices[dim].size();
       int c = 0;
-      for (typename std::vector<hrleSizeType>::const_iterator it =
-               startIndices[dim].begin();
-           it != startIndices[dim].end(); ++it) {
+      for (auto it = startIndices[dim].begin(); it != startIndices[dim].end();
+           ++it) {
         if (c % 10 == 0)
           out << std::endl;
         ++c;
@@ -522,9 +519,7 @@ public:
 
       out << dim << " run_types: " << runTypes[dim].size();
       c = 0;
-      for (typename std::vector<hrleSizeType>::const_iterator it =
-               runTypes[dim].begin();
-           it != runTypes[dim].end(); ++it) {
+      for (auto it = runTypes[dim].begin(); it != runTypes[dim].end(); ++it) {
         if (c % 10 == 0)
           out << std::endl;
         ++c;
@@ -541,9 +536,7 @@ public:
 
       out << dim << " run_breaks: " << runBreaks[dim].size();
       c = 0;
-      for (typename std::vector<hrleIndexType>::const_iterator it =
-               runBreaks[dim].begin();
-           it != runBreaks[dim].end(); ++it) {
+      for (auto it = runBreaks[dim].begin(); it != runBreaks[dim].end(); ++it) {
         if (c % 10 == 0)
           out << std::endl;
         ++c;
@@ -554,9 +547,7 @@ public:
 
     out << "definedValues: " << definedValues.size();
     int c = 0;
-    for (typename std::vector<hrleValueType>::const_iterator it =
-             definedValues.begin();
-         it != definedValues.end(); ++it) {
+    for (auto it = definedValues.begin(); it != definedValues.end(); ++it) {
       if (c % 10 == 0)
         out << std::endl;
       ++c;

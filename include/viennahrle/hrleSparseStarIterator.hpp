@@ -13,12 +13,13 @@
 /// the iterator stops.
 template <class hrleDomain, int order> class hrleSparseStarIterator {
 
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::hrleValueType,
+                             typename hrleDomain::hrleValueType>
       hrleValueType;
 
   static constexpr int D = hrleDomain::dimension;
+  static constexpr int numNeighbors = 2 * order * D;
 
   hrleDomain &domain;
   hrleVectorType<hrleIndexType, D> currentCoords;
@@ -35,7 +36,7 @@ template <class hrleDomain, int order> class hrleSparseStarIterator {
     return false;
   }
 
-  template <class V> void initializeNeigbors(const V &v) {
+  template <class V> void initializeNeighbors(const V &v) {
     for (int i = 0; i < int(order); ++i) {
       for (int j = 0; j < 2 * D; ++j) {
         hrleVectorType<hrleIndexType, D> relativeIndex(hrleIndexType(0));
@@ -49,17 +50,6 @@ template <class hrleDomain, int order> class hrleSparseStarIterator {
     }
   }
 
-  // make post in/decrement private, since they should not be used, due to the
-  // size of the structure
-  hrleSparseStarIterator<hrleDomain, order>
-  operator++(int) { // use pre increment instead
-    return *this;
-  }
-  hrleSparseStarIterator<hrleDomain, order>
-  operator--(int) { // use pre decrement instead
-    return *this;
-  }
-
 public:
   using DomainType = hrleDomain;
   using OffsetIterator = hrleSparseOffsetIterator<hrleDomain>;
@@ -69,28 +59,32 @@ public:
       : domain(passedDomain), currentCoords(v),
         centerIterator(passedDomain, v) {
 
-    initializeNeigbors(v);
+    initializeNeighbors(v);
   }
 
-  hrleSparseStarIterator(hrleDomain &passedDomain)
+  explicit hrleSparseStarIterator(hrleDomain &passedDomain)
       : domain(passedDomain), currentCoords(domain.getGrid().getMinGridPoint()),
         centerIterator(passedDomain) {
 
-    initializeNeigbors(passedDomain.getGrid().getMinIndex());
+    initializeNeighbors(passedDomain.getGrid().getMinIndex());
   }
 
-  hrleSparseStarIterator<hrleDomain, order> &operator++() {
+  // delete post in/decrement, since they should not be used, due to the
+  // size of the structure
+  hrleSparseStarIterator operator++(int) = delete; // use pre increment instead
+  hrleSparseStarIterator operator--(int) = delete; // use pre decrement instead
+
+  hrleSparseStarIterator &operator++() {
     next();
     return *this;
   }
 
-  hrleSparseStarIterator<hrleDomain, order> &operator--() {
+  hrleSparseStarIterator &operator--() {
     previous();
     return *this;
   }
 
   void next() {
-    constexpr int numNeighbors = 2 * order * D;
     std::array<bool, numNeighbors + 1> increment;
     increment.fill(false);
     increment[numNeighbors] = true;
@@ -98,7 +92,7 @@ public:
     hrleVectorType<hrleIndexType, D> end_coords =
         centerIterator.getEndIndices();
     for (int i = 0; i < numNeighbors; i++) {
-      switch (compare(end_coords, neighborIterators[i].getEndIndices())) {
+      switch (hrleUtil::Compare(end_coords, neighborIterators[i].getEndIndices())) {
       case 1:
         end_coords = neighborIterators[i].getEndIndices();
         increment.fill(false);
@@ -117,7 +111,6 @@ public:
   }
 
   void previous() {
-    constexpr int numNeighbors = 2 * order * D;
     std::array<bool, numNeighbors + 1> decrement;
     decrement.fill(false);
     decrement[numNeighbors] = true;
@@ -125,7 +118,7 @@ public:
     hrleVectorType<hrleIndexType, D> start_coords =
         centerIterator.getStartIndices();
     for (int i = 0; i < numNeighbors; i++) {
-      switch (compare(start_coords, neighborIterators[i].getStartIndices())) {
+      switch (hrleUtil::Compare(start_coords, neighborIterators[i].getStartIndices())) {
       case -1:
         start_coords = neighborIterators[i].getStartIndices();
         decrement.fill(false);
@@ -156,7 +149,7 @@ public:
     return neighborIterators[index];
   }
 
-  OffsetIterator &getNeighbor(int index) {
+  OffsetIterator &getNeighbor(const int index) {
     return const_cast<OffsetIterator &>(
         const_cast<const hrleSparseStarIterator *>(this)->getNeighbor(index));
   }
@@ -166,7 +159,7 @@ public:
     unsigned char directions = 0;
     unsigned neighborIndex;
     for (unsigned i = 0; i < D; ++i) {
-      assert(unsigned(abs(relativeIndex[i])) <= order);
+      assert(abs(relativeIndex[i]) <= order);
       if (relativeIndex[i] != 0) {
         ++directions;
         if (relativeIndex[i] > 0)
@@ -201,11 +194,11 @@ public:
   bool isFinished() const { return centerIterator.isFinished(); }
 
   /// Sets the iterator to position v.
-  /// Uses random access to move, so it is be slower
+  /// Uses random access to move, so it is slower
   /// than goToIndicesSequential for repeated serial calls.
   template <class V> void goToIndices(V &v) {
     centerIterator.goToIndices(v);
-    for (int i = 0; i < int(order); ++i) {
+    for (int i = 0; i < order; ++i) {
       for (int j = 0; j < 2 * D; ++j) {
         neighborIterators[i * 2 * D + j].goToIndices(v);
       }

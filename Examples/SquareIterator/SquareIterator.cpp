@@ -1,6 +1,7 @@
 #include <hrleFillDomainFromPointList.hpp>
 #include <hrleSparseBoxIterator.hpp>
 #include <hrleSparseStarIterator.hpp>
+#include <hrleCartesianPlaneIterator.hpp>
 #include <iostream>
 #include <string>
 
@@ -43,7 +44,7 @@ int main() {
 
   // go to the first 'l' and output all neighbors
   constexpr int order = 2;
-  hrleSparseBoxIterator<hrleDomain<char, D>> neighborIt(data, order);
+  hrleSparseBoxIterator<hrleDomain<char, D>, order> neighborIt(data);
   while (!(neighborIt.getCenter().getValue() == 'l')) {
     neighborIt.next();
   }
@@ -80,6 +81,8 @@ int main() {
   for (unsigned i = 0; i < order; ++i)
     std::cout << std::string(2 * order, ' ')
               << crossIt.getNeighbor(2 * D * i + 3).getValue() << std::endl;
+
+  hrleConstCartesianPlaneIterator<hrleDomain<char, D>, 1> planeIt(data);
 
   return 0;
 }

@@ -1,17 +1,18 @@
 #ifndef HRLE_CARTESIAN_PLANE_ITERATOR_HPP
 #define HRLE_CARTESIAN_PLANE_ITERATOR_HPP
 
-#include "hrleSparseIterator.hpp"
 #include "hrleSparseOffsetIterator.hpp"
 
+#include <memory>
+
 /// This neighbor iterator is an adaptation of the box iterator, which only
-/// moves the iterators that lie in a cartesian plane (2 dimensional linear
+/// moves the iterators that lie in a cartesian plane (2-dimensional linear
 /// subspace created by all pairs of basis vectors). Whenever one of these
 /// iterators reach a defined grid point, the iterator stops. In 2D this
 /// iterator is equivalent to a hrleBoxIterator.
 ///
 /// The indices of the planeCoords coords array for D > 2 are like star
-/// iterators along the x axis except for the slice that contains the center
+/// iterators along the x-axis except for the slice that contains the center
 /// iterator which contains the whole plane
 ///
 ///   5        12 13 14        19
@@ -19,19 +20,18 @@
 ///   1         6  7  8        15
 ///            center: 10
 
-template <class hrleDomain> class hrleCartesianPlaneIterator {
+template <class hrleDomain, int order = 1> class hrleCartesianPlaneIterator {
 
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::hrleValueType,
+                             typename hrleDomain::hrleValueType>
       hrleValueType;
 
   static constexpr int D = hrleDomain::dimension;
 
   hrleDomain &domain;
-  const unsigned order;
-  const hrleIndexType sideLength;
-  const hrleIndexType sliceArea;
+  static constexpr hrleIndexType sideLength = 1 + 2 * order;
+  static constexpr hrleIndexType sliceArea = sideLength * sideLength;
   const hrleIndexType centerIndex;
   hrleVectorType<hrleIndexType, D> currentCoords;
   std::vector<std::unique_ptr<hrleSparseOffsetIterator<hrleDomain>>>
@@ -68,7 +68,7 @@ template <class hrleDomain> class hrleCartesianPlaneIterator {
   }
 
   template <class V> hrleIndexType coordinateToIndex(V coordinate) const {
-    // TODO: Beachte empty indices
+    // TODO: consider empty indices
     // shift to the middle
     for (unsigned i = 0; i < D; ++i)
       coordinate[i] += order;
@@ -87,11 +87,12 @@ template <class hrleDomain> class hrleCartesianPlaneIterator {
   // Create a Box iterator
   // Create a planeCords array that contains the indices of the cartesian planes
   // Only increment the iterators with indices in the planeCoords array
-  template <class V> void initializeNeigbors(const V &v) {
-    const unsigned numNeighbors = unsigned(std::pow((1 + 2 * order), D));
+  template <class V> void initializeNeighbors(const V &v) {
+    constexpr auto numNeighbors =
+        static_cast<unsigned>(std::pow(1 + 2 * order, D));
 
-    const unsigned numPlaneCoords =
-        unsigned(std::pow((1 + 2 * order), D) - (8 * std::pow(order, D)));
+    constexpr auto numPlaneCoords = static_cast<unsigned>(
+        std::pow(1 + 2 * order, D) - 8 * std::pow(order, D));
 
     neighborIterators.reserve(numNeighbors);
 
@@ -120,12 +121,10 @@ template <class hrleDomain> class hrleCartesianPlaneIterator {
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleCartesianPlaneIterator<hrleDomain>
-  operator++(int) { // use pre increment instead
+  hrleCartesianPlaneIterator operator++(int) { // use pre increment instead
     return *this;
   }
-  hrleCartesianPlaneIterator<hrleDomain>
-  operator--(int) { // use pre decrement instead
+  hrleCartesianPlaneIterator operator--(int) { // use pre decrement instead
     return *this;
   }
 
@@ -133,45 +132,41 @@ public:
   using DomainType = hrleDomain;
 
   hrleCartesianPlaneIterator(hrleDomain &passedDomain,
-                             const hrleVectorType<hrleIndexType, D> &v,
-                             const unsigned passedOrder = 1)
-      : domain(passedDomain), order(passedOrder),
-        sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
+                             const hrleVectorType<hrleIndexType, D> &v)
+      : domain(passedDomain),
         centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
         currentCoords(v) {
 
-    initializeNeigbors(v);
+    initializeNeighbors(v);
   }
 
-  hrleCartesianPlaneIterator(hrleDomain &passedDomain,
-                             const unsigned passedOrder = 1)
-      : domain(passedDomain), order(passedOrder),
-        sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
+  explicit hrleCartesianPlaneIterator(hrleDomain &passedDomain)
+      : domain(passedDomain),
         centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
         currentCoords(domain.getGrid().getMinGridPoint()) {
 
-    initializeNeigbors(passedDomain.getGrid().getMinIndex());
+    initializeNeighbors(passedDomain.getGrid().getMinIndex());
   }
 
-  hrleCartesianPlaneIterator<hrleDomain> &operator++() {
+  hrleCartesianPlaneIterator &operator++() {
     next();
     return *this;
   }
 
-  hrleCartesianPlaneIterator<hrleDomain> &operator--() {
+  hrleCartesianPlaneIterator &operator--() {
     previous();
     return *this;
   }
 
   void next() {
-    const int numPlaneNeighbours = int(planeCoords.size());
+    const int numPlaneNeighbours = static_cast<int>(planeCoords.size());
     std::vector<bool> increment(numPlaneNeighbours + 1, false);
     increment[numPlaneNeighbours] = true;
 
     hrleVectorType<hrleIndexType, D> end_coords =
         neighborIterators[centerIndex]->getEndIndices();
 
-    // itearte over plane coords
+    // iterate over plane coords
     for (int i = 0; i < numPlaneNeighbours; i++) {
       if (planeCoords[i] == centerIndex)
         continue;
@@ -197,7 +192,7 @@ public:
   }
 
   void previous() {
-    const int numPlaneNeighbours = int(planeCoords.size());
+    const int numPlaneNeighbours = static_cast<int>(planeCoords.size());
     std::vector<bool> decrement(numPlaneNeighbours + 1, false);
     decrement[numPlaneNeighbours] = true;
 
@@ -245,7 +240,7 @@ public:
 
   const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
 
-  unsigned getSize() { return planeCoords.size(); }
+  unsigned getSize() const { return planeCoords.size(); }
 
   const DomainType &getDomain() { return domain; }
 
@@ -280,8 +275,8 @@ public:
   }
 };
 
-template <class hrleDomain>
+template <class hrleDomain, int order>
 using hrleConstCartesianPlaneIterator =
-    hrleCartesianPlaneIterator<const hrleDomain>;
+    hrleCartesianPlaneIterator<const hrleDomain, order>;
 
 #endif // HRLE_CARTESIAN_PLANE_ITERATOR_HPP

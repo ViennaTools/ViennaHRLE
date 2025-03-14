@@ -1,5 +1,7 @@
+#include <hrleDenseCellIterator.hpp>
 #include <hrleDenseIterator.hpp>
 #include <hrleFillDomainFromPointList.hpp>
+#include <hrleSparseCellIterator.hpp>
 #include <iostream>
 #include <string>
 
@@ -47,6 +49,10 @@ int main() {
   }
 
   std::cout << std::endl;
+
+  hrleConstDenseCellIterator<hrleDomain<char, D>> it2(data);
+
+  hrleSparseCellIterator<hrleDomain<char, D>> it3(data);
 
   return 0;
 }

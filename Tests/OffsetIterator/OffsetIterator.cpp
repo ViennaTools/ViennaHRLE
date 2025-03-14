@@ -97,7 +97,7 @@ void runTest(hrleDomain<DataType, D> &domain) {
 
   // march through domain and check if all neighbours are correct
   const unsigned iteratorOrder = 2;
-  hrleConstSparseBoxIterator<hrleDomain<char, D>> it(domain, iteratorOrder);
+  hrleConstSparseBoxIterator<hrleDomain<char, D>, iteratorOrder> it(domain);
   const unsigned numNeighbors = unsigned(std::pow((1 + 2 * iteratorOrder), D));
 
   for (; !it.isFinished(); ++it) {

@@ -1,10 +1,10 @@
 #ifndef HRLE_SPARSE_MULTI_DOMAIN_ITERATOR_HPP
 #define HRLE_SPARSE_MULTI_DOMAIN_ITERATOR_HPP
 
-#include <cassert>
-
 #include "hrleSparseIterator.hpp"
 #include "hrleSparseOffsetIterator.hpp"
+
+#include <cassert>
 
 /// This class iterates over multiple hrleDomains by using an iterator
 /// for each domain and keeping them in sync. A call to next() results
@@ -19,9 +19,9 @@ public:
   using DomainsType = std::vector<DomainType *>;
 
 private:
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::hrleValueType,
+                             typename hrleDomain::hrleValueType>
       hrleValueType;
 
   static constexpr int D = hrleDomain::dimension;
@@ -37,17 +37,6 @@ private:
     }
   }
 
-  // make post in/decrement private, since they should not be used, due to the
-  // size of the structure
-  hrleSparseMultiIterator<hrleDomain>
-  operator++(int) { // use pre increment instead
-    return *this;
-  }
-  hrleSparseMultiIterator<hrleDomain>
-  operator--(int) { // use pre decrement instead
-    return *this;
-  }
-
 public:
   /// A vector with pointers to hrleDomains to iterate over.
   /// The passed hrleVector contains the indices from which to start iterating.
@@ -59,7 +48,7 @@ public:
 
   /// A vector with pointers to hrleDomains to iterate over.
   /// The iteration will start from the minimum index of the grid.
-  hrleSparseMultiIterator(DomainsType passedDomains)
+  explicit hrleSparseMultiIterator(DomainsType passedDomains)
       : domains(passedDomains),
         currentIndices(passedDomains.back()->getGrid().getMinGridPoint()) {
     initializeIterators(currentIndices);
@@ -67,11 +56,16 @@ public:
 
   /// When this constructor is used, the iteration is started from the minimum
   /// grid index.
-  hrleSparseMultiIterator(hrleDomain &passedDomain)
+  explicit hrleSparseMultiIterator(hrleDomain &passedDomain)
       : currentIndices(passedDomain.getGrid().getMinGridPoint()) {
     domains.push_back(&passedDomain);
     initializeIterators(passedDomain.getGrid().getMinIndex());
   }
+
+  // delete post in/decrement, since they should not be used, due to the
+  // size of the structure
+  hrleSparseMultiIterator operator++(int) = delete;
+  hrleSparseMultiIterator operator--(int) = delete;
 
   /// Add a domain over which to iterate. This does not affect the current index
   /// in the iteration, so if this should trigger a restart from some start
@@ -84,12 +78,12 @@ public:
     goToIndices(currentIndices);
   }
 
-  hrleSparseMultiIterator<hrleDomain> &operator++() {
+  hrleSparseMultiIterator &operator++() {
     next();
     return *this;
   }
 
-  hrleSparseMultiIterator<hrleDomain> &operator--() {
+  hrleSparseMultiIterator &operator--() {
     previous();
     return *this;
   }
@@ -130,7 +124,7 @@ public:
     }
 
     // do {
-    // find shortest current run to find next run
+    // find the shortest current run to find next run
     hrleVectorType<hrleIndexType, D> startIndices =
         iterators[0].getStartIndices();
     for (unsigned i = 1; i < iterators.size(); ++i) {

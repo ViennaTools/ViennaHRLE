@@ -3,7 +3,9 @@
 
 #include "hrleCoordType.hpp"
 #include "hrleIndexType.hpp"
+#include "hrleUtil.hpp"
 #include "hrleVectorType.hpp"
+
 #include <cmath>
 #include <memory>
 #include <ostream>
@@ -22,7 +24,7 @@ public:
   static const int dimension = D;
 
 private:
-  static const hrleIndexType INF_EXTENSION =
+  static constexpr hrleIndexType INF_EXTENSION =
       std::numeric_limits<hrleIndexType>::max() / 3;
 
   hrleVectorType<hrleIndexType, D> minIndex, maxIndex,
@@ -52,30 +54,18 @@ private:
                 // increasing and true if the grid_position function is
                 // strictly monotonic decreasing
 
-  static char getBitSizeOfNumber(long number) {
-    number = std::abs(number);
-    char bitSize = 0;
-    while (number != 0) {
-      number >>= 1;
-      ++bitSize;
-    }
-    // one additional bit for the sign
-    return bitSize + 1;
-  }
+  static hrleIndexType readGridBoundary(std::istream &stream,
+                                        const unsigned gridBoundaryBytes) {
+    if (gridBoundaryBytes == 0)
+      return INF_EXTENSION;
 
-  static char getByteSizeOfNumber(long number) {
-    auto bitSize = getBitSizeOfNumber(number);
-    return bitSize / 8 + (bitSize % 8 != 0);
-  }
-
-  hrleIndexType readGridBoundary(std::istream &stream, char gridBoundaryBytes) {
     char number[sizeof(hrleIndexType)] = {};
     for (unsigned i = 0; i < gridBoundaryBytes; ++i)
       stream.read(number + i, 1);
 
     if (number[gridBoundaryBytes - 1] >> 7) {
       for (unsigned i = gridBoundaryBytes; i < sizeof(hrleIndexType); ++i)
-        number[i] = 0xFF;
+        number[i] = static_cast<char>(0xFF);
     }
     return *reinterpret_cast<hrleIndexType *>(number);
   }
@@ -125,8 +115,8 @@ public:
         maxIndex[i] = INF_EXTENSION;
       }
       if (boundaryConditions[i] == hrleBoundaryType::PERIODIC_BOUNDARY) {
-        maxGridPointCoord[i]--;
-        maxBounds[i]--;
+        --maxGridPointCoord[i];
+        --maxBounds[i];
       }
     }
     indexExtension = maxIndex - minIndex;
@@ -197,24 +187,24 @@ public:
     return boundaryConditions[dir];
   }
 
-  /// returns wheter the boundary condition in direction dim is periodic
+  /// returns whether the boundary condition in direction dim is periodic
   bool isBoundaryPeriodic(int dim) const {
     return boundaryConditions[dim] == hrleBoundaryType::PERIODIC_BOUNDARY;
   }
 
-  /// returns wheter the boundary condition in direction dim is reflective
+  /// returns whether the boundary condition in direction dim is reflective
   bool isBoundaryReflective(int dim) const {
     return boundaryConditions[dim] == hrleBoundaryType::REFLECTIVE_BOUNDARY;
   }
 
-  /// returns wheter the boundary condition in direction +dim is infinite
+  /// returns whether the boundary condition in direction +dim is infinite
   bool isPosBoundaryInfinite(int dim) const {
     return (
         (boundaryConditions[dim] == hrleBoundaryType::INFINITE_BOUNDARY) ||
         (boundaryConditions[dim] == hrleBoundaryType::POS_INFINITE_BOUNDARY));
   }
 
-  /// returns wheter the boundary condition in direction -dim is infinite
+  /// returns whether the boundary condition in direction -dim is infinite
   bool isNegBoundaryInfinite(int dim) const {
     return (
         (boundaryConditions[dim] == hrleBoundaryType::INFINITE_BOUNDARY) ||
@@ -416,7 +406,7 @@ public:
 
   /// Transforms a global coordinate in direction dir to a global index.
   hrleIndexType globalCoordinate2GlobalIndex(hrleCoordType c) const {
-    return hrleIndexType(round(c / gridDelta));
+    return static_cast<hrleIndexType>(round(c / gridDelta));
   }
 
   /// Transforms a global coordinate vector to a global index vector.
@@ -448,10 +438,10 @@ public:
     if (c < ac)
       return a;
 
-    while (std::abs(a - b) > hrleIndexType(1)) {
+    while (std::abs(a - b) > 1) {
 
-      hrleIndexType mid = (a + b) / 2;
-      hrleCoordType midc = index2Coordinate(mid);
+      const hrleIndexType mid = (a + b) / 2;
+      const hrleCoordType midc = index2Coordinate(mid);
 
       if (c <= midc) {
         b = mid;
@@ -477,10 +467,10 @@ public:
     // a is closest grid point less than c
     hrleIndexType a = std::floor(c / gridDelta);
     // get normalised distance within grid
-    hrleCoordType l = c - (a * gridDelta);
+    const hrleCoordType l = c - (a * gridDelta);
     a = globalIndex2LocalIndex(dir, a);
 
-    return hrleCoordType(a) + l / gridDelta;
+    return static_cast<hrleCoordType>(a) + l / gridDelta;
   }
 
   /*hrleCoordType globalCoordinate2GlobalIndex(int dim, hrleCoordType
@@ -601,7 +591,7 @@ public:
     return false;
   }
 
-  // Determine whether point is outside of the domain in direction other than
+  // Determine whether point is outside the domain in direction other than
   // the direction of the infinite boundary.
   template <class V> bool isOutsideOfDomain(V v) const {
     for (unsigned i = 0; i < D; ++i) {
@@ -618,6 +608,7 @@ public:
 
   // Serialize the grid
   std::ostream &serialize(std::ostream &stream) const {
+    using namespace hrleUtil;
     // set identifier
     stream << "hrleGrid";
     // GRID PROPERTIES
@@ -650,7 +641,7 @@ public:
         }
       }
       gridBoundaryBytes =
-          std::min(gridBoundaryBytes, char(sizeof(hrleIndexType)));
+          std::min(gridBoundaryBytes, static_cast<char>(sizeof(hrleIndexType)));
 
       // grid properties
       stream.write(reinterpret_cast<char *>(&gridBoundaryBytes), sizeof(char));
@@ -689,7 +680,7 @@ public:
       gridMax[i] = readGridBoundary(stream, gridBoundaryBytes);
       char condition = 0;
       stream.read(&condition, 1);
-      boundaryCons[i] = hrleBoundaryType(condition);
+      boundaryCons[i] = static_cast<hrleBoundaryType>(condition);
     }
     stream.read((char *)&gridDelta, sizeof(double));
     // initialize new grid

@@ -50,7 +50,7 @@ int main() {
               << offsetIt.getStartIndices() - offset << " "
               << offsetIt.getValue() << std::endl;
     it.next();
-    if (compare(it.getStartIndices(), offsetIt.getStartIndices()) > 0)
+    if (hrleUtil::Compare(it.getStartIndices(), offsetIt.getStartIndices()) > 0)
       offsetIt.next();
   }
 

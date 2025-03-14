@@ -16,19 +16,18 @@
 /// 0 1 2               5  6  7  8  9
 ///                     0  1  2  3  4
 /// center: 4           center: 12
-template <class hrleDomain> class hrleSparseBoxIterator {
+template <class hrleDomain, int order = 1> class hrleSparseBoxIterator {
 
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::hrleValueType,
+                             typename hrleDomain::hrleValueType>
       hrleValueType;
 
   static constexpr int D = hrleDomain::dimension;
 
   hrleDomain &domain;
-  const unsigned order;
-  const hrleIndexType sideLength;
-  const hrleIndexType sliceArea;
+  static constexpr hrleIndexType sideLength = 1 + 2 * order;
+  static constexpr hrleIndexType sliceArea = sideLength * sideLength;
   const hrleIndexType centerIndex;
   hrleVectorType<hrleIndexType, D> currentCoords;
   std::vector<hrleSparseOffsetIterator<hrleDomain>> neighborIterators;
@@ -62,7 +61,7 @@ template <class hrleDomain> class hrleSparseBoxIterator {
     return coordinate;
   }
 
-  template <class V> hrleIndexType coordinateToIndex(V coordinate) const {
+  template <class V> static hrleIndexType coordinateToIndex(V coordinate) {
     // shift to the middle
     for (unsigned i = 0; i < D; ++i)
       coordinate[i] += order;
@@ -79,8 +78,9 @@ template <class hrleDomain> class hrleSparseBoxIterator {
 
   /// push offset iterators lexicographically into std::vector from -order to
   /// +order
-  template <class V> void initializeNeigbors(const V &v) {
-    const unsigned numNeighbors = unsigned(std::pow((1 + 2 * order), D));
+  template <class V> void initializeNeighbors(const V &v) {
+    constexpr auto numNeighbors =
+        static_cast<unsigned>(std::pow(1 + 2 * order, D));
 
     neighborIterators.reserve(numNeighbors);
 
@@ -93,12 +93,10 @@ template <class hrleDomain> class hrleSparseBoxIterator {
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleSparseBoxIterator<hrleDomain>
-  operator++(int) { // use pre increment instead
+  hrleSparseBoxIterator operator++(int) { // use pre increment instead
     return *this;
   }
-  hrleSparseBoxIterator<hrleDomain>
-  operator--(int) { // use pre decrement instead
+  hrleSparseBoxIterator operator--(int) { // use pre decrement instead
     return *this;
   }
 
@@ -106,38 +104,34 @@ public:
   using DomainType = hrleDomain;
 
   hrleSparseBoxIterator(hrleDomain &passedDomain,
-                        const hrleVectorType<hrleIndexType, D> &v,
-                        const unsigned passedOrder = 1)
-      : domain(passedDomain), order(passedOrder),
-        sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
+                        const hrleVectorType<hrleIndexType, D> &v)
+      : domain(passedDomain),
         centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
         currentCoords(v) {
 
     initializeNeigbors(v);
   }
 
-  hrleSparseBoxIterator(hrleDomain &passedDomain,
-                        const unsigned passedOrder = 1)
-      : domain(passedDomain), order(passedOrder),
-        sideLength(1 + 2 * passedOrder), sliceArea(sideLength * sideLength),
+  explicit hrleSparseBoxIterator(hrleDomain &passedDomain)
+      : domain(passedDomain),
         centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
         currentCoords(domain.getGrid().getMinGridPoint()) {
 
-    initializeNeigbors(passedDomain.getGrid().getMinIndex());
+    initializeNeighbors(passedDomain.getGrid().getMinIndex());
   }
 
-  hrleSparseBoxIterator<hrleDomain> &operator++() {
+  hrleSparseBoxIterator &operator++() {
     next();
     return *this;
   }
 
-  hrleSparseBoxIterator<hrleDomain> &operator--() {
+  hrleSparseBoxIterator &operator--() {
     previous();
     return *this;
   }
 
   void next() {
-    const int numNeighbors = int(neighborIterators.size());
+    const int numNeighbors = static_cast<int>(neighborIterators.size());
     std::vector<bool> increment(numNeighbors + 1, false);
     increment[numNeighbors] = true;
 
@@ -147,7 +141,7 @@ public:
       if (i == centerIndex)
         continue;
 
-      switch (compare(end_coords, neighborIterators[i].getEndIndices())) {
+      switch (hrleUtil::Compare(end_coords, neighborIterators[i].getEndIndices())) {
       case 1:
         end_coords = neighborIterators[i].getEndIndices();
         increment = std::vector<bool>(numNeighbors + 1, false);
@@ -175,7 +169,7 @@ public:
     for (int i = 0; i < numNeighbors; i++) {
       if (i == centerIndex)
         continue;
-      switch (compare(start_coords, neighborIterators[i].getStartIndices())) {
+      switch (hrleUtil::Compare(start_coords, neighborIterators[i].getStartIndices())) {
       case -1:
         start_coords = neighborIterators[i].getStartIndices();
         decrement = std::vector<bool>(numNeighbors + 1, false);
@@ -251,7 +245,8 @@ public:
   }
 };
 
-template <class hrleDomain>
-using hrleConstSparseBoxIterator = hrleSparseBoxIterator<const hrleDomain>;
+template <class hrleDomain, int order>
+using hrleConstSparseBoxIterator =
+    hrleSparseBoxIterator<const hrleDomain, order>;
 
 #endif // HRLE_SQUARE_ITERATOR_HPP

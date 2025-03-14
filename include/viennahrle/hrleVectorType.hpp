@@ -2,6 +2,7 @@
 #define HRLE_VECTOR_TYPE_HPP
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <functional>
 
@@ -12,12 +13,27 @@ public:
   typedef T value_type;
   static constexpr int dimension = D;
 
+  hrleVectorType() = default;
   template <class T1, int D1>
-  explicit hrleVectorType(const hrleVectorType<T1, D1> &);
-  explicit hrleVectorType(const T[]);
-
-  hrleVectorType();
-
+  explicit hrleVectorType(const hrleVectorType<T1, D1> &v) {
+    const int k = std::min(D, D1);
+    for (int i = 0; i < k; ++i)
+      x[i] = v[i];
+    for (int i = k; i < D; ++i)
+      x[i] = T(0);
+  }
+  template <class T1, int D1>
+  explicit hrleVectorType(const std::array<T1, D1> &v) {
+    const int k = std::min(D, D1);
+    for (int i = 0; i < k; ++i)
+      x[i] = v[i];
+    for (int i = k; i < D; ++i)
+      x[i] = T(0);
+  }
+  explicit hrleVectorType(const T v[]) {
+    for (int i = 0; i < D; i++)
+      x[i] = v[i];
+  }
   explicit hrleVectorType(T x0, T x1, T x2) {
     x[0] = x0;
     x[1] = x1;
@@ -28,44 +44,120 @@ public:
     x[0] = x0;
     x[1] = x1;
   }
+  explicit hrleVectorType(T d) {
+    for (int i = 0; i < D; i++)
+      x[i] = d;
+  }
+  template <class X> explicit hrleVectorType(X d) {
+    for (int i = 0; i < D; i++)
+      x[i] = d[i];
+  }
 
-  explicit hrleVectorType(T);
-  template <class X> explicit hrleVectorType(X);
+  template <class V> hrleVectorType &operator-=(const V &v) {
+    for (int i = 0; i < D; i++)
+      x[i] -= v[i];
+    return *this;
+  }
+  template <class V> hrleVectorType &operator+=(const V &v) {
+    for (int i = 0; i < D; i++)
+      x[i] += v[i];
+    return *this;
+  }
+  hrleVectorType &operator*=(T d) {
+    for (int i = 0; i < D; i++)
+      x[i] *= d;
+    return *this;
+  }
+  hrleVectorType &operator/=(T d) {
+    for (int i = 0; i < D; i++)
+      x[i] /= d;
+    return *this;
+  }
 
-  template <class V> hrleVectorType &operator-=(const V &);
-  template <class V> hrleVectorType &operator+=(const V &);
-  hrleVectorType &operator*=(T);
-  hrleVectorType &operator/=(T);
+  template <class V> hrleVectorType operator-(const V &v) const {
+    hrleVectorType w;
+    for (int i = 0; i < D; i++)
+      w.x[i] = x[i] - v[i];
+    return w;
+  }
+  hrleVectorType operator-() const {
+    hrleVectorType v;
+    for (int i = 0; i < D; i++)
+      v.x[i] = -x[i];
+    return v;
+  }
+  template <class V> hrleVectorType operator+(const V &v) const {
+    hrleVectorType w;
+    for (int i = 0; i < D; i++)
+      w.x[i] = x[i] + v[i];
+    return w;
+  }
 
-  template <class V> hrleVectorType<T, D> operator-(const V &) const;
-  hrleVectorType<T, D> operator-() const;
+  template <class V> bool operator==(const V &v) const {
+    for (int i = D - 1; i >= 0; --i)
+      if (x[i] != v[i])
+        return false;
+    return true;
+  }
+  template <class V> bool operator!=(const V &v) const {
+    for (int i = D - 1; i >= 0; --i)
+      if (x[i] != v[i])
+        return true;
+    return false;
+  }
+  template <class V> bool operator<(const V &v) const {
+    for (int i = D - 1; i >= 0; --i) {
+      if (x[i] < v[i])
+        return true;
+      if (x[i] > v[i])
+        return false;
+    }
+    return false;
+  }
+  template <class V> bool operator<=(const V &v) const { return !(*this > v); }
+  template <class V> bool operator>(const V &v) const {
+    for (int i = D - 1; i >= 0; --i) {
+      if (x[i] > v[i])
+        return true;
+      if (x[i] < v[i])
+        return false;
+    }
+    return false;
+  }
+  template <class V> bool operator>=(const V &v) const { return !(*this < v); }
 
-  template <class V> hrleVectorType<T, D> operator+(const V &) const;
+  hrleVectorType operator*(T d) const {
+    hrleVectorType v;
+    for (int i = 0; i < D; i++)
+      v.x[i] = x[i] * d;
+    return v;
+  }
+  hrleVectorType operator/(T d) const {
+    hrleVectorType v;
+    for (int i = 0; i < D; i++)
+      v.x[i] = x[i] / d;
+    return v;
+  }
 
-  template <class V> bool operator==(const V &) const;
-  template <class V> bool operator!=(const V &) const;
-  template <class V> bool operator<(const V &) const;
-  template <class V> bool operator<=(const V &) const;
-  template <class V> bool operator>(const V &) const;
-  template <class V> bool operator>=(const V &) const;
+  T &operator[](int i) { return x[i]; }
+  const T &operator[](int i) const { return x[i]; }
 
-  hrleVectorType<T, D> operator*(T) const;
+  template <class V> hrleVectorType &operator=(const V &v) {
+    for (int i = 0; i < D; i++)
+      x[i] = v[i];
+    return *this;
+  }
 
-  hrleVectorType<T, D> operator/(T) const;
-
-  T &operator[](int);
-  const T &operator[](int) const;
-
-  template <class V> hrleVectorType<T, D> &operator=(const V &);
-
-  T size() const;
-  T element_max() const;
-  void sort();
-  void reverse_sort();
+  T size() const { return sizeof(x) / sizeof(*x); }
+  T element_max() const {
+    return *std::max_element(std::begin(x), std::end(x));
+  }
+  void sort() { std::sort(x, x + D); }
+  void reverse_sort() { std::sort(x, x + D, std::greater<T>()); }
 
   struct hash {
   private:
-    std::size_t hash_combine(std::size_t lhs, std::size_t rhs) const {
+    static std::size_t hash_combine(std::size_t lhs, std::size_t rhs) {
       lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
       return lhs;
     }
@@ -73,8 +165,6 @@ public:
   public:
     std::size_t operator()(const hrleVectorType<T, D> &v) const {
       using std::hash;
-      using std::size_t;
-      // using std::string;
 
       /*
         https://stackoverflow.com/questions/5889238/why-is-xor-the-default-way-to-combine-hashes
@@ -100,200 +190,12 @@ public:
   };
 };
 
-template <class T, int D> inline hrleVectorType<T, D>::hrleVectorType() {}
-
-template <class T, int D>
-template <class T1, int D1>
-inline hrleVectorType<T, D>::hrleVectorType(const hrleVectorType<T1, D1> &v) {
-  const int k = std::min(D, D1);
-  for (int i = 0; i < k; i++)
-    x[i] = v[i];
-  for (int i = k; i < D; i++)
-    x[i] = T(0);
-}
-
-template <class T, int D>
-inline hrleVectorType<T, D>::hrleVectorType(const T v[]) {
-  for (int i = 0; i < D; i++)
-    x[i] = v[i];
-}
-
-template <class T, int D>
-template <class V>
-inline hrleVectorType<T, D> &hrleVectorType<T, D>::operator=(const V &v) {
-  for (int i = 0; i < D; i++)
-    x[i] = v[i];
-  return *this;
-}
-
-template <class T, int D> inline T &hrleVectorType<T, D>::operator[](int i) {
-  return x[i];
-}
-
-template <class T, int D>
-inline const T &hrleVectorType<T, D>::operator[](int i) const {
-  return x[i];
-}
-
-template <class T, int D>
-template <class V>
-inline hrleVectorType<T, D> &hrleVectorType<T, D>::operator-=(const V &v) {
-  for (int i = 0; i < D; i++)
-    x[i] -= v[i];
-  return *this;
-}
-
-template <class T, int D>
-template <class V>
-inline hrleVectorType<T, D> &hrleVectorType<T, D>::operator+=(const V &v) {
-  for (int i = 0; i < D; i++)
-    x[i] += v[i];
-  return *this;
-}
-
-template <class T, int D>
-inline hrleVectorType<T, D> &hrleVectorType<T, D>::operator*=(T d) {
-  for (int i = 0; i < D; i++)
-    x[i] *= d;
-  return *this;
-}
-
-template <class T, int D>
-inline hrleVectorType<T, D> &hrleVectorType<T, D>::operator/=(T d) {
-  for (int i = 0; i < D; i++)
-    x[i] /= d;
-  return *this;
-}
-
-template <class T, int D>
-template <class V>
-inline hrleVectorType<T, D> hrleVectorType<T, D>::operator-(const V &v) const {
-  hrleVectorType<T, D> w;
-  for (int i = 0; i < D; i++)
-    w.x[i] = x[i] - v[i];
-  return w;
-}
-
-template <class T, int D>
-template <class V>
-inline hrleVectorType<T, D> hrleVectorType<T, D>::operator+(const V &v) const {
-  hrleVectorType<T, D> w;
-  for (int i = 0; i < D; i++)
-    w.x[i] = x[i] + v[i];
-  return w;
-}
-
-template <class T, int D>
-inline hrleVectorType<T, D> hrleVectorType<T, D>::operator-() const {
-  hrleVectorType<T, D> v;
-  for (int i = 0; i < D; i++)
-    v.x[i] = -x[i];
-  return v;
-}
-
-template <class T, int D>
-inline hrleVectorType<T, D> hrleVectorType<T, D>::operator*(T d) const {
-  hrleVectorType<T, D> v;
-  for (int i = 0; i < D; i++)
-    v.x[i] = x[i] * d;
-  return v;
-}
-
-template <class T, int D>
-inline hrleVectorType<T, D> hrleVectorType<T, D>::operator/(T d) const {
-  hrleVectorType<T, D> v;
-  for (int i = 0; i < D; i++)
-    v.x[i] = x[i] / d;
-  return v;
-}
-
-template <class T, int D> inline hrleVectorType<T, D>::hrleVectorType(T d) {
-  for (int i = 0; i < D; i++)
-    x[i] = d;
-}
-
-template <class T, int D>
-template <class X>
-inline hrleVectorType<T, D>::hrleVectorType(X d) {
-  for (int i = 0; i < D; i++)
-    x[i] = d[i];
-}
-
-template <class T, int D>
-template <class V>
-inline bool hrleVectorType<T, D>::operator==(const V &v) const {
-  for (int i = D - 1; i >= 0; i--)
-    if (x[i] != v[i])
-      return false;
-  return true;
-}
-
-template <class T, int D>
-template <class V>
-inline bool hrleVectorType<T, D>::operator!=(const V &v) const {
-  for (int i = D - 1; i >= 0; i--)
-    if (x[i] != v[i])
-      return true;
-  return false;
-}
-
-template <class T, int D>
-template <class V>
-inline bool hrleVectorType<T, D>::operator<(const V &v) const {
-  for (int i = D - 1; i >= 0; i--) {
-    if (x[i] < v[i])
-      return true;
-    else if (x[i] > v[i])
-      return false;
-  }
-  return false;
-}
-
-template <class T, int D>
-template <class V>
-inline bool hrleVectorType<T, D>::operator>(const V &v) const {
-  for (int i = D - 1; i >= 0; i--) {
-    if (x[i] > v[i])
-      return true;
-    else if (x[i] < v[i])
-      return false;
-  }
-  return false;
-}
-
-template <class T, int D>
-template <class V>
-inline bool hrleVectorType<T, D>::operator<=(const V &v) const {
-  return !(*this > v);
-}
-
-template <class T, int D>
-template <class V>
-inline bool hrleVectorType<T, D>::operator>=(const V &v) const {
-  return !(*this < v);
-}
-
-template <class T, int D> inline T hrleVectorType<T, D>::size() const {
-  return (sizeof(x) / sizeof(*x));
-}
-
-template <class T, int D> inline T hrleVectorType<T, D>::element_max() const {
-  return *std::max_element(std::begin(x), std::end(x));
-}
-
-template <class T, int D> inline void hrleVectorType<T, D>::sort() {
-  std::sort(x, x + D);
-}
-
-template <class T, int D> inline void hrleVectorType<T, D>::reverse_sort() {
-  std::sort(x, x + D, std::greater<T>());
-}
-
 // ###################################################################
 
+namespace hrleUtil {
 template <class T, int D>
-inline hrleVectorType<T, D> Min(const hrleVectorType<T, D> &v1,
-                                const hrleVectorType<T, D> &v2) {
+hrleVectorType<T, D> Min(const hrleVectorType<T, D> &v1,
+                         const hrleVectorType<T, D> &v2) {
   hrleVectorType<T, D> v;
   for (int i = 0; i < D; i++)
     v[i] = std::min(v1[i], v2[i]);
@@ -301,8 +203,8 @@ inline hrleVectorType<T, D> Min(const hrleVectorType<T, D> &v1,
 }
 
 template <class T, int D>
-inline hrleVectorType<T, D> Max(const hrleVectorType<T, D> &v1,
-                                const hrleVectorType<T, D> &v2) {
+hrleVectorType<T, D> Max(const hrleVectorType<T, D> &v1,
+                         const hrleVectorType<T, D> &v2) {
   hrleVectorType<T, D> v;
   for (int i = 0; i < D; i++)
     v[i] = std::max(v1[i], v2[i]);
@@ -310,8 +212,7 @@ inline hrleVectorType<T, D> Max(const hrleVectorType<T, D> &v1,
 }
 
 template <class T, int D>
-inline T Element_Max(const hrleVectorType<T, D> &v1,
-                     const hrleVectorType<T, D> &v2) {
+T Element_Max(const hrleVectorType<T, D> &v1, const hrleVectorType<T, D> &v2) {
   hrleVectorType<T, D> v;
   for (int i = 0; i < D; i++)
     v[i] = std::max(v1[i], v2[i]);
@@ -319,8 +220,7 @@ inline T Element_Max(const hrleVectorType<T, D> &v1,
 }
 
 template <class T, int D>
-inline T DotProduct(const hrleVectorType<T, D> &v1,
-                    const hrleVectorType<T, D> &v2) {
+T DotProduct(const hrleVectorType<T, D> &v1, const hrleVectorType<T, D> &v2) {
   T sum(0);
   for (int i = 0; i < D; i++)
     sum += v1[i] * v2[i];
@@ -328,43 +228,42 @@ inline T DotProduct(const hrleVectorType<T, D> &v1,
 }
 
 template <class T, int D>
-inline hrleVectorType<T, D> operator*(T d, const hrleVectorType<T, D> &v) {
+hrleVectorType<T, D> operator*(T d, const hrleVectorType<T, D> &v) {
   return v * d;
 }
 
 template <class T>
-inline hrleVectorType<T, 2> RotateLeft(const hrleVectorType<T, 2> &v) {
+hrleVectorType<T, 2> RotateLeft(const hrleVectorType<T, 2> &v) {
   return hrleVectorType<T, 2>(-v[1], v[0]);
 }
 
 template <class T>
-inline hrleVectorType<T, 2> RotateRight(const hrleVectorType<T, 2> &v) {
+hrleVectorType<T, 2> RotateRight(const hrleVectorType<T, 2> &v) {
   return hrleVectorType<T, 2>(v[1], -v[0]);
 }
 
 template <class T>
-inline hrleVectorType<T, 3> CrossProduct(const hrleVectorType<T, 3> &v1,
-                                         const hrleVectorType<T, 3> &v2) {
+hrleVectorType<T, 3> CrossProduct(const hrleVectorType<T, 3> &v1,
+                                  const hrleVectorType<T, 3> &v2) {
   return hrleVectorType<T, 3>(v1[1] * v2[2] - v1[2] * v2[1],
                               v1[2] * v2[0] - v1[0] * v2[2],
                               v1[0] * v2[1] - v1[1] * v2[0]);
 }
 
 template <class T>
-inline T CrossProduct(const hrleVectorType<T, 2> &v1,
-                      const hrleVectorType<T, 2> &v2) {
+T CrossProduct(const hrleVectorType<T, 2> &v1, const hrleVectorType<T, 2> &v2) {
   return v1[0] * v2[1] - v1[1] * v2[0];
 }
 
 template <int D, class T>
-inline hrleVectorType<T, D> Normalize(const hrleVectorType<T, D> &v) {
+hrleVectorType<T, D> Normalize(const hrleVectorType<T, D> &v) {
   T n = Norm(v);
   if (n <= 0.)
     return hrleVectorType<T, D>(T(0));
   return v / n;
 }
 
-template <int D, class T> inline T Norm(const hrleVectorType<T, D> &v) {
+template <int D, class T> T Norm(const hrleVectorType<T, D> &v) {
   T max = std::abs(v[0]);
   for (int i = 1; i < D; i++)
     max = std::max(max, std::abs(v[i]));
@@ -379,18 +278,16 @@ template <int D, class T> inline T Norm(const hrleVectorType<T, D> &v) {
 }
 
 template <int D, class T>
-inline T Norm2(
+T Norm2(
     const hrleVectorType<T, D> &v) { // squared l2 norm TODO name is misleading
   return DotProduct(v, v);
 }
 
-template <int D, class T>
-inline T NormL2(const hrleVectorType<T, D> &v) { // l2 norm
+template <int D, class T> T NormL2(const hrleVectorType<T, D> &v) { // l2 norm
   return std::sqrt(Norm2(v));
 }
 
-template <int D, class T>
-inline int ManhattanNorm(const hrleVectorType<T, D> &v) {
+template <int D, class T> int ManhattanNorm(const hrleVectorType<T, D> &v) {
   T k(0);
   for (int i = 0; i < D; i++)
     k += std::abs(v[i]);
@@ -467,21 +364,20 @@ hrleVectorType<T,3>* c) { //TODO
                 ));
 }*/
 
-template <int D> inline int Parity(const hrleVectorType<int, D> &v) {
+template <int D> int Parity(const hrleVectorType<int, D> &v) {
   return Norm(v) % 2;
 }
 
-template <int D, class T>
-inline hrleVectorType<T, D> BitMaskToVector(unsigned int i) {
+template <int D, class T> hrleVectorType<T, D> BitMaskToVector(unsigned int i) {
   hrleVectorType<T, D> tmp(T(0));
   for (unsigned int k = 0; k < D; k++) {
     if (((1 << k) & i) != 0)
-      tmp[k]++;
+      ++tmp[k];
   }
   return tmp;
 }
 
-/*template <class T, int D> inline int hrleVectorType<T,D>::GetDirection() const
+/*template <class T, int D>  int hrleVectorType<T,D>::GetDirection() const
 { int dir=-1; int num0=0; for (int i=0;i<D;i++) { if (x[i]!=T(0)) { num0++;
             dir=i;
         }
@@ -489,7 +385,7 @@ inline hrleVectorType<T, D> BitMaskToVector(unsigned int i) {
     if (num0==1) return dir; else return -1;
 }*/
 
-template <class T, int D> inline int MinIndex(const hrleVectorType<T, D> &v) {
+template <class T, int D> int MinIndex(const hrleVectorType<T, D> &v) {
   int idx = 0;
   for (int i = 1; i < D; i++) {
     if (v[i] < v[idx])
@@ -498,7 +394,7 @@ template <class T, int D> inline int MinIndex(const hrleVectorType<T, D> &v) {
   return idx;
 }
 
-template <class T, int D> inline int MaxIndex(const hrleVectorType<T, D> &v) {
+template <class T, int D> int MaxIndex(const hrleVectorType<T, D> &v) {
   int idx = 0;
   for (int i = 1; i < D; i++) {
     if (v[i] > v[idx])
@@ -507,26 +403,16 @@ template <class T, int D> inline int MaxIndex(const hrleVectorType<T, D> &v) {
   return idx;
 }
 
-template <class T> inline bool Orientation(const hrleVectorType<T, 3> *v) {
-  return (DotProduct(CrossProduct(v[1] - v[0], v[2] - v[0]), v[3] - v[0]) >=
-          -0.);
+template <class T> bool Orientation(const hrleVectorType<T, 3> *v) {
+  return DotProduct(CrossProduct(v[1] - v[0], v[2] - v[0]), v[3] - v[0]) >= -0.;
 }
 
-template <class T> inline bool Orientation(const hrleVectorType<T, 2> *v) {
-  return (DotProduct(RotateLeft(v[1] - v[0]), v[2] - v[0]) >= -0.);
-}
-
-template <class S, class T, int D>
-S &operator<<(S &s, const hrleVectorType<T, D> &v) {
-  s << "[" << (v[0]);
-  for (int i = 1; i < D; ++i)
-    s << "," << (v[i]);
-  s << "]";
-  return s;
+template <class T> bool Orientation(const hrleVectorType<T, 2> *v) {
+  return DotProduct(RotateLeft(v[1] - v[0]), v[2] - v[0]) >= -0.;
 }
 
 template <class T, int D>
-int compare(const hrleVectorType<T, D> &v1, const hrleVectorType<T, D> &v2) {
+int Compare(const hrleVectorType<T, D> &v1, const hrleVectorType<T, D> &v2) {
   for (int i = D - 1; i >= 0; --i) {
     if (v1[i] > v2[i])
       return 1;
@@ -555,5 +441,15 @@ DotProduct(CrossProduct(v[1]-v[0],v[2]-v[0]),v[3]-v[0])
 hrleVectorType<T,D>::ReplaceNth(int i,const T& val) const { hrleVectorType<T,D>
 v(x); v[i]=val; return v;
 }*/
+} // namespace hrleUtil
+
+template <class S, class T, int D>
+S &operator<<(S &s, const hrleVectorType<T, D> &v) {
+  s << "[" << v[0];
+  for (int i = 1; i < D; ++i)
+    s << "," << v[i];
+  s << "]";
+  return s;
+}
 
 #endif // HRLE_VECTOR_TYPE_HPP

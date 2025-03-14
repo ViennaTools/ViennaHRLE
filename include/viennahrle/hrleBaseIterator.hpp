@@ -1,6 +1,7 @@
 #ifndef HRLE_BASE_ITERATOR_HPP
 #define HRLE_BASE_ITERATOR_HPP
 
+#include <cassert>
 #include <iostream>
 
 #include "hrleIndexType.hpp"
@@ -13,9 +14,9 @@
 template <class hrleDomain> class hrleBaseIterator {
 protected:
   static constexpr int D = hrleDomain::dimension;
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::hrleValueType,
+                             typename hrleDomain::hrleValueType>
       hrleValueType;
 
   hrleDomain &domain;
@@ -31,15 +32,15 @@ protected:
 
   void go_up_BA() {
     ++r_level;
-    // shfdhsfhdskjhgf assert(r_level==s_level);
+    assert(r_level == s_level);
   }
 
   void go_up_AB() {
-    // shfdhsfhdskjhgf assert((r_level==s_level) || (s_level==r_level+1));
+    assert((r_level == s_level) || (s_level == r_level + 1));
     s_level = r_level + 1;
     absCoords[r_level] = domain.getGrid().getMinGridPoint(r_level);
     endAbsCoords[r_level] = domain.getGrid().getMaxGridPoint(r_level);
-    // shfdhsfhdskjhgf assert(s_level==r_level+1);
+    assert(s_level == r_level + 1);
   }
 
 public:
@@ -62,7 +63,7 @@ public:
               << std::endl;
   }
 
-  hrleBaseIterator(hrleDomain &passedDomain)
+  explicit hrleBaseIterator(hrleDomain &passedDomain)
       : domain(passedDomain), absCoords(domain.getGrid().getMinGridPoint()),
         endAbsCoords(domain.getGrid().getMaxGridPoint()), r_level(D),
         s_level(D), sub(0) {
@@ -111,10 +112,10 @@ public:
 
   hrleSizeType getRunTypePosition() const {
     if (s_level == 0) {
-      // shfdhsfhdskjhgf assert(s_level==r_level);
+      assert(s_level == r_level);
       return startIndicesPos[0];
     } else {
-      // shfdhsfhdskjhgf assert(s_level>r_level);
+      assert(s_level > r_level);
       return runTypePos[r_level];
     }
   }
@@ -170,9 +171,7 @@ public:
     // the same as "value", however this function assumes
     // that the current run is defined, and therefore no check is required
     // if the run is undefined or not
-    // shfdhsfhdskjhgf assert(getRunCode()>=0);
-    // shfdhsfhdskjhgf
-    // assert(getRunCode()<l.sub_levelsets[sub].distances.size());
+    // assert(getRunCode() < l.sub_levelsets[sub].distances.size());
     return domain.domainSegments[sub].definedValues[getRunCode()];
   }
 

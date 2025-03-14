@@ -3,13 +3,8 @@
 
 #define HRLE_FILE_VERSION_NUMBER 1
 
-#include <cmath>
 #include <fstream>
 #include <iostream>
-#include <vector>
-
-#include <hrleIndexType.hpp>
-#include <hrleRunTypeValues.hpp>
 
 /*
 *********************************************************************
@@ -92,11 +87,12 @@ template <class hrleDomain> class hrleDomainWriter {
   }
 
 public:
-  hrleDomainWriter() {}
+  hrleDomainWriter() = default;
 
-  hrleDomainWriter(hrleDomain *domainPointer) : domain(domainPointer) {}
+  explicit hrleDomainWriter(hrleDomain *domainPointer)
+      : domain(domainPointer) {}
 
-  hrleDomainWriter(hrleDomain &passedDomain) : domain(&passedDomain) {}
+  explicit hrleDomainWriter(hrleDomain &passedDomain) : domain(&passedDomain) {}
 
   // setters and getters
   void setDomain(hrleDomain *domainPointer) { domain = domainPointer; }

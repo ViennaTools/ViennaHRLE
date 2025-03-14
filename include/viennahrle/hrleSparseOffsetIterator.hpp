@@ -2,6 +2,7 @@
 #define HRLE_OFFSET_RUNS_ITERATOR_HPP
 
 #include <bitset>
+#include <cassert>
 #include <vector>
 
 #include "hrleBaseIterator.hpp"
@@ -61,18 +62,15 @@ protected:
 
     hrleSizeType r = sl.startIndices[r_level][s];
 
-    typename std::vector<hrleIndexType>::const_iterator start_breaks =
-        sl.runBreaks[r_level].begin() + (r - s);
-    typename std::vector<hrleIndexType>::const_iterator end_breaks =
-        sl.runBreaks[r_level].begin() +
-        (sl.getStartIndex(r_level, s + 1) - (s + 1));
+    auto start_breaks = sl.runBreaks[r_level].begin() + (r - s);
+    auto end_breaks = sl.runBreaks[r_level].begin() +
+                      (sl.getStartIndex(r_level, s + 1) - (s + 1));
 
-    // shfdhsfhdskjhgf assert(start_breaks<=end_breaks);
+    assert(start_breaks <= end_breaks);
 
-    typename std::vector<hrleIndexType>::const_iterator pos_breaks =
-        std::upper_bound(start_breaks, end_breaks, rel_c);
+    auto pos_breaks = std::upper_bound(start_breaks, end_breaks, rel_c);
 
-    r += hrleSizeType(pos_breaks - start_breaks);
+    r += static_cast<hrleSizeType>(pos_breaks - start_breaks);
 
     runTypePos[r_level] = r;
 
@@ -818,9 +816,9 @@ public:
     // TODO initialize absCoords
   }
 
-  const hrleVectorType<hrleIndexType, D> getOffset() const { return offset; }
+  hrleVectorType<hrleIndexType, D> getOffset() const { return offset; }
 
-  const hrleVectorType<hrleIndexType, D> getOffsetIndices() const {
+  hrleVectorType<hrleIndexType, D> getOffsetIndices() const {
     hrleVectorType<hrleIndexType, D> indices =
         hrleBaseIterator<hrleDomain>::getStartIndices();
     auto &grid = domain.getGrid();

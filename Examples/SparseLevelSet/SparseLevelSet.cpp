@@ -3,7 +3,6 @@
 #include <hrleFillDomainWithSignedDistance.hpp>
 #include <iostream>
 #include <limits>
-#include <string>
 
 // This example shows how to use hrleFillDomainWithSignedDistance
 // It was designed to store a signed distance field in the
@@ -31,7 +30,7 @@ int main() {
   // index/value pairs
   std::vector<std::pair<hrleVectorType<hrleIndexType, D>, valueType>> pointData;
 
-  double radius = 3.3;
+  constexpr double radius = 3.3;
   hrleVectorType<hrleIndexType, D> centre(0); // initialise with all zeros
 
   // fill point list with values
@@ -43,9 +42,9 @@ int main() {
       for (int i = 0; i < D; ++i)
         distanceVec[i] = double(index[i]) - double(centre[i]);
       double distanceFromCentre =
-          std::sqrt(DotProduct(distanceVec, distanceVec));
+          std::sqrt(hrleUtil::DotProduct(distanceVec, distanceVec));
       if (std::abs(distanceFromCentre - radius) < 1.) {
-        pointData.push_back(std::make_pair(index, distanceFromCentre - radius));
+        pointData.emplace_back(index, distanceFromCentre - radius);
       }
       index = grid.incrementIndices(index);
     }

@@ -5,10 +5,10 @@
 Copyright (c)    2008-2015, Institute for Microelectronics, TU Wien.
 
 -----------------
-ViennaTS - The Vienna Topography Simulator
+ViennaHRLE
 -----------------
 
-Contact:         viennats@iue.tuwien.ac.at
+Contact:         viennatools@iue.tuwien.ac.at
 
 License:         MIT (X11), see file LICENSE in the base directory
 ============================================================================= */
@@ -16,7 +16,6 @@ License:         MIT (X11), see file LICENSE in the base directory
 #include <algorithm>
 #include <bitset>
 #include <limits>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -33,9 +32,8 @@ License:         MIT (X11), see file LICENSE in the base directory
 #include "hrleDomainSegmentArray.hpp"
 #include "hrleSizeType.hpp"
 #include "hrleSparseIterator.hpp"
+#include "hrleUtil.hpp"
 #include "hrleVectorType.hpp"
-
-static constexpr unsigned int lvlset_omp_max_num_threads = 1000;
 
 template <class T = double, int D = 3> class hrleDomain {
 public:
@@ -51,8 +49,6 @@ public:
   static constexpr int dimension = D;
 
 private:
-  hrleDomain(hrleDomain &){};
-
   // Private member variables
   hrleGrid<D> *grid; // Grid stores the information about the grid, on
   // which the HRLE structure is defined
@@ -69,48 +65,33 @@ private:
   template <class> friend class hrleSparseIterator;
   template <class> friend class hrleSparseOffsetIterator;
 
-  static char getBitSizeOfNumber(int number) {
-    number = std::abs(number);
-    int numBits = 0;
-    while (number != 0) {
-      number /= 2;
-      ++numBits;
-    }
-    return numBits;
-  }
-
-  static char getByteSizeOfNumber(int number) {
-    int numBits = getBitSizeOfNumber(number);
-    return numBits / 8 + (numBits % 8) ? 1 : 0;
-  }
-
-  template <class S, class Type,
-            typename std::enable_if<std::is_arithmetic<Type>::value,
-                                    std::nullptr_t>::type = nullptr>
+  template <
+      class S, class Type,
+      std::enable_if_t<std::is_arithmetic_v<Type>, std::nullptr_t> = nullptr>
   static S &writeValue(S &stream, Type &value) {
     stream.write(reinterpret_cast<const char *>(&value), sizeof(value));
     return stream;
   }
 
-  template <class S, class Type,
-            typename std::enable_if<!std::is_arithmetic<Type>::value,
-                                    std::nullptr_t>::type = nullptr>
+  template <
+      class S, class Type,
+      std::enable_if_t<!std::is_arithmetic_v<Type>, std::nullptr_t> = nullptr>
   static S &writeValue(S &stream, Type &value) {
     value->serialize(stream);
     return stream;
   }
 
-  template <class S, class Type,
-            typename std::enable_if<std::is_arithmetic<Type>::value,
-                                    std::nullptr_t>::type = nullptr>
+  template <
+      class S, class Type,
+      std::enable_if_t<std::is_arithmetic_v<Type>, std::nullptr_t> = nullptr>
   static S &readValue(S &stream, Type &value) {
     stream.read(reinterpret_cast<char *>(&value), sizeof(value));
     return stream;
   }
 
-  template <class S, class Type,
-            typename std::enable_if<!std::is_arithmetic<Type>::value,
-                                    std::nullptr_t>::type = nullptr>
+  template <
+      class S, class Type,
+      std::enable_if_t<!std::is_arithmetic_v<Type>, std::nullptr_t> = nullptr>
   static S &readValue(S &stream, Type &value) {
     value->deserialize(stream);
     return stream;
@@ -118,16 +99,19 @@ private:
 
 public:
   // CONSTRUCTORS
-  hrleDomain(){};
+  hrleDomain() = default;
+  hrleDomain(const hrleDomain &) = delete;
 
   // create empty level set with one undefined run
-  hrleDomain(hrleGrid<D> &g, hrleSizeType runType = hrleRunTypeValues::UNDEF_PT)
+  explicit hrleDomain(hrleGrid<D> &g,
+                      hrleSizeType runType = hrleRunTypeValues::UNDEF_PT)
       : grid(&g) {
     initialize();
     domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
   };
 
-  hrleDomain(hrleGrid<D> *g, hrleSizeType runType = hrleRunTypeValues::UNDEF_PT)
+  explicit hrleDomain(hrleGrid<D> *g,
+                      hrleSizeType runType = hrleRunTypeValues::UNDEF_PT)
       : grid(g) {
     initialize();
     domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
@@ -144,25 +128,25 @@ public:
     domainSegments[0].insertNextUndefinedPoint(grid->getMinIndex(), value);
   };
 
-  void deepCopy(const hrleDomain<T, D> &passedDomain) {
+  void deepCopy(const hrleDomain &passedDomain) {
     assert(grid == &(passedDomain.getGrid()));
     pointIdOffsets = passedDomain.pointIdOffsets;
     segmentation = passedDomain.segmentation;
     domainSegments.deepCopy(grid, passedDomain.domainSegments);
   }
 
-  void deepCopy(hrleGrid<D> *passedGrid, const hrleDomain<T, D> &passedDomain) {
+  void deepCopy(hrleGrid<D> *passedGrid, const hrleDomain &passedDomain) {
     deepCopy(*passedGrid, passedDomain);
   }
 
-  void deepCopy(hrleGrid<D> &passedGrid, const hrleDomain<T, D> &passedDomain) {
+  void deepCopy(hrleGrid<D> &passedGrid, const hrleDomain &passedDomain) {
     grid = &passedGrid;
     pointIdOffsets = passedDomain.pointIdOffsets;
     segmentation = passedDomain.segmentation;
     domainSegments.deepCopy(grid, passedDomain.domainSegments);
   }
 
-  void shallowCopy(const hrleDomain<T, D> &passedDomain) {
+  void shallowCopy(const hrleDomain &passedDomain) {
     grid = passedDomain.grid;
     pointIdOffsets = passedDomain.pointIdOffsets;
     domainSegments.shallowCopy(passedDomain.domainSegments);
@@ -208,7 +192,7 @@ public:
   }
 
   unsigned getNumberOfSegments() const {
-    return unsigned(domainSegments.getNumberOfSegments());
+    return static_cast<unsigned>(domainSegments.getNumberOfSegments());
   }
 
   unsigned getNumberOfRuns(int segmentId, int dimension) const {
@@ -337,9 +321,10 @@ public:
                                      grid->decrementIndices(segmentation[j]),
                                      hrleRunTypeValues::SEGMENT_PT + j);
       }
-      s.insertNextUndefinedRunType(segmentation.back(), grid->getMaxGridPoint(),
-                                   hrleRunTypeValues::SEGMENT_PT +
-                                       hrleSizeType(segmentation.size()));
+      s.insertNextUndefinedRunType(
+          segmentation.back(), grid->getMaxGridPoint(),
+          hrleRunTypeValues::SEGMENT_PT +
+              static_cast<hrleSizeType>(segmentation.size()));
     }
 
     // TODO: for now do not save pointId offsets as they can easily be found
@@ -400,9 +385,10 @@ public:
 
       pointCoords[g] = pt - s.runTypes[g][min];
 
-      pt = hrleSizeType(std::upper_bound(s.startIndices[g].begin() + 1,
-                                         s.startIndices[g].end(), min) -
-                        (s.startIndices[g].begin() + 1));
+      pt = static_cast<hrleSizeType>(
+          std::upper_bound(s.startIndices[g].begin() + 1,
+                           s.startIndices[g].end(), min) -
+          (s.startIndices[g].begin() + 1));
 
       pointCoords[g] += s.getRunStartCoord(g, pt, min);
     }
@@ -432,7 +418,7 @@ public:
     return tempSegmentation;
   }
 
-  /// allocation_type allocates the requried sizes to num_values and num_runs
+  /// allocation_type allocates the required sizes to num_values and num_runs
   /// for all the domainSegments members num_values[0] is to contain level set
   /// values, num_values[i] contains the start indices at the i-th dimension
   /// num_runs[i] is to contain the run types at the i-th dimension
@@ -442,8 +428,8 @@ public:
     a.num_runs = hrleVectorType<hrleIndexType, D>(0);
     for (unsigned i = 0; i < domainSegments.getNumberOfSegments(); ++i) {
       hrleAllocationType<hrleSizeType, D> b = domainSegments[i].getAllocation();
-      a.num_values = Max(a.num_values, b.num_values);
-      a.num_runs = Max(a.num_runs, b.num_runs);
+      a.num_values = hrleUtil::Max(a.num_values, b.num_values);
+      a.num_runs = hrleUtil::Max(a.num_runs, b.num_runs);
     }
 
     return (a * domainSegments.getNumberOfSegments());
@@ -555,6 +541,7 @@ public:
   /// anew since only a serial (non-parallelized) hrle structure
   /// can be serialized.
   std::ostream &serialize(std::ostream &stream) {
+    using namespace hrleUtil;
     // write identifier
     stream << "hrleDomain";
 
@@ -601,7 +588,7 @@ public:
       stream.write((char *)&bitsPerRunType, 1);
       stream.write((char *)&bytesPerRunBreak, 1);
       {
-        uint32_t numberOfValues = uint32_t(startIndices.size());
+        auto numberOfValues = uint32_t(startIndices.size());
         stream.write((char *)&numberOfValues, 4);
         numberOfValues = uint32_t(runTypes.size());
         stream.write((char *)&numberOfValues, 4);
@@ -629,27 +616,23 @@ public:
 
         // each runType needs at least one byte
         if (bitsPerRunType > 4) {
-          for (typename std::vector<hrleSizeType>::const_iterator it =
-                   runTypes.begin();
-               it != runTypes.end(); ++it) {
+          for (unsigned long runType : runTypes) {
             hrleSizeType PtId = 0;
             // if undefined point, need to shift id
-            if (*it >= hrleRunTypeValues::UNDEF_PT)
-              PtId = (*it) - hrleRunTypeValues::UNDEF_PT + 1;
+            if (runType >= hrleRunTypeValues::UNDEF_PT)
+              PtId = runType - hrleRunTypeValues::UNDEF_PT + 1;
             else
-              definedRunIndices.push_back(*it);
+              definedRunIndices.push_back(runType);
 
             stream.write((char *)&PtId, (bitsPerRunType - 1) / 8 + 1);
           }
         } else { // can fit more than one value in a byte
-          for (typename std::vector<hrleSizeType>::const_iterator it =
-                   runTypes.begin();
-               it != runTypes.end(); ++it) {
+          for (unsigned long runType : runTypes) {
             hrleSizeType PtId = 0;
-            if (*it >= hrleRunTypeValues::UNDEF_PT)
-              PtId = (*it) - hrleRunTypeValues::UNDEF_PT + 1;
+            if (runType >= hrleRunTypeValues::UNDEF_PT)
+              PtId = runType - hrleRunTypeValues::UNDEF_PT + 1;
             else
-              definedRunIndices.push_back(*it);
+              definedRunIndices.push_back(runType);
 
             byte |= (PtId << (count * bitsPerRunType));
             --count;
@@ -670,7 +653,7 @@ public:
       // Write indices of defined runtypes; only save the difference to the next
       // defined runtype write the first runtype(always 0) explicitly; makes
       // reading easier
-      if (definedRunIndices.size() > 0) {
+      if (!definedRunIndices.empty()) {
         stream.write((char *)&definedRunIndices[0], bytesPerIndex);
         for (unsigned int i = 0; i < definedRunIndices.size() - 1; i++) {
           unsigned long diff = definedRunIndices[i + 1] - definedRunIndices[i];
@@ -679,10 +662,8 @@ public:
       }
 
       // Write runbreaks
-      for (typename std::vector<hrleIndexType>::const_iterator it =
-               runBreaks.begin();
-           it != runBreaks.end(); ++it) {
-        stream.write((char *)&(*it), bytesPerRunBreak);
+      for (int runBreak : runBreaks) {
+        stream.write((char *)&runBreak, bytesPerRunBreak);
       }
     }
 

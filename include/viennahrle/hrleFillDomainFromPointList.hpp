@@ -53,19 +53,19 @@ void hrleFillDomainFromPointList(
     hrleVectorType<hrleIndexType, D> index = pointDataIt->first;
     hrleVectorType<hrleIndexType, D> next_index;
 
-    pointDataIt++;
+    ++pointDataIt;
 
     // choose correct next index
     if (pointDataIt == pointDataEnd) {
       next_index = grid.getMaxGridPoint();
-      next_index[D - 1]++;
+      ++next_index[D - 1];
     } else {
       next_index = pointDataIt->first;
     }
 
     for (int q = 0; q < D; q++) {
       hrleVectorType<hrleIndexType, D> tmp = index;
-      tmp[q]++;
+      ++tmp[q];
       if (tmp[q] > grid.getMaxGridPoint(q))
         continue;
       for (int r = 0; r < q; ++r)

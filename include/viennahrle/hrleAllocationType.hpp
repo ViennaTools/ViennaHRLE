@@ -53,7 +53,4 @@ public:
   hrleAllocationType() : num_values(SizeType(0)), num_runs(SizeType(0)) {}
 };
 
-template <class SizeType, int D>
-constexpr double hrleAllocationType<SizeType, D>::allocationFactor;
-
 #endif // HRLE_ALLOCATION_TYPE_HPP

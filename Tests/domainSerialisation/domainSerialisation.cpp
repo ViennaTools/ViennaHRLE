@@ -9,7 +9,7 @@
 constexpr int D = 3;
 using DataType = char;
 
-void writeString(std::string fileName, std::string s) {
+void writeString(std::string const &fileName, std::string const &s) {
   std::ofstream out(fileName);
   out << s;
 }
@@ -61,14 +61,14 @@ void fillDomain(hrleDomain<DataType, D> &domain) {
   std::string helloString = "Hello, World!";
 
   for (unsigned i = 0; i < helloString.size(); ++i) {
-    pointData.push_back(std::make_pair(index, helloString[i]));
+    pointData.emplace_back(index, helloString[i]);
     index[0] += 1;
     // index[1] += 1;
   }
   ++index[1];
   index[0] = 0;
-  for (int i = int(helloString.size()) - 1; i >= 0; --i) {
-    pointData.push_back(std::make_pair(index, helloString[i]));
+  for (int i = static_cast<int>(helloString.size()) - 1; i >= 0; --i) {
+    pointData.emplace_back(index, helloString[i]);
     index[0] += 1;
     // index[1] += 1;
   }

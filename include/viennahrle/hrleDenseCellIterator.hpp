@@ -1,8 +1,6 @@
 #ifndef HRLE_DENSE_CELL_ITERATOR_HPP
 #define HRLE_DENSE_CELL_ITERATOR_HPP
 
-#include <cassert>
-
 #include "hrleSparseOffsetIterator.hpp"
 
 /// This neighbor iterator consists of 2*Dimensions hrleSparseOffsetIterator s
@@ -12,9 +10,9 @@
 /// the iterator stops.
 template <class hrleDomain> class hrleDenseCellIterator {
 
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::hrleValueType,
+                             typename hrleDomain::hrleValueType>
       hrleValueType;
 
   static constexpr int D = hrleDomain::dimension;
@@ -27,7 +25,7 @@ template <class hrleDomain> class hrleDenseCellIterator {
   template <class V> void initialize(const V &v) {
     for (int i = 0; i < (1 << D); ++i) {
       cornerIterators.push_back(hrleSparseOffsetIterator<hrleDomain>(
-          domain, BitMaskToVector<D, hrleIndexType>(i), v));
+          domain, hrleUtil::BitMaskToVector<D, hrleIndexType>(i), v));
     }
   }
 
@@ -61,10 +59,10 @@ template <class hrleDomain> class hrleDenseCellIterator {
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleDenseCellIterator<hrleDomain>
-  operator++(int); // use pre increment instead
-  hrleDenseCellIterator<hrleDomain>
-  operator--(int); // use pre decrement instead
+  hrleDenseCellIterator operator++(int) { return *this; }
+  // use pre increment instead
+  hrleDenseCellIterator operator--(int) { return *this; }
+  // use pre decrement instead
 
 public:
   using DomainType = hrleDomain;
@@ -78,7 +76,7 @@ public:
       next();
   }
 
-  hrleDenseCellIterator(hrleDomain &passedDomain, bool reverse = false)
+  explicit hrleDenseCellIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain),
         currentCoords(domain.getGrid().getMinGridPoint()) {
 
@@ -132,8 +130,9 @@ public:
     hrleVectorType<hrleIndexType, D> end_coords = currentCoords;
     // cornerIterators[0].getEndIndices();
     for (int i = 0; i < numCorners; i++) {
-      switch (compare(end_coords, cornerIterators[i].getEndIndices())) {
+      switch (hrleUtil::Compare(end_coords, cornerIterators[i].getEndIndices())) {
       case 1:
+        // TODO
         // end_coords = cornerIterators[i].getEndIndices();
         // increment = std::vector<bool>(numCorners, false);
       case 0:
@@ -154,6 +153,7 @@ public:
     for (int i = 0; i < numCorners; i++) {
       switch (compare(start_coords, cornerIterators[i].getStartIndices())) {
       case -1:
+        // TODO
         // start_coords = cornerIterators[i].getStartIndices();
         // decrement = std::vector<bool>(numCorners, false);
       case 0:

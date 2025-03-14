@@ -8,13 +8,13 @@ project(
 # Library options
 # --------------------------------------------------------------------------------------------------------
 
-option(VIENNAHRLE_OPENMP "Build OpenMP" OFF)
+option(VIENNAHRLE_OPENMP "Build OpenMP" ON)
 
-option(VIENNAHRLE_BUILD_TESTS "Build tests" OFF)
-option(VIENNAHRLE_BUILD_EXAMPLES "Build examples" OFF)
+option(VIENNAHRLE_BUILD_TESTS "Build tests" ON)
+option(VIENNAHRLE_BUILD_EXAMPLES "Build examples" ON)
 
-option(VIENNAHRLE_ENABLE_SANITIZER "Enable Sanitizer for debug buidlds" OFF)
-option(VIENNAHRLE_USE_SANITIZER "Enable Sanitizer (Requires GCC or Clang)" OFF)
+option(VIENNAHRLE_ENABLE_SANITIZER "Enable Sanitizer for debug builds" ON)
+option(VIENNAHRLE_USE_SANITIZER "Enable Sanitizer (Requires GCC or Clang)" ON)
 
 # --------------------------------------------------------------------------------------------------------
 # Ensure valid library options

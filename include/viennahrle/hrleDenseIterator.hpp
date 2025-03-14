@@ -9,9 +9,9 @@
 template <class hrleDomain> class hrleDenseIterator {
 
   static constexpr int D = hrleDomain::dimension;
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::hrleValueType,
+                             typename hrleDomain::hrleValueType>
       hrleValueType;
 
   hrleDomain &domain;
@@ -51,7 +51,7 @@ template <class hrleDomain> class hrleDenseIterator {
 public:
   using DomainType = hrleDomain;
 
-  hrleDenseIterator(hrleDomain &passedDomain, bool reverse = false)
+  explicit hrleDenseIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain), runsIterator(passedDomain, reverse) {
     auto &grid = domain.getGrid();
     for (unsigned i = 0; i < D; ++i) {
@@ -129,7 +129,7 @@ public:
   // start
   bool previous() {
     // if min index is reached, iterator is done
-    if (compare(minIndex) < 0) {
+    if (hrleUtil::Compare(minIndex) < 0) {
       return false;
     }
     ++(*this);
@@ -142,11 +142,10 @@ public:
   }
 
   bool isFinished() {
-    if (compare(currentIndices, maxIndex) > 0) {
+    if (hrleUtil::Compare(currentIndices, maxIndex) > 0)
       return true;
-    } else {
-      return false;
-    }
+
+    return false;
   }
 
   bool isDefined() const { return runsIterator.isDefined(); }

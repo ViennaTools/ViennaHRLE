@@ -3,13 +3,10 @@
 
 #define HRLE_FILE_READ_VERSION_NUMBER 1
 
-#include <cmath>
 #include <fstream>
 #include <iostream>
 
 #include <hrleGrid.hpp>
-#include <hrleIndexType.hpp>
-#include <hrleRunTypeValues.hpp>
 
 /// Class which handles the input of an hrleDomain
 /// from a binary .hrle file
@@ -19,7 +16,7 @@ template <class hrleDomain> class hrleDomainReader {
 
   hrleDomain *domain = nullptr;
   std::string filePath;
-  int valueTypeByteSize;
+  int valueTypeByteSize = 0;
 
   union {
     uint16_t shortVar;  // binary  number of length 16 Bits
@@ -32,7 +29,7 @@ template <class hrleDomain> class hrleDomainReader {
   }
 
 public:
-  hrleDomainReader() {}
+  hrleDomainReader() = default;
   hrleDomainReader(hrleDomain *domainPointer) : domain(domainPointer) {}
   hrleDomainReader(hrleDomain &passedDomain) : domain(&passedDomain) {}
   void setDomain(hrleDomain *domainPointer) { domain = domainPointer; }

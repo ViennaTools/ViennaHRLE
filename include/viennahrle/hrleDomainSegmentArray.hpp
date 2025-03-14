@@ -11,15 +11,15 @@ template <class T = double, int D = 3> class hrleDomainSegmentArray {
       *segmentPointer; // pointer to memory containing
                        // hrleDomainSegment object
 
-  typedef typename std::vector<segmentPointer> hrleDomainSegmentPointerArray;
+  typedef std::vector<segmentPointer> hrleDomainSegmentPointerArray;
   hrleDomainSegmentPointerArray domainSegmentPointers;
 
-  // assignment operator and copy-constructor are private since vector only
-  // holds pointers, use deepCopy or shallowCopy instead
-  const hrleDomainSegmentArray &operator=(const hrleDomainSegmentArray &s);
-  hrleDomainSegmentArray(const hrleDomainSegmentArray &s);
-
 public:
+  // assignment operator and copy-constructor are deleted since vector only
+  // holds pointers, use deepCopy or shallowCopy instead
+  hrleDomainSegmentArray &operator=(const hrleDomainSegmentArray &s) = delete;
+  hrleDomainSegmentArray(const hrleDomainSegmentArray &s) = delete;
+
   typedef typename hrleDomainSegmentPointerArray::size_type size_type;
 
   const hrleDomainSegment<T, D> &operator[](size_type i) const {
@@ -36,7 +36,7 @@ public:
 
   hrleDomainSegment<T, D> &back() { return *(domainSegmentPointers.back()); }
 
-  void swap(hrleDomainSegmentArray &s) {
+  void swap(hrleDomainSegmentArray &s) noexcept {
     domainSegmentPointers.swap(s.domainSegmentPointers);
   }
 
@@ -96,7 +96,7 @@ public:
     }
   }
 
-  hrleDomainSegmentArray() {}
+  hrleDomainSegmentArray() = default;
 
   /// hrleDomainSegmentArray destructor used to delete all pointers for
   /// clean-up
