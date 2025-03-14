@@ -1,7 +1,7 @@
+#include <hrleCartesianPlaneIterator.hpp>
 #include <hrleFillDomainFromPointList.hpp>
 #include <hrleSparseBoxIterator.hpp>
 #include <hrleSparseStarIterator.hpp>
-#include <hrleCartesianPlaneIterator.hpp>
 #include <iostream>
 #include <string>
 

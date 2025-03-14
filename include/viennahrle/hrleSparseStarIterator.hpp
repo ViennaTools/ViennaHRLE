@@ -92,7 +92,8 @@ public:
     hrleVectorType<hrleIndexType, D> end_coords =
         centerIterator.getEndIndices();
     for (int i = 0; i < numNeighbors; i++) {
-      switch (hrleUtil::Compare(end_coords, neighborIterators[i].getEndIndices())) {
+      switch (
+          hrleUtil::Compare(end_coords, neighborIterators[i].getEndIndices())) {
       case 1:
         end_coords = neighborIterators[i].getEndIndices();
         increment.fill(false);
@@ -118,7 +119,8 @@ public:
     hrleVectorType<hrleIndexType, D> start_coords =
         centerIterator.getStartIndices();
     for (int i = 0; i < numNeighbors; i++) {
-      switch (hrleUtil::Compare(start_coords, neighborIterators[i].getStartIndices())) {
+      switch (hrleUtil::Compare(start_coords,
+                                neighborIterators[i].getStartIndices())) {
       case -1:
         start_coords = neighborIterators[i].getStartIndices();
         decrement.fill(false);

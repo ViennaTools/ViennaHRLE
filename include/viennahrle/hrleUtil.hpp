@@ -16,5 +16,5 @@ inline unsigned getBitSizeOfNumber(long number) {
 inline char getByteSizeOfNumber(const long number) {
   return (getBitSizeOfNumber(number) + 7) / 8;
 }
-}
+} // namespace hrleUtil
 #endif

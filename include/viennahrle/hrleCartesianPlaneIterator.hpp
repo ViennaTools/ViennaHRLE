@@ -171,8 +171,8 @@ public:
       if (planeCoords[i] == centerIndex)
         continue;
 
-      switch (hrleUtil::Compare(end_coords,
-                      neighborIterators[planeCoords[i]]->getEndIndices())) {
+      switch (hrleUtil::Compare(
+          end_coords, neighborIterators[planeCoords[i]]->getEndIndices())) {
       case 1:
         end_coords = neighborIterators[planeCoords[i]]->getEndIndices();
         increment = std::vector<bool>(numPlaneNeighbours + 1, false);
@@ -202,8 +202,8 @@ public:
       if (i == centerIndex)
         continue;
 
-      switch (hrleUtil::Compare(start_coords,
-                      neighborIterators[planeCoords[i]]->getStartIndices())) {
+      switch (hrleUtil::Compare(
+          start_coords, neighborIterators[planeCoords[i]]->getStartIndices())) {
       case -1:
         start_coords = neighborIterators[planeCoords[i]]->getStartIndices();
         decrement = std::vector<bool>(numPlaneNeighbours + 1, false);

@@ -5,3 +5,7 @@
 !foxDomain.hrle
 Examples/build/
 build*/
+.idea/
+.vscode/
+cmake-build-*
+
