@@ -255,14 +255,6 @@ T CrossProduct(const hrleVectorType<T, 2> &v1, const hrleVectorType<T, 2> &v2) {
   return v1[0] * v2[1] - v1[1] * v2[0];
 }
 
-template <int D, class T>
-hrleVectorType<T, D> Normalize(const hrleVectorType<T, D> &v) {
-  T n = Norm(v);
-  if (n <= 0.)
-    return hrleVectorType<T, D>(T(0));
-  return v / n;
-}
-
 template <int D, class T> T Norm(const hrleVectorType<T, D> &v) {
   T max = std::abs(v[0]);
   for (int i = 1; i < D; i++)
@@ -275,6 +267,14 @@ template <int D, class T> T Norm(const hrleVectorType<T, D> &v) {
     d += t * t;
   }
   return max * std::sqrt(d);
+}
+
+template <int D, class T>
+hrleVectorType<T, D> Normalize(const hrleVectorType<T, D> &v) {
+  T n = Norm(v);
+  if (n <= 0.)
+    return hrleVectorType<T, D>(T(0));
+  return v / n;
 }
 
 template <int D, class T>
@@ -324,11 +324,11 @@ template <int D, class T> int ManhattanNorm(const hrleVectorType<T, D> &v) {
 //     return (-v1).operator+(v0);
 // }
 
-template <class T> inline T Volume(const hrleVectorType<T, 2> *p) {
+template <class T> T Volume(const hrleVectorType<T, 2> *p) {
   return ((p[1] - p[0]) % (p[2] - p[0]));
 }
 
-template <class T> inline T Volume(const hrleVectorType<T, 3> *p) {
+template <class T> T Volume(const hrleVectorType<T, 3> *p) {
   return ((p[1] - p[0]) * ((p[2] - p[0]) % (p[3] - p[0])));
 }
 

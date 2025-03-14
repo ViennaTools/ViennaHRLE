@@ -109,7 +109,7 @@ public:
         centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
         currentCoords(v) {
 
-    initializeNeigbors(v);
+    initializeNeighbors(v);
   }
 
   explicit hrleSparseBoxIterator(hrleDomain &passedDomain)
@@ -141,7 +141,8 @@ public:
       if (i == centerIndex)
         continue;
 
-      switch (hrleUtil::Compare(end_coords, neighborIterators[i].getEndIndices())) {
+      switch (
+          hrleUtil::Compare(end_coords, neighborIterators[i].getEndIndices())) {
       case 1:
         end_coords = neighborIterators[i].getEndIndices();
         increment = std::vector<bool>(numNeighbors + 1, false);
@@ -169,7 +170,8 @@ public:
     for (int i = 0; i < numNeighbors; i++) {
       if (i == centerIndex)
         continue;
-      switch (hrleUtil::Compare(start_coords, neighborIterators[i].getStartIndices())) {
+      switch (hrleUtil::Compare(start_coords,
+                                neighborIterators[i].getStartIndices())) {
       case -1:
         start_coords = neighborIterators[i].getStartIndices();
         decrement = std::vector<bool>(numNeighbors + 1, false);
