@@ -151,7 +151,7 @@ public:
     hrleVectorType<hrleIndexType, D> start_coords = currentCoords;
     // cornerIterators[0].getStartIndices();
     for (int i = 0; i < numCorners; i++) {
-      switch (compare(start_coords, cornerIterators[i].getStartIndices())) {
+      switch (hrleUtil::Compare(start_coords, cornerIterators[i].getStartIndices())) {
       case -1:
         // TODO
         // start_coords = cornerIterators[i].getStartIndices();

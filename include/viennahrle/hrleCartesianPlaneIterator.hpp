@@ -171,7 +171,7 @@ public:
       if (planeCoords[i] == centerIndex)
         continue;
 
-      switch (compare(end_coords,
+      switch (hrleUtil::Compare(end_coords,
                       neighborIterators[planeCoords[i]]->getEndIndices())) {
       case 1:
         end_coords = neighborIterators[planeCoords[i]]->getEndIndices();
@@ -202,7 +202,7 @@ public:
       if (i == centerIndex)
         continue;
 
-      switch (compare(start_coords,
+      switch (hrleUtil::Compare(start_coords,
                       neighborIterators[planeCoords[i]]->getStartIndices())) {
       case -1:
         start_coords = neighborIterators[planeCoords[i]]->getStartIndices();
