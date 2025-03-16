@@ -3,12 +3,14 @@
 #include <iostream>
 #include <string>
 
+using namespace viennahrle;
+
 int main() {
   // set dimension for domain
   constexpr int D = 2;
 
   // set the spacial extension of the domain
-  hrleIndexType min[D], max[D];
+  IndexType min[D], max[D];
   for (unsigned i = 0; i < D; ++i) {
     min[i] = -30;
     max[i] = 30;
@@ -16,13 +18,13 @@ int main() {
 
   // initialise a domain with extensions min, max in which we can store the type
   // char
-  hrleGrid<D> grid(min, max);
-  hrleDomain<char, D> data(grid);
+  Grid<D> grid(min, max);
+  Domain<char, D> data(grid);
 
   // the simplest way to fill the domain with data is using a vector of
   // index/value pairs
-  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, char>> pointData;
-  hrleVectorType<hrleIndexType, D> index(0, 0, 0);
+  std::vector<std::pair<Index<D>, char>> pointData;
+  Index<D> index(0, 0, 0);
 
   // fill vector with chars from the string "Hello World!" at increasing indices
   std::string helloString = "Hello, World!";
@@ -33,9 +35,8 @@ int main() {
   }
 
   // now put the data into an hrleDomain using a helper function
-  hrleFillDomainFromPointList(
-      data, pointData,
-      '.'); // last parameter is the background value to use
+  FillDomainFromPointList(data, pointData,
+                          '.'); // last parameter is the background value to use
 
   // print the data structure to stdout
   data.print(std::cout);

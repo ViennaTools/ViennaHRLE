@@ -3,24 +3,26 @@
 
 #include "hrleSparseIterator.hpp"
 
+namespace viennahrle {
+using namespace viennacore;
 /// This iterator iterates over the entire structure and stops at every single
 /// grid point. It also stops on undefined grid points. Therefore, it can be
 /// used to easily generate a full grid from the sparse data set.
-template <class hrleDomain> class hrleDenseIterator {
+template <class hrleDomain> class DenseIterator {
 
   static constexpr int D = hrleDomain::dimension;
   typedef std::conditional_t<std::is_const_v<hrleDomain>,
-                             const typename hrleDomain::hrleValueType,
-                             typename hrleDomain::hrleValueType>
-      hrleValueType;
+                             const typename hrleDomain::ValueType,
+                             typename hrleDomain::ValueType>
+      ValueType;
 
   hrleDomain &domain;
-  hrleSparseIterator<hrleDomain> runsIterator;
-  hrleVectorType<hrleIndexType, D> currentIndices;
-  hrleVectorType<hrleIndexType, D> minIndex;
-  hrleVectorType<hrleIndexType, D> maxIndex;
+  SparseIterator<hrleDomain> runsIterator;
+  Index<D> currentIndices;
+  Index<D> minIndex;
+  Index<D> maxIndex;
 
-  void incrementIndices(hrleVectorType<hrleIndexType, D> &v) {
+  void incrementIndices(Index<D> &v) {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       bool posInfinite = domain.getGrid().isPosBoundaryInfinite(dim);
@@ -34,7 +36,7 @@ template <class hrleDomain> class hrleDenseIterator {
     ++v[dim];
   }
 
-  void decrementIndices(hrleVectorType<hrleIndexType, D> &v) {
+  void decrementIndices(Index<D> &v) {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       bool posInfinite = domain.getGrid().isPosBoundaryInfinite(dim);
@@ -51,7 +53,7 @@ template <class hrleDomain> class hrleDenseIterator {
 public:
   using DomainType = hrleDomain;
 
-  explicit hrleDenseIterator(hrleDomain &passedDomain, bool reverse = false)
+  explicit DenseIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain), runsIterator(passedDomain, reverse) {
     auto &grid = domain.getGrid();
     for (unsigned i = 0; i < D; ++i) {
@@ -69,7 +71,7 @@ public:
   }
 
   template <class V>
-  hrleDenseIterator(hrleDomain &passedDomain, V &v)
+  DenseIterator(hrleDomain &passedDomain, V &v)
       : domain(passedDomain), runsIterator(passedDomain, v) {
     auto &grid = domain.getGrid();
     for (unsigned i = 0; i < D; ++i) {
@@ -82,7 +84,7 @@ public:
     currentIndices = minIndex;
   }
 
-  hrleDenseIterator<hrleDomain> &operator++() {
+  DenseIterator<hrleDomain> &operator++() {
     // move iterator with currentIndices if they are the same
     incrementIndices(currentIndices);
     while (runsIterator.getEndIndices() < currentIndices &&
@@ -93,13 +95,13 @@ public:
     return *this;
   }
 
-  hrleDenseIterator<hrleDomain> operator++(int) {
-    hrleDenseIterator<hrleDomain> tmp(*this);
+  DenseIterator<hrleDomain> operator++(int) {
+    DenseIterator<hrleDomain> tmp(*this);
     ++(*this);
     return tmp;
   }
 
-  hrleDenseIterator<hrleDomain> &operator--() {
+  DenseIterator<hrleDomain> &operator--() {
     // move iterator with currentIndices if they are the same
     decrementIndices(currentIndices);
     while (runsIterator.getEndIndices() > currentIndices &&
@@ -110,8 +112,8 @@ public:
     return *this;
   }
 
-  hrleDenseIterator<hrleDomain> operator--(int) {
-    hrleDenseIterator<hrleDomain> tmp(*this);
+  DenseIterator<hrleDomain> operator--(int) {
+    DenseIterator<hrleDomain> tmp(*this);
     --(*this);
     return tmp;
   }
@@ -129,7 +131,7 @@ public:
   // start
   bool previous() {
     // if min index is reached, iterator is done
-    if (hrleUtil::Compare(minIndex) < 0) {
+    if (Compare(currentIndices, minIndex) < 0) {
       return false;
     }
     ++(*this);
@@ -142,7 +144,7 @@ public:
   }
 
   bool isFinished() {
-    if (hrleUtil::Compare(currentIndices, maxIndex) > 0)
+    if (Compare(currentIndices, maxIndex) > 0)
       return true;
 
     return false;
@@ -150,17 +152,15 @@ public:
 
   bool isDefined() const { return runsIterator.isDefined(); }
 
-  hrleSizeType getPointId() const { return runsIterator.getPointId(); }
+  SizeType getPointId() const { return runsIterator.getPointId(); }
 
-  hrleValueType &getValue() { return runsIterator.getValue(); }
+  ValueType &getValue() { return runsIterator.getValue(); }
 
-  hrleIndexType getIndex(int dimension) { return currentIndices[dimension]; }
+  IndexType getIndex(int dimension) { return currentIndices[dimension]; }
 
-  hrleVectorType<hrleIndexType, D> getIndices() { return currentIndices; }
+  Index<D> getIndices() { return currentIndices; }
 
-  hrleVectorType<hrleIndexType, D> getIteratorIndices() {
-    return runsIterator.getStartIndices();
-  }
+  Index<D> getIteratorIndices() { return runsIterator.getStartIndices(); }
 
   const DomainType &getDomain() { return domain; }
 
@@ -171,6 +171,8 @@ public:
 };
 
 template <class hrleDomain>
-using hrleConstDenseIterator = hrleDenseIterator<const hrleDomain>;
+using ConstDenseIterator = DenseIterator<const hrleDomain>;
+
+} // namespace viennahrle
 
 #endif // HRLE_ITERATOR_HPP

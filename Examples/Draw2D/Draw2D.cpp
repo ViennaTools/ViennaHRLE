@@ -4,10 +4,12 @@
 #include <iostream>
 #include <string>
 
+using namespace viennahrle;
+
 // only output each run once, to draw the sparse data
 template <class hrleDomain> void draw2D(hrleDomain &domain) {
   // iterate over hrle structure and output the corresponding value
-  hrleSparseIterator<hrleDomain> it(domain, true);
+  SparseIterator<hrleDomain> it(domain, true);
   int y = domain.getGrid().getMaxIndex(1);
   int x = domain.getGrid().getMinIndex(0);
   std::cout << it.getValue();
@@ -32,7 +34,7 @@ int main() {
   constexpr int D = 2;
 
   // set the spacial extension of the domain
-  hrleIndexType min[D], max[D];
+  IndexType min[D], max[D];
   for (unsigned i = 0; i < D; ++i) {
     min[i] = -15;
     max[i] = 15;
@@ -40,13 +42,13 @@ int main() {
 
   // initialise a domain with extensions min, max in which we can store the type
   // char
-  hrleGrid<D> grid(min, max);
-  hrleDomain<char, D> data(grid);
+  Grid<D> grid(min, max);
+  Domain<char, D> data(grid);
 
   // the simplest way to fill the domain with data is using a vector of
   // index/value pairs
-  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, char>> pointData;
-  hrleVectorType<hrleIndexType, D> index(-10, -10, 0);
+  std::vector<std::pair<Index<D>, char>> pointData;
+  Index<D> index(-10, -10, 0);
 
   // fill vector with chars from the string "Hello World!" at increasing indices
   std::string helloString = "Hello, World!";
@@ -57,9 +59,8 @@ int main() {
   }
 
   // now put the data into an hrleDomain using a helper function
-  hrleFillDomainFromPointList(
-      data, pointData,
-      '.'); // last parameter is the background value to use
+  FillDomainFromPointList(data, pointData,
+                          '.'); // last parameter is the background value to use
 
   // plot the 2D data in the terminal
   draw2D(data);

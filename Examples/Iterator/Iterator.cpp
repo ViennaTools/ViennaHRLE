@@ -8,20 +8,21 @@
 int main() {
 
   constexpr int D = 2;
+  using namespace viennahrle;
 
   // set domain bounds
-  hrleIndexType min[D], max[D];
+  IndexType min[D], max[D];
   for (unsigned i = 0; i < D; ++i) {
     min[i] = -5;
     max[i] = 25;
   }
 
   // declare domain with bounds min,max
-  hrleGrid<D> grid(min, max);
-  hrleDomain<char, D> data(grid);
+  Grid<D> grid(min, max);
+  Domain<char, D> data(grid);
 
-  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, char>> pointData;
-  hrleVectorType<hrleIndexType, D> index(0);
+  std::vector<std::pair<Index<D>, char>> pointData;
+  Index<D> index(0);
 
   std::string helloString = "Hello, World!";
 
@@ -31,14 +32,13 @@ int main() {
     index[1] += 1;
   }
 
-  hrleFillDomainFromPointList(
-      data, pointData,
-      '.'); // last parameter is the background value to use
+  FillDomainFromPointList(data, pointData,
+                          '.'); // last parameter is the background value to use
 
   // iterate over hrle structure and output the values showing the dense data
   // set
   std::cout << "Dense Data Set filled with background value:" << std::endl;
-  hrleConstDenseIterator<hrleDomain<char, D>> it(data);
+  ConstDenseIterator<Domain<char, D>> it(data);
   int y = data.getGrid().getMinIndex(1);
   while (!it.isFinished()) {
     if (y < it.getIndex(1)) {
@@ -50,9 +50,9 @@ int main() {
 
   std::cout << std::endl;
 
-  hrleConstDenseCellIterator<hrleDomain<char, D>> it2(data);
+  ConstDenseCellIterator<Domain<char, D>> it2(data);
 
-  hrleSparseCellIterator<hrleDomain<char, D>> it3(data);
+  SparseCellIterator<Domain<char, D>> it3(data);
 
   return 0;
 }
