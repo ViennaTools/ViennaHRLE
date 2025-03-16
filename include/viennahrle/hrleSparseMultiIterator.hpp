@@ -6,6 +6,8 @@
 
 #include <cassert>
 
+namespace viennahrle {
+using namespace viennacore;
 /// This class iterates over multiple hrleDomains by using an iterator
 /// for each domain and keeping them in sync. A call to next() results
 /// in the iterator advancing until the next run in any
@@ -13,42 +15,41 @@
 /// domains can be visited sequentially with this iterator. If multiple
 /// points are defined at one index (i.e.: the point is defined in more
 /// than one domain), it will only stop once.
-template <class hrleDomain> class hrleSparseMultiIterator {
+template <class hrleDomain> class SparseMultiIterator {
 public:
   using DomainType = hrleDomain;
   using DomainsType = std::vector<DomainType *>;
 
 private:
   typedef std::conditional_t<std::is_const_v<hrleDomain>,
-                             const typename hrleDomain::hrleValueType,
-                             typename hrleDomain::hrleValueType>
-      hrleValueType;
+                             const typename hrleDomain::ValueType,
+                             typename hrleDomain::ValueType>
+      ValueType;
 
   static constexpr int D = hrleDomain::dimension;
 
   DomainsType domains;
-  hrleVectorType<hrleIndexType, D> currentIndices;
-  std::vector<hrleSparseIterator<hrleDomain>> iterators;
+  Index<D> currentIndices;
+  std::vector<SparseIterator<hrleDomain>> iterators;
 
   template <class V> void initializeIterators(const V &v) {
     iterators.clear();
     for (unsigned i = 0; i < domains.size(); ++i) {
-      iterators.push_back(hrleSparseIterator<hrleDomain>(*(domains[i]), v));
+      iterators.push_back(SparseIterator<hrleDomain>(*(domains[i]), v));
     }
   }
 
 public:
   /// A vector with pointers to hrleDomains to iterate over.
   /// The passed hrleVector contains the indices from which to start iterating.
-  hrleSparseMultiIterator(DomainsType passedDomains,
-                          const hrleVectorType<hrleIndexType, D> v)
+  SparseMultiIterator(DomainsType passedDomains, const Index<D> v)
       : domains(passedDomains), currentIndices(v) {
     initializeIterators(currentIndices);
   }
 
   /// A vector with pointers to hrleDomains to iterate over.
   /// The iteration will start from the minimum index of the grid.
-  explicit hrleSparseMultiIterator(DomainsType passedDomains)
+  explicit SparseMultiIterator(DomainsType passedDomains)
       : domains(passedDomains),
         currentIndices(passedDomains.back()->getGrid().getMinGridPoint()) {
     initializeIterators(currentIndices);
@@ -56,7 +57,7 @@ public:
 
   /// When this constructor is used, the iteration is started from the minimum
   /// grid index.
-  explicit hrleSparseMultiIterator(hrleDomain &passedDomain)
+  explicit SparseMultiIterator(hrleDomain &passedDomain)
       : currentIndices(passedDomain.getGrid().getMinGridPoint()) {
     domains.push_back(&passedDomain);
     initializeIterators(passedDomain.getGrid().getMinIndex());
@@ -64,8 +65,8 @@ public:
 
   // delete post in/decrement, since they should not be used, due to the
   // size of the structure
-  hrleSparseMultiIterator operator++(int) = delete;
-  hrleSparseMultiIterator operator--(int) = delete;
+  SparseMultiIterator operator++(int) = delete;
+  SparseMultiIterator operator--(int) = delete;
 
   /// Add a domain over which to iterate. This does not affect the current index
   /// in the iteration, so if this should trigger a restart from some start
@@ -74,16 +75,16 @@ public:
     domains.push_back(&passedDomain);
     currentIndices = passedDomain.getGrid().getMinGridPoint();
     iterators.push_back(
-        hrleSparseIterator<hrleDomain>(passedDomain, currentIndices));
+        SparseIterator<hrleDomain>(passedDomain, currentIndices));
     goToIndices(currentIndices);
   }
 
-  hrleSparseMultiIterator &operator++() {
+  SparseMultiIterator &operator++() {
     next();
     return *this;
   }
 
-  hrleSparseMultiIterator &operator--() {
+  SparseMultiIterator &operator--() {
     previous();
     return *this;
   }
@@ -96,7 +97,7 @@ public:
 
     // do {
     // find shortest current run to find next run
-    hrleVectorType<hrleIndexType, D> endIndices = iterators[0].getEndIndices();
+    Index<D> endIndices = iterators[0].getEndIndices();
     // std::cout << "End Indices: " << endIndices << std::endl;
     for (unsigned i = 1; i < iterators.size(); ++i) {
       if (!iterators[i].isFinished() &&
@@ -125,8 +126,7 @@ public:
 
     // do {
     // find the shortest current run to find next run
-    hrleVectorType<hrleIndexType, D> startIndices =
-        iterators[0].getStartIndices();
+    Index<D> startIndices = iterators[0].getStartIndices();
     for (unsigned i = 1; i < iterators.size(); ++i) {
       if (!iterators[i].isFinished() &&
           iterators[i].getStartIndices() < startIndices) {
@@ -149,15 +149,13 @@ public:
   /// Returns the iterator used for the domain at index. This is the index
   /// the domain had in the std::vector upon initialisation, or the index
   /// it obtained through calls to insertNextDomain.
-  hrleSparseIterator<hrleDomain> &getIterator(int index) {
+  SparseIterator<hrleDomain> &getIterator(int index) {
     return iterators[index];
   }
 
-  hrleIndexType getIndex(int i) { return currentIndices[i]; }
+  IndexType getIndex(int i) { return currentIndices[i]; }
 
-  const hrleVectorType<hrleIndexType, D> &getIndices() {
-    return currentIndices;
-  }
+  const Index<D> &getIndices() { return currentIndices; }
 
   std::size_t getNumberOfDomains() { return domains.size(); }
 
@@ -172,9 +170,9 @@ public:
 
   /// Returns a vector of pairs with the domain index and all iterators
   /// currently on defined points.
-  std::vector<std::pair<std::size_t, hrleSparseIterator<hrleDomain>>>
+  std::vector<std::pair<std::size_t, SparseIterator<hrleDomain>>>
   getDefinedIterators() {
-    std::vector<std::pair<std::size_t, hrleSparseIterator<hrleDomain>>>
+    std::vector<std::pair<std::size_t, SparseIterator<hrleDomain>>>
         definedIterators;
     for (std::size_t i = 0; i < iterators.size(); ++i) {
       if (iterators[i].isDefined()) {
@@ -226,6 +224,8 @@ public:
 };
 
 template <class hrleDomain>
-using hrleConstSparseMultiIterator = hrleSparseMultiIterator<const hrleDomain>;
+using ConstSparseMultiIterator = SparseMultiIterator<const hrleDomain>;
+
+} // namespace viennahrle
 
 #endif // HRLE_SPARSE_MULTI_DOMAIN_ITERATOR_HPP

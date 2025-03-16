@@ -7,20 +7,21 @@
 int main() {
 
   constexpr int D = 2;
+  using namespace viennahrle;
 
   // set domain bounds
-  hrleIndexType min[D], max[D];
+  IndexType min[D], max[D];
   for (unsigned i = 0; i < D; ++i) {
     min[i] = -20;
     max[i] = 20;
   }
 
   // declare domain with bounds min,max
-  hrleGrid<D> grid(min, max);
-  hrleDomain<char, D> data(grid);
+  Grid<D> grid(min, max);
+  Domain<char, D> data(grid);
 
-  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, char>> pointData;
-  hrleVectorType<hrleIndexType, D> index(0, 5, 0);
+  std::vector<std::pair<Index<D>, char>> pointData;
+  Index<D> index(0, 5, 0);
 
   std::string helloString = "Hello, World!";
 
@@ -37,20 +38,19 @@ int main() {
     // index[1] += 1;
   }
 
-  hrleFillDomainFromPointList(
-      data, pointData,
-      '.'); // last parameter is the background value to use
+  FillDomainFromPointList(data, pointData,
+                          '.'); // last parameter is the background value to use
 
-  // iterate over hrle structure and output each value and the one above it
-  hrleVectorType<hrleIndexType, D> offset(0, -1, 0);
-  hrleSparseIterator<hrleDomain<char, D>> it(data);
-  hrleSparseOffsetIterator<hrleDomain<char, D>> offsetIt(data, offset);
+  // iterate over  structure and output each value and the one above it
+  Index<D> offset(0, -1, 0);
+  SparseIterator<Domain<char, D>> it(data);
+  SparseOffsetIterator<Domain<char, D>> offsetIt(data, offset);
   while (!it.isFinished()) {
     std::cout << it.getStartIndices() << " " << it.getValue() << "\t\t"
               << offsetIt.getStartIndices() - offset << " "
               << offsetIt.getValue() << std::endl;
     it.next();
-    if (hrleUtil::Compare(it.getStartIndices(), offsetIt.getStartIndices()) > 0)
+    if (Compare(it.getStartIndices(), offsetIt.getStartIndices()) > 0)
       offsetIt.next();
   }
 

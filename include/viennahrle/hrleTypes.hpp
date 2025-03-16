@@ -10,6 +10,6 @@ typedef int IndexType;
 typedef unsigned long SizeType;
 typedef double CoordType;
 
-using Coordinate = VectorType<CoordType, 3>;
-template <size_t D> using Index = VectorType<IndexType, D>;
+template <int D> using Coordinate = VectorType<CoordType, D>;
+template <int D> using Index = VectorType<IndexType, D>;
 } // namespace viennahrle

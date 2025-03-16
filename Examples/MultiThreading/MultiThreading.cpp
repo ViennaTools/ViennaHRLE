@@ -6,20 +6,20 @@
 
 int main() {
 
+  using namespace viennahrle;
+
   constexpr int D = 2;
-#ifdef _OPENMP
   omp_set_num_threads(4); // how many threads to use
-#endif
 
   // set domain bounds
-  hrleIndexType min[D] = {0, -2}, max[D] = {10, 10};
+  IndexType min[D] = {0, -2}, max[D] = {10, 10};
 
   // declare domain with bounds min,max
-  hrleGrid<D> grid(min, max);
-  hrleDomain<char, D> data(grid);
+  Grid<D> grid(min, max);
+  Domain<char, D> data(grid);
 
-  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, char>> pointData;
-  hrleVectorType<hrleIndexType, D> index = data.getGrid().getMinIndex();
+  std::vector<std::pair<Index<D>, char>> pointData;
+  Index<D> index = data.getGrid().getMinIndex();
 
   std::string dataString = "The quick brown fox jumps over the lazy dog.";
 
@@ -32,9 +32,8 @@ int main() {
     ++(index[0]);
   }
 
-  hrleFillDomainFromPointList(
-      data, pointData,
-      '#'); // last parameter is the background value to use
+  FillDomainFromPointList(data, pointData,
+                          '#'); // last parameter is the background value to use
 
   // split the datastructure across domainSegments for easier parallelization
   data.segment();
@@ -47,10 +46,10 @@ int main() {
     p = omp_get_thread_num();
 #endif
     // define iterator starting at the corresponding domainSegment
-    hrleSparseIterator<hrleDomain<char, D>> it(
+    SparseIterator<Domain<char, D>> it(
         data, (p == 0) ? grid.getMinIndex() : data.getSegmentation()[p - 1]);
     // store the end of the domainSegment
-    hrleVectorType<hrleIndexType, D> endOfSegment =
+    Index<D> endOfSegment =
         (p != static_cast<int>(data.getSegmentation().size()))
             ? data.getSegmentation()[p]
             : grid.getMaxIndex();
@@ -61,7 +60,7 @@ int main() {
     }
   }
 
-  hrleConstDenseIterator<hrleDomain<char, D>> pit(data);
+  ConstDenseIterator<Domain<char, D>> pit(data);
   int y = data.getGrid().getMinIndex(1);
   while (!pit.isFinished()) {
     if (y < pit.getIndex(1)) {
