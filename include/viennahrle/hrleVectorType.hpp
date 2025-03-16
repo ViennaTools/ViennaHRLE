@@ -37,7 +37,7 @@ public:
   explicit hrleVectorType(T x0, T x1, T x2) {
     x[0] = x0;
     x[1] = x1;
-    if (D == 3)
+    if constexpr (D == 3)
       x[2] = x2;
   }
   explicit hrleVectorType(T x0, T x1) {
@@ -190,6 +190,20 @@ public:
   };
 };
 
+template <class T, int D>
+hrleVectorType<T, D> operator*(T d, const hrleVectorType<T, D> &v) {
+  return v * d;
+}
+
+template <class S, class T, int D>
+S &operator<<(S &s, const hrleVectorType<T, D> &v) {
+  s << "[" << v[0];
+  for (int i = 1; i < D; ++i)
+    s << "," << v[i];
+  s << "]";
+  return s;
+}
+
 // ###################################################################
 
 namespace hrleUtil {
@@ -225,11 +239,6 @@ T DotProduct(const hrleVectorType<T, D> &v1, const hrleVectorType<T, D> &v2) {
   for (int i = 0; i < D; i++)
     sum += v1[i] * v2[i];
   return sum;
-}
-
-template <class T, int D>
-hrleVectorType<T, D> operator*(T d, const hrleVectorType<T, D> &v) {
-  return v * d;
 }
 
 template <class T>
@@ -442,14 +451,5 @@ hrleVectorType<T,D>::ReplaceNth(int i,const T& val) const { hrleVectorType<T,D>
 v(x); v[i]=val; return v;
 }*/
 } // namespace hrleUtil
-
-template <class S, class T, int D>
-S &operator<<(S &s, const hrleVectorType<T, D> &v) {
-  s << "[" << v[0];
-  for (int i = 1; i < D; ++i)
-    s << "," << v[i];
-  s << "]";
-  return s;
-}
 
 #endif // HRLE_VECTOR_TYPE_HPP

@@ -1,5 +1,8 @@
 #include <hrleFillDomainFromPointList.hpp>
 #include <hrleSparseMultiIterator.hpp>
+
+#include <omp.h>
+
 #include <iostream>
 #include <string>
 

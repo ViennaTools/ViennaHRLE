@@ -8,4 +8,5 @@ build*/
 .idea/
 .vscode/
 cmake-build-*
+.DS_Store
 

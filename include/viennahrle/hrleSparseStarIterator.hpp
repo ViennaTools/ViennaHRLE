@@ -37,7 +37,7 @@ template <class hrleDomain, int order> class hrleSparseStarIterator {
   }
 
   template <class V> void initializeNeighbors(const V &v) {
-    for (int i = 0; i < int(order); ++i) {
+    for (int i = 0; i < order; ++i) {
       for (int j = 0; j < 2 * D; ++j) {
         hrleVectorType<hrleIndexType, D> relativeIndex(hrleIndexType(0));
         if (j < D)
@@ -99,6 +99,8 @@ public:
         increment.fill(false);
       case 0:
         increment[i] = true;
+      default:
+        break;
       }
     }
 
@@ -126,6 +128,8 @@ public:
         decrement.fill(false);
       case 0:
         decrement[i] = true;
+      default:
+        break;
       }
     }
 

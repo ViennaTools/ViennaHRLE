@@ -2,6 +2,7 @@
 #define HRLE_DOMAIN_SEGMENT_HPP
 
 #include <cassert>
+#include <sstream>
 
 #include "hrleAllocationType.hpp"
 #include "hrleGrid.hpp"

@@ -3,6 +3,7 @@
 
 #include "hrleSparseIterator.hpp"
 #include "hrleSparseOffsetIterator.hpp"
+#include "hrleUtil.hpp"
 
 /// This neighbor iterator consists of (2*order+1)^dimension
 /// hrleSparseOffsetIterator s for the cartesian neighbors and the center.
@@ -80,7 +81,7 @@ template <class hrleDomain, int order = 1> class hrleSparseBoxIterator {
   /// +order
   template <class V> void initializeNeighbors(const V &v) {
     constexpr auto numNeighbors =
-        static_cast<unsigned>(std::pow(1 + 2 * order, D));
+        static_cast<unsigned>(hrleUtil::pow(1 + 2 * order, D));
 
     neighborIterators.reserve(numNeighbors);
 

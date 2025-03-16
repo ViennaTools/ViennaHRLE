@@ -17,6 +17,7 @@ License:         MIT (X11), see file LICENSE in the base directory
 #include <bitset>
 #include <limits>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <iomanip>

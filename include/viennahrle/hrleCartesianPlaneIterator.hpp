@@ -2,6 +2,7 @@
 #define HRLE_CARTESIAN_PLANE_ITERATOR_HPP
 
 #include "hrleSparseOffsetIterator.hpp"
+#include "hrleUtil.hpp"
 
 #include <memory>
 
@@ -89,10 +90,10 @@ template <class hrleDomain, int order = 1> class hrleCartesianPlaneIterator {
   // Only increment the iterators with indices in the planeCoords array
   template <class V> void initializeNeighbors(const V &v) {
     constexpr auto numNeighbors =
-        static_cast<unsigned>(std::pow(1 + 2 * order, D));
+        static_cast<unsigned>(hrleUtil::pow(1 + 2 * order, D));
 
     constexpr auto numPlaneCoords = static_cast<unsigned>(
-        std::pow(1 + 2 * order, D) - 8 * std::pow(order, D));
+        hrleUtil::pow(1 + 2 * order, D) - 8 * hrleUtil::pow(order, D));
 
     neighborIterators.reserve(numNeighbors);
 
