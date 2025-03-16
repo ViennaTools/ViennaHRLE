@@ -7,34 +7,34 @@
 #include "hrleAllocationType.hpp"
 #include "hrleGrid.hpp"
 #include "hrleRunTypeValues.hpp"
-#include "hrleSizeType.hpp"
+#include "hrleTypes.hpp"
 
-template <class T = double, int D = 3> class hrleDomainSegment {
+namespace viennahrle {
+template <class T = double, int D = 3> class DomainSegment {
 
-  const hrleGrid<D> *grid;
+  const Grid<D> *grid;
 
 public:
   // TYPEDEFS
-  typedef T hrleValueType;
+  typedef T ValueType;
 
   // the following vectors are used to store the run-length-encoded data
   // structure for more details on that data structure see B. Houston, M.B.
   // Nielsen, C. Batty, O. Nilsson, K. Museth, "Hierarchical RLE-Level Set -
   // A Compact and Versatile Deformable Surface Representation", ACM Trans.
   // Graph. 25/1, pp. 151-175, 2006.
-  std::vector<hrleSizeType> startIndices[D];
-  std::vector<hrleSizeType> runTypes[D];
-  std::vector<hrleIndexType> runBreaks[D];
-  std::vector<hrleValueType>
+  std::vector<SizeType> startIndices[D];
+  std::vector<SizeType> runTypes[D];
+  std::vector<IndexType> runBreaks[D];
+  std::vector<ValueType>
       definedValues; // this vector keeps the values of all defined
                      // grid points its size is therefore equal to the number of
                      // defined grid points
 
-  std::vector<hrleValueType>
-      undefinedValues; // this vector keeps all the values of undefined runs (
-                       // background values)
+  std::vector<ValueType> undefinedValues; // this vector keeps all the values of
+                                          // undefined runs ( background values)
 
-  // std::vector<hrleSizeType>
+  // std::vector<SizeType>
   //     activePointIds; // an additional vector, which has the same size as the
   // distances-vector in case the defined grid point is
   // active in terms of the sparse field level set method
@@ -44,29 +44,29 @@ public:
   // order starting with index 0 therefore the largest
   // active point ID equals the number of active grid
   // points-1 if the grid point is not active, its value is
-  // set to the constant hrleRunTypeValues::INACTIVE_PT
+  // set to the constant RunTypeValues::INACTIVE_PT
 
-  hrleSizeType numberOfActivePoints; // numberOfActivePoints stores the number
-                                     // of active points
+  SizeType numberOfActivePoints; // numberOfActivePoints stores the number
+                                 // of active points
 
   // STATIC FUNCTIONS
-  static bool isPtIdDefined(const hrleSizeType r) { // returns if the grid point
-                                                    // given by the "getPointId"
-    return (r < hrleRunTypeValues::UNDEF_PT);       // is a defined grid point
+  static bool isPtIdDefined(const SizeType r) { // returns if the grid point
+                                                // given by the "getPointId"
+    return (r < RunTypeValues::UNDEF_PT);       // is a defined grid point
   }
 
   // DYNAMIC FUNCTIONS
-  hrleAllocationType<hrleSizeType, D> getAllocation() const {
-    // hrleAllocationType allocates the required sizes to num_values and
+  AllocationType<SizeType, D> getAllocation() const {
+    // AllocationType allocates the required sizes to num_values and
     // num_runs num_values[0] is to contain defined values, num_values[i]
     // contains the start indices at the i-th dimension num_runs[i] is to
     // contain the run types at the i-th dimension
-    hrleAllocationType<hrleSizeType, D> a;
-    a.num_values[0] = static_cast<hrleSizeType>(definedValues.size());
-    a.num_runs[0] = static_cast<hrleSizeType>(runTypes[0].size());
+    AllocationType<SizeType, D> a;
+    a.num_values[0] = static_cast<SizeType>(definedValues.size());
+    a.num_runs[0] = static_cast<SizeType>(runTypes[0].size());
     for (int i = 1; i < D; ++i) {
-      a.num_values[i] = static_cast<hrleSizeType>(startIndices[i - 1].size());
-      a.num_runs[i] = static_cast<hrleSizeType>(runTypes[i].size());
+      a.num_values[i] = static_cast<SizeType>(startIndices[i - 1].size());
+      a.num_runs[i] = static_cast<SizeType>(runTypes[i].size());
     }
 
     // Check that the vector sizes make sense for the H-RLE structure
@@ -78,14 +78,13 @@ public:
   }
 
   // No default ctor
-  hrleDomainSegment() = delete;
+  DomainSegment() = delete;
 
-  /// Constructor for the hrleDomainSegment class
-  /// Takes a pointer to a grid_type and an hrleAllocationType to reserve the
+  /// Constructor for the DomainSegment class
+  /// Takes a pointer to a grid_type and an AllocationType to reserve the
   /// memory required for the start indexes, run types and run breaks arrays, as
   /// well as the LS values
-  hrleDomainSegment(const hrleGrid<D> &g,
-                    const hrleAllocationType<hrleSizeType, D> &a)
+  DomainSegment(const Grid<D> &g, const AllocationType<SizeType, D> &a)
       : grid(&g), numberOfActivePoints(0) {
     definedValues.reserve(a.num_values[0]);
     runTypes[0].reserve(a.num_runs[0]);
@@ -100,7 +99,7 @@ public:
     runBreaks[D - 1].reserve(a.num_runs[D - 1] - 1);
   };
 
-  hrleDomainSegment(const hrleGrid<D> &g, const hrleDomainSegment &s)
+  DomainSegment(const Grid<D> &g, const DomainSegment &s)
       : grid(&g), numberOfActivePoints(0) {
     for (int i = 0; i < D; ++i)
       startIndices[i] = s.startIndices[i];
@@ -114,7 +113,7 @@ public:
     grid = &g;
   };
 
-  hrleDomainSegment &operator=(const hrleDomainSegment &s) {
+  DomainSegment &operator=(const DomainSegment &s) {
     if (this == &s) // handle self-assignment
       return *this;
 
@@ -135,8 +134,8 @@ public:
   /// returns the start index of the run given by startIndicesPos and
   /// runTypePos see the definition of the HRLE-data structure for more
   /// details
-  hrleIndexType getRunStartCoord(int dim, hrleSizeType startIndicesPos,
-                                 hrleSizeType runTypePos) const {
+  IndexType getRunStartCoord(int dim, SizeType startIndicesPos,
+                             SizeType runTypePos) const {
 
     if (runTypePos == startIndices[dim][startIndicesPos]) {
       return grid->getMinIndex(dim);
@@ -148,8 +147,8 @@ public:
   /// returns the end index of the run given by startIndicesPos and
   /// runTypePos NOTE: the end index is not included by the run see the
   /// definition of the HRLE-data structure for more details
-  hrleIndexType getRunEndCoord(int dim, hrleSizeType startIndicesPos,
-                               hrleSizeType runTypePos) const {
+  IndexType getRunEndCoord(int dim, SizeType startIndicesPos,
+                           SizeType runTypePos) const {
     if (runTypePos + 1 < getStartIndex(dim, startIndicesPos + 1)) {
       return runBreaks[dim][runTypePos - startIndicesPos] - 1;
     } else {
@@ -160,14 +159,14 @@ public:
   /// returns the starting index of the runTypes array
   /// if startIndicesPos is equal to the size of startIndices array
   /// the size of the run_types array is returned
-  hrleSizeType getStartIndex(int dim, hrleSizeType startIndicesPos) const {
+  SizeType getStartIndex(int dim, SizeType startIndicesPos) const {
     if (startIndicesPos == startIndices[dim].size())
-      return static_cast<hrleSizeType>(runTypes[dim].size());
+      return static_cast<SizeType>(runTypes[dim].size());
     return startIndices[dim][startIndicesPos];
   }
 
-  hrleIndexType
-  getRunBreak(int dim, int runbreak = std::numeric_limits<int>::max()) const {
+  IndexType getRunBreak(int dim,
+                        int runbreak = std::numeric_limits<int>::max()) const {
     if (runBreaks[dim].size() == 0)
       return 0;
     if (runbreak == std::numeric_limits<int>::max())
@@ -175,13 +174,13 @@ public:
     return runBreaks[dim][runbreak];
   }
 
-  hrleIndexType getMaxRunBreak(int dim) const {
+  IndexType getMaxRunBreak(int dim) const {
     if (runBreaks[dim].size() == 0)
       return 0;
     return *std::max_element(runBreaks[dim].begin(), runBreaks[dim].end());
   }
 
-  hrleIndexType getMinRunBreak(int dim) const {
+  IndexType getMinRunBreak(int dim) const {
     if (runBreaks[dim].size() == 0)
       return 0;
     return *std::min_element(runBreaks[dim].begin(), runBreaks[dim].end());
@@ -197,15 +196,15 @@ public:
   ///      structures are used for example Furthermore due to data structure
   ///      alignment the result can be somehow inaccurate
   unsigned long int getMemoryFootprint() const {
-    unsigned long int x = sizeof(hrleDomainSegment);
+    unsigned long int x = sizeof(DomainSegment);
 
     for (int i = 0; i < D; i++) {
-      x += sizeof(hrleSizeType) * startIndices[i].size();
-      x += sizeof(hrleSizeType) * runTypes[i].size();
-      x += sizeof(hrleIndexType) * runBreaks[i].size();
+      x += sizeof(SizeType) * startIndices[i].size();
+      x += sizeof(SizeType) * runTypes[i].size();
+      x += sizeof(IndexType) * runBreaks[i].size();
     }
-    x += sizeof(hrleValueType) * definedValues.size();
-    // x += sizeof(hrleSizeType) * activePointIds.size();
+    x += sizeof(ValueType) * definedValues.size();
+    // x += sizeof(SizeType) * activePointIds.size();
 
     return x;
   }
@@ -218,32 +217,32 @@ public:
   ///      structures are used for example Furthermore due to data structure
   ///      alignment the result can be somehow inaccurate
   unsigned long int getAllocatedMemory() const {
-    unsigned long int x = sizeof(hrleDomainSegment);
+    unsigned long int x = sizeof(DomainSegment);
 
     for (int i = 0; i < D; i++) {
-      x += sizeof(hrleSizeType) * startIndices[i].capacity();
-      x += sizeof(hrleSizeType) * runTypes[i].capacity();
-      x += sizeof(hrleIndexType) * runBreaks[i].capacity();
+      x += sizeof(SizeType) * startIndices[i].capacity();
+      x += sizeof(SizeType) * runTypes[i].capacity();
+      x += sizeof(IndexType) * runBreaks[i].capacity();
     }
-    x += sizeof(hrleValueType) * definedValues.capacity();
-    // x += sizeof(hrleSizeType) * activePointIds.capacity();
+    x += sizeof(ValueType) * definedValues.capacity();
+    // x += sizeof(SizeType) * activePointIds.capacity();
 
     return x;
   }
 
   /// this function returns the number of defined grid points
-  hrleSizeType getNumberOfPoints() const {
-    return static_cast<hrleSizeType>(definedValues.size());
+  SizeType getNumberOfPoints() const {
+    return static_cast<SizeType>(definedValues.size());
   };
 
   /// this function returns the number of distinct undefined values
-  hrleSizeType getNumberOfUndefinedValues() const {
-    return static_cast<hrleSizeType>(undefinedValues.size());
+  SizeType getNumberOfUndefinedValues() const {
+    return static_cast<SizeType>(undefinedValues.size());
   }
 
   /// returns the number of distinct runs in the dimension <dimension>
   /// for negative <dimension> it returns the number of defined points
-  hrleSizeType getNumberOfRuns(int dimension) const {
+  SizeType getNumberOfRuns(int dimension) const {
     if (dimension >= 0)
       return runTypes[dimension].size();
     return definedValues.size();
@@ -251,7 +250,7 @@ public:
 
   template <class V>
   void insertNextUndefinedRunType(V start_point, const V &end_point,
-                                  hrleSizeType rt) {
+                                  SizeType rt) {
 
     if (start_point > end_point)
       return; // in this case, do not add the point
@@ -276,7 +275,7 @@ public:
   }
 
   template <class V>
-  void insertNextUndefinedRunType(const V &point, hrleSizeType rt) {
+  void insertNextUndefinedRunType(const V &point, SizeType rt) {
 
     int level;
     for (level = 0; level < D; ++level) {
@@ -284,7 +283,7 @@ public:
         break;
     }
 
-    hrleSizeType old_sign = 0;
+    SizeType old_sign = 0;
     int dim;
 
     for (dim = D - 1; dim > level; --dim) {
@@ -295,8 +294,8 @@ public:
           runTypes[dim].push_back(old_sign);
           runBreaks[dim].push_back(point[dim]);
         }
-        runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
-        startIndices[dim - 1].push_back(hrleSizeType(runTypes[dim - 1].size()));
+        runTypes[dim].push_back(SizeType(startIndices[dim - 1].size()));
+        startIndices[dim - 1].push_back(SizeType(runTypes[dim - 1].size()));
       } else if (!isPtIdDefined(
                      runTypes[dim].back())) { // if there is a defined run
         old_sign = runTypes[dim].back();
@@ -305,25 +304,24 @@ public:
         if (runTypes[dim].size() ==
             startIndices[dim].back() + 1) { // if there is a single run
           if (point[dim] == grid->getMinIndex(dim)) {
-            runTypes[dim].back() = hrleSizeType(startIndices[dim - 1].size());
+            runTypes[dim].back() = SizeType(startIndices[dim - 1].size());
           } else {
             runBreaks[dim].push_back(point[dim]);
-            runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
+            runTypes[dim].push_back(SizeType(startIndices[dim - 1].size()));
           }
         } else { // if there are more than one runs
           if (point[dim] == runBreaks[dim].back()) {
             runTypes[dim].pop_back();
             if (!isPtIdDefined(runTypes[dim].back())) {
-              runTypes[dim].push_back(
-                  hrleSizeType(startIndices[dim - 1].size()));
+              runTypes[dim].push_back(SizeType(startIndices[dim - 1].size()));
             } else
               runBreaks[dim].pop_back();
           } else {
             runBreaks[dim].push_back(point[dim]);
-            runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
+            runTypes[dim].push_back(SizeType(startIndices[dim - 1].size()));
           }
         }
-        startIndices[dim - 1].push_back(hrleSizeType(runTypes[dim - 1].size()));
+        startIndices[dim - 1].push_back(SizeType(runTypes[dim - 1].size()));
       }
     }
 
@@ -363,19 +361,19 @@ public:
 
   template <class V>
   void insertNextUndefinedPoint(const V &startPoint, const V &endPoint,
-                                hrleValueType value) {
+                                ValueType value) {
     // if undefined value already exists, use its runtype,
     // if it does not use the next available undefined runtype
     auto it = std::find(undefinedValues.begin(), undefinedValues.end(), value);
-    hrleSizeType runType;
+    SizeType runType;
     if (it != undefinedValues.end()) {
       runType =
-          hrleRunTypeValues::UNDEF_PT +
+          RunTypeValues::UNDEF_PT +
           std::distance(
               undefinedValues.begin(),
-              it); // undefined runtypes start at hrleRunTypeValues::UNDEF_PT+1
+              it); // undefined runtypes start at RunTypeValues::UNDEF_PT+1
     } else {
-      runType = hrleRunTypeValues::UNDEF_PT + undefinedValues.size();
+      runType = RunTypeValues::UNDEF_PT + undefinedValues.size();
       undefinedValues.push_back(value);
     }
 
@@ -383,17 +381,16 @@ public:
   }
 
   template <class V>
-  void insertNextUndefinedPoint(const V &point, hrleValueType value) {
+  void insertNextUndefinedPoint(const V &point, ValueType value) {
     // if undefined value already exists, use its runtype,
     // if it does not, use the next available undefined runtype
     auto it = std::find(undefinedValues.begin(), undefinedValues.end(), value);
-    hrleSizeType runType;
+    SizeType runType;
     if (it != undefinedValues.end()) {
-      runType = hrleRunTypeValues::UNDEF_PT +
-                hrleSizeType(std::distance(undefinedValues.begin(), it));
+      runType = RunTypeValues::UNDEF_PT +
+                SizeType(std::distance(undefinedValues.begin(), it));
     } else {
-      runType =
-          hrleRunTypeValues::UNDEF_PT + hrleSizeType(undefinedValues.size());
+      runType = RunTypeValues::UNDEF_PT + SizeType(undefinedValues.size());
       undefinedValues.push_back(value);
     }
 
@@ -403,7 +400,7 @@ public:
   /// Inserts an undefined point into the HRLE structure.
   /// CAREFUL: If the same point is inserted twice, the structure might break!
   template <class V>
-  void insertNextDefinedPoint(const V &point, hrleValueType distance) {
+  void insertNextDefinedPoint(const V &point, ValueType distance) {
 
     int level;
     for (level = 0; level < D; ++level) {
@@ -411,7 +408,7 @@ public:
         break;
     }
 
-    hrleSizeType old_sign = 0;
+    SizeType old_sign = 0;
 
     for (int dim = D - 1; dim > 0; --dim) {
       if (runTypes[dim].size() ==
@@ -420,38 +417,36 @@ public:
           runTypes[dim].push_back(old_sign);
           runBreaks[dim].push_back(point[dim]);
         }
-        runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
-        startIndices[dim - 1].push_back(hrleSizeType(runTypes[dim - 1].size()));
+        runTypes[dim].push_back(SizeType(startIndices[dim - 1].size()));
+        startIndices[dim - 1].push_back(SizeType(runTypes[dim - 1].size()));
       } else if (!isPtIdDefined(
                      runTypes[dim].back())) { // if there is an undefined run
         old_sign = runTypes[dim].back();
         if (runTypes[dim].size() ==
             startIndices[dim].back() + 1) { // if there is a single run
           if (point[dim] == grid->getMinIndex(dim)) {
-            runTypes[dim].back() = hrleSizeType(startIndices[dim - 1].size());
+            runTypes[dim].back() = SizeType(startIndices[dim - 1].size());
           } else {
             runBreaks[dim].push_back(point[dim]);
-            runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
+            runTypes[dim].push_back(SizeType(startIndices[dim - 1].size()));
           }
         } else { // if there are more than one runs
           if (point[dim] == runBreaks[dim].back()) {
             runTypes[dim].pop_back();
             if (!isPtIdDefined(runTypes[dim].back())) {
-              runTypes[dim].push_back(
-                  hrleSizeType(startIndices[dim - 1].size()));
+              runTypes[dim].push_back(SizeType(startIndices[dim - 1].size()));
             } else {
               runBreaks[dim].pop_back();
             }
           } else {
             runBreaks[dim].push_back(point[dim]);
-            runTypes[dim].push_back(hrleSizeType(startIndices[dim - 1].size()));
+            runTypes[dim].push_back(SizeType(startIndices[dim - 1].size()));
           }
         }
-        startIndices[dim - 1].push_back(hrleSizeType(runTypes[dim - 1].size()));
+        startIndices[dim - 1].push_back(SizeType(runTypes[dim - 1].size()));
       } else { // it is a defined run
         if (dim <= level)
-          startIndices[dim - 1].push_back(
-              hrleSizeType(runTypes[dim - 1].size()));
+          startIndices[dim - 1].push_back(SizeType(runTypes[dim - 1].size()));
       }
     }
 
@@ -460,41 +455,41 @@ public:
         runTypes[0].push_back(old_sign);
         runBreaks[0].push_back(point[0]);
       }
-      runTypes[0].push_back(hrleSizeType(definedValues.size()));
+      runTypes[0].push_back(SizeType(definedValues.size()));
     } else if (!isPtIdDefined(
                    runTypes[0].back())) { // if there is an undefined run
       old_sign = runTypes[0].back();
       if (runTypes[0].size() ==
           startIndices[0].back() + 1) { // if there is a single run
         if (point[0] == grid->getMinIndex(0)) {
-          runTypes[0].back() = hrleSizeType(definedValues.size());
+          runTypes[0].back() = SizeType(definedValues.size());
         } else {
           runBreaks[0].push_back(point[0]);
-          runTypes[0].push_back(hrleSizeType(definedValues.size()));
+          runTypes[0].push_back(SizeType(definedValues.size()));
         }
       } else { // if there are more than one runs
         if (point[0] == runBreaks[0].back()) {
           runTypes[0].pop_back();
           if (!isPtIdDefined(runTypes[0].back())) {
-            runTypes[0].push_back(hrleSizeType(definedValues.size()));
+            runTypes[0].push_back(SizeType(definedValues.size()));
           } else {
             runBreaks[0].pop_back();
           }
         } else {
           runBreaks[0].push_back(point[0]);
-          runTypes[0].push_back(hrleSizeType(definedValues.size()));
+          runTypes[0].push_back(SizeType(definedValues.size()));
         }
       }
     }
 
     definedValues.push_back(distance);
 
-    // if (abs(distance) <= hrleValueType(0.5)) {
+    // if (abs(distance) <= ValueType(0.5)) {
     //   activePointIds.push_back(numberOfActivePoints);
     //   ++numberOfActivePoints;
     //
     // } else {
-    //   activePointIds.push_back(hrleRunTypeValues::INACTIVE_PT);
+    //   activePointIds.push_back(RunTypeValues::INACTIVE_PT);
     // }
   }
 
@@ -525,10 +520,10 @@ public:
           out << std::endl;
         ++c;
 
-        if ((*it) >= hrleRunTypeValues::SEGMENT_PT) {
-          out << std::setw(8) << "SEG" << (*it) - hrleRunTypeValues::SEGMENT_PT;
-        } else if ((*it) >= hrleRunTypeValues::UNDEF_PT) {
-          out << std::setw(8) << "U" << (*it) - hrleRunTypeValues::UNDEF_PT;
+        if ((*it) >= RunTypeValues::SEGMENT_PT) {
+          out << std::setw(8) << "SEG" << (*it) - RunTypeValues::SEGMENT_PT;
+        } else if ((*it) >= RunTypeValues::UNDEF_PT) {
+          out << std::setw(8) << "U" << (*it) - RunTypeValues::UNDEF_PT;
         } else {
           out << std::setw(8) << (*it);
         }
@@ -569,5 +564,6 @@ public:
     out << std::string(60, '-') << std::endl << std::endl;
   }
 };
+} // namespace viennahrle
 
 #endif // HRLE_DOMAIN_SEGMENT_HPP

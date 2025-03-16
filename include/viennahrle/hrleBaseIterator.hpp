@@ -4,28 +4,30 @@
 #include <cassert>
 #include <iostream>
 
-#include "hrleIndexType.hpp"
 #include "hrleRunTypeValues.hpp"
-#include "hrleSizeType.hpp"
-#include "hrleVectorType.hpp"
+#include "hrleTypes.hpp"
+
+#include <vcVectorUtil.hpp>
 
 /// Base class for RunsIterator and RunsIteratorOffset. Should/Can not be used
 /// directly.
-template <class hrleDomain> class hrleBaseIterator {
+namespace viennahrle {
+using namespace viennacore;
+template <class hrleDomain> class BaseIterator {
 protected:
   static constexpr int D = hrleDomain::dimension;
   typedef std::conditional_t<std::is_const_v<hrleDomain>,
-                             const typename hrleDomain::hrleValueType,
-                             typename hrleDomain::hrleValueType>
-      hrleValueType;
+                             const typename hrleDomain::ValueType,
+                             typename hrleDomain::ValueType>
+      ValueType;
 
   hrleDomain &domain;
-  hrleVectorType<hrleSizeType, D + 1> startIndicesPos;
-  hrleVectorType<hrleSizeType, D> runTypePos;
-  hrleVectorType<hrleIndexType, D> startRunAbsCoords;
-  hrleVectorType<hrleIndexType, D> endRunAbsCoords;
-  hrleVectorType<hrleIndexType, D> absCoords;
-  hrleVectorType<hrleIndexType, D> endAbsCoords;
+  VectorType<SizeType, D + 1> startIndicesPos;
+  VectorType<SizeType, D> runTypePos;
+  VectorType<IndexType, D> startRunAbsCoords;
+  VectorType<IndexType, D> endRunAbsCoords;
+  VectorType<IndexType, D> absCoords;
+  VectorType<IndexType, D> endAbsCoords;
   int r_level;
   int s_level;
   int sub;
@@ -63,7 +65,7 @@ public:
               << std::endl;
   }
 
-  explicit hrleBaseIterator(hrleDomain &passedDomain)
+  explicit BaseIterator(hrleDomain &passedDomain)
       : domain(passedDomain), absCoords(domain.getGrid().getMinGridPoint()),
         endAbsCoords(domain.getGrid().getMaxGridPoint()), r_level(D),
         s_level(D), sub(0) {
@@ -72,7 +74,7 @@ public:
 
   DomainType &getDomain() { return domain; }
 
-  // const hrleBaseIterator &operator=(const hrleBaseIterator &it) {
+  // const BaseIterator &operator=(const BaseIterator &it) {
   //   // copy assignment
   //   domain = it.domain;
   //   startIndicesPos = it.startIndicesPos;
@@ -92,25 +94,21 @@ public:
     return (r_level == D);
   }
 
-  hrleIndexType getStartIndices(int dir) const {
+  IndexType getStartIndices(int dir) const {
     // returns the start index of a run for a certain axis direction
     return absCoords[dir];
   }
 
-  const hrleVectorType<hrleIndexType, D> &getStartIndices() const {
-    return absCoords;
-  }
+  const VectorType<IndexType, D> &getStartIndices() const { return absCoords; }
 
-  hrleIndexType getEndIndices(int dir) const {
+  IndexType getEndIndices(int dir) const {
     // returns the end index of a run for a certain axis direction
     return endAbsCoords[dir];
   }
 
-  const hrleVectorType<hrleIndexType, D> &getEndIndices() const {
-    return endAbsCoords;
-  }
+  const VectorType<IndexType, D> &getEndIndices() const { return endAbsCoords; }
 
-  hrleSizeType getRunTypePosition() const {
+  SizeType getRunTypePosition() const {
     if (s_level == 0) {
       assert(s_level == r_level);
       return startIndicesPos[0];
@@ -122,22 +120,22 @@ public:
 
   int getLevel() const { return s_level; }
 
-  hrleSizeType getRunCode() const { return startIndicesPos[r_level]; }
+  SizeType getRunCode() const { return startIndicesPos[r_level]; }
 
-  hrleSizeType getSegmentRun() const {
-    const hrleSizeType r = getRunCode();
-    if (r >= hrleRunTypeValues::SEGMENT_PT) {
-      return r - hrleRunTypeValues::SEGMENT_PT;
+  SizeType getSegmentRun() const {
+    const SizeType r = getRunCode();
+    if (r >= RunTypeValues::SEGMENT_PT) {
+      return r - RunTypeValues::SEGMENT_PT;
     } else {
       return sub;
     }
   }
 
-  hrleSizeType getSegmentId() const { return sub; }
+  SizeType getSegmentId() const { return sub; }
 
-  hrleSizeType getPointId() const {
+  SizeType getPointId() const {
     // returns the getPointId if it is a defined run
-    hrleSizeType tmp = getRunCode();
+    SizeType tmp = getRunCode();
     if (isDefined())
       tmp += domain.pointIdOffsets[sub];
     return tmp;
@@ -150,7 +148,7 @@ public:
     return (s_level == 0);
   }
 
-  const hrleValueType &getValue() const {
+  const ValueType &getValue() const {
     // returns the level set value for the current run
     // if the run is undefined either POS_VALUE or NEG_VALUE is returned
     if (isDefined()) {
@@ -158,16 +156,16 @@ public:
     } else {
       // assert(getRunCode()==NEG_PT); //TODO
       return domain.domainSegments[sub]
-          .undefinedValues[getRunCode() - hrleRunTypeValues::UNDEF_PT];
+          .undefinedValues[getRunCode() - RunTypeValues::UNDEF_PT];
     }
   }
 
-  hrleValueType &getValue() {
-    return const_cast<hrleValueType &>(
-        const_cast<const hrleBaseIterator *>(this)->getValue());
+  ValueType &getValue() {
+    return const_cast<ValueType &>(
+        const_cast<const BaseIterator *>(this)->getValue());
   }
 
-  const hrleValueType &getDefinedValue() const {
+  const ValueType &getDefinedValue() const {
     // the same as "value", however this function assumes
     // that the current run is defined, and therefore no check is required
     // if the run is undefined or not
@@ -175,14 +173,16 @@ public:
     return domain.domainSegments[sub].definedValues[getRunCode()];
   }
 
-  hrleValueType &getDefinedValue() {
-    return const_cast<hrleValueType &>(
-        const_cast<const hrleBaseIterator *>(this)->getDefinedValue());
+  ValueType &getDefinedValue() {
+    return const_cast<ValueType &>(
+        const_cast<const BaseIterator *>(this)->getDefinedValue());
   }
 };
 
 // typedef for const iterator
 template <class hrleDomain>
-using hrleConstBaseIterator = hrleBaseIterator<const hrleDomain>;
+using ConstBaseIterator = BaseIterator<const hrleDomain>;
+
+} // namespace viennahrle
 
 #endif // HRLE_BASE_ITERATOR_HPP

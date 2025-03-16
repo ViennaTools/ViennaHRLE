@@ -1,17 +1,18 @@
 #ifndef HRLE_GRID_HPP
 #define HRLE_GRID_HPP
 
-#include "hrleCoordType.hpp"
-#include "hrleIndexType.hpp"
+#include "hrleTypes.hpp"
 #include "hrleUtil.hpp"
-#include "hrleVectorType.hpp"
 
 #include <cmath>
 #include <memory>
 #include <ostream>
 #include <vector>
 
-enum class hrleBoundaryType : unsigned {
+namespace viennahrle {
+using namespace viennacore;
+
+enum class BoundaryType : unsigned {
   REFLECTIVE_BOUNDARY = 0,
   INFINITE_BOUNDARY = 1,
   PERIODIC_BOUNDARY = 2,
@@ -19,25 +20,25 @@ enum class hrleBoundaryType : unsigned {
   NEG_INFINITE_BOUNDARY = 4
 };
 
-template <int D> class hrleGrid {
+template <int D> class Grid {
 public:
   static const int dimension = D;
 
 private:
-  static constexpr hrleIndexType INF_EXTENSION =
-      std::numeric_limits<hrleIndexType>::max() / 3;
+  static constexpr IndexType INF_EXTENSION =
+      std::numeric_limits<IndexType>::max() / 3;
 
-  hrleVectorType<hrleIndexType, D> minIndex, maxIndex,
+  Index<D> minIndex, maxIndex,
       indexExtension; // Minimum, maximum, extension of whole grid for all
                       // grid directions
 
-  hrleCoordType gridDelta;
+  CoordType gridDelta;
 
-  hrleVectorType<hrleBoundaryType, D>
+  VectorType<BoundaryType, D>
       boundaryConditions; // here the boundary conditions for
                           // all grid directions are stored
 
-  hrleVectorType<hrleIndexType, D> minGridPointCoord,
+  Index<D> minGridPointCoord,
       maxGridPointCoord; // effective maximum and minimum grid point
                          // coordinates due to periodic boundary conditions the
                          // grid points at opposite boundaries are the same
@@ -46,51 +47,51 @@ private:
                          // conditions in direction k,
                          // maxGridPointCoord[k]=max[k]-1 holds
 
-  hrleVectorType<hrleIndexType, D> minBounds, maxBounds;
+  Index<D> minBounds, maxBounds;
 
-  hrleVectorType<bool, D>
+  VectorType<bool, D>
       parities; // here the parities of the grid are stored, the parity is
                 // false if the grid_position function is strictly monotonic
                 // increasing and true if the grid_position function is
                 // strictly monotonic decreasing
 
-  static hrleIndexType readGridBoundary(std::istream &stream,
-                                        const unsigned gridBoundaryBytes) {
+  static IndexType readGridBoundary(std::istream &stream,
+                                    const unsigned gridBoundaryBytes) {
     if (gridBoundaryBytes == 0)
       return INF_EXTENSION;
 
-    char number[sizeof(hrleIndexType)] = {};
+    char number[sizeof(IndexType)] = {};
     for (unsigned i = 0; i < gridBoundaryBytes; ++i)
       stream.read(number + i, 1);
 
     if (number[gridBoundaryBytes - 1] >> 7) {
-      for (unsigned i = gridBoundaryBytes; i < sizeof(hrleIndexType); ++i)
+      for (unsigned i = gridBoundaryBytes; i < sizeof(IndexType); ++i)
         number[i] = static_cast<char>(0xFF);
     }
-    return *reinterpret_cast<hrleIndexType *>(number);
+    return *reinterpret_cast<IndexType *>(number);
   }
 
 public:
   /// empty constructor
-  hrleGrid() {
-    hrleIndexType min[D] = {}, max[D] = {};
-    *this = hrleGrid(min, max);
+  Grid() {
+    IndexType min[D] = {}, max[D] = {};
+    *this = Grid(min, max);
   }
 
-  hrleGrid(const hrleIndexType *min, const hrleIndexType *max,
-           const hrleCoordType delta = 1.0) {
-    hrleBoundaryType boundaryCons[D];
+  Grid(const IndexType *min, const IndexType *max,
+       const CoordType delta = 1.0) {
+    BoundaryType boundaryCons[D];
     for (unsigned i = 0; i < D; ++i) {
       boundaryCons[i] =
-          hrleBoundaryType::REFLECTIVE_BOUNDARY; // Reflective boundary
-                                                 // conditions
+          BoundaryType::REFLECTIVE_BOUNDARY; // Reflective boundary
+                                             // conditions
     }
 
-    *this = hrleGrid(min, max, delta, boundaryCons);
+    *this = Grid(min, max, delta, boundaryCons);
   }
 
-  hrleGrid(const hrleIndexType *min, const hrleIndexType *max,
-           const hrleCoordType delta, const hrleBoundaryType *boundaryCons) {
+  Grid(const IndexType *min, const IndexType *max, const CoordType delta,
+       const BoundaryType *boundaryCons) {
 
     gridDelta = delta;
 
@@ -104,17 +105,17 @@ public:
       minBounds[i] = min[i];
       maxBounds[i] = max[i];
 
-      if ((boundaryConditions[i] == hrleBoundaryType::INFINITE_BOUNDARY) ||
-          (boundaryConditions[i] == hrleBoundaryType::NEG_INFINITE_BOUNDARY)) {
+      if ((boundaryConditions[i] == BoundaryType::INFINITE_BOUNDARY) ||
+          (boundaryConditions[i] == BoundaryType::NEG_INFINITE_BOUNDARY)) {
         minGridPointCoord[i] = -INF_EXTENSION;
         minIndex[i] = -INF_EXTENSION;
       }
-      if ((boundaryConditions[i] == hrleBoundaryType::INFINITE_BOUNDARY) ||
-          (boundaryConditions[i] == hrleBoundaryType::POS_INFINITE_BOUNDARY)) {
+      if ((boundaryConditions[i] == BoundaryType::INFINITE_BOUNDARY) ||
+          (boundaryConditions[i] == BoundaryType::POS_INFINITE_BOUNDARY)) {
         maxGridPointCoord[i] = INF_EXTENSION;
         maxIndex[i] = INF_EXTENSION;
       }
-      if (boundaryConditions[i] == hrleBoundaryType::PERIODIC_BOUNDARY) {
+      if (boundaryConditions[i] == BoundaryType::PERIODIC_BOUNDARY) {
         --maxGridPointCoord[i];
         --maxBounds[i];
       }
@@ -130,7 +131,7 @@ public:
   }
 
   /// copy constructor
-  // hrleGrid(const hrleGrid &gt)
+  // Grid(const Grid &gt)
   //     : minIndex(gt.minIndex), maxIndex(gt.maxIndex),
   //       indexExtension(gt.indexExtension),
   //       boundaryConditions(gt.boundaryConditions),
@@ -162,53 +163,46 @@ public:
     return b;
   }
 
-  hrleIndexType getGridExtent(int dim) const { return indexExtension[dim]; }
+  IndexType getGridExtent(int dim) const { return indexExtension[dim]; }
 
-  hrleIndexType getMinIndex(int dim) const { return minIndex[dim]; }
+  IndexType getMinIndex(int dim) const { return minIndex[dim]; }
 
-  hrleIndexType getMaxIndex(int dim) const { return maxIndex[dim]; }
+  IndexType getMaxIndex(int dim) const { return maxIndex[dim]; }
 
-  inline const hrleVectorType<hrleIndexType, D> &getMinIndex() const {
-    return minIndex;
-  }
+  inline const Index<D> &getMinIndex() const { return minIndex; }
 
-  inline const hrleVectorType<hrleIndexType, D> &getMaxIndex() const {
-    return maxIndex;
-  }
+  inline const Index<D> &getMaxIndex() const { return maxIndex; }
 
   /// returns all 2 or 3 boundary conditions
-  inline const hrleVectorType<hrleBoundaryType, D> &
-  getBoundaryConditions() const {
+  inline const VectorType<BoundaryType, D> &getBoundaryConditions() const {
     return boundaryConditions;
   }
 
   /// returns the boundary conditions in the specified direction
-  inline hrleBoundaryType getBoundaryConditions(int dir) const {
+  inline BoundaryType getBoundaryConditions(int dir) const {
     return boundaryConditions[dir];
   }
 
   /// returns whether the boundary condition in direction dim is periodic
   bool isBoundaryPeriodic(int dim) const {
-    return boundaryConditions[dim] == hrleBoundaryType::PERIODIC_BOUNDARY;
+    return boundaryConditions[dim] == BoundaryType::PERIODIC_BOUNDARY;
   }
 
   /// returns whether the boundary condition in direction dim is reflective
   bool isBoundaryReflective(int dim) const {
-    return boundaryConditions[dim] == hrleBoundaryType::REFLECTIVE_BOUNDARY;
+    return boundaryConditions[dim] == BoundaryType::REFLECTIVE_BOUNDARY;
   }
 
   /// returns whether the boundary condition in direction +dim is infinite
   bool isPosBoundaryInfinite(int dim) const {
-    return (
-        (boundaryConditions[dim] == hrleBoundaryType::INFINITE_BOUNDARY) ||
-        (boundaryConditions[dim] == hrleBoundaryType::POS_INFINITE_BOUNDARY));
+    return ((boundaryConditions[dim] == BoundaryType::INFINITE_BOUNDARY) ||
+            (boundaryConditions[dim] == BoundaryType::POS_INFINITE_BOUNDARY));
   }
 
   /// returns whether the boundary condition in direction -dim is infinite
   bool isNegBoundaryInfinite(int dim) const {
-    return (
-        (boundaryConditions[dim] == hrleBoundaryType::INFINITE_BOUNDARY) ||
-        (boundaryConditions[dim] == hrleBoundaryType::NEG_INFINITE_BOUNDARY));
+    return ((boundaryConditions[dim] == BoundaryType::INFINITE_BOUNDARY) ||
+            (boundaryConditions[dim] == BoundaryType::NEG_INFINITE_BOUNDARY));
   }
 
   /// return whether the point given by vec is within the simulation domain
@@ -222,39 +216,31 @@ public:
 
   /// returns the index[dim] of the maximum grid point which is maxIndex-1 for
   /// periodic BNCs
-  inline hrleIndexType getMaxGridPoint(int dim) const {
+  inline IndexType getMaxGridPoint(int dim) const {
     return maxGridPointCoord[dim];
   }
 
   /// returns the index[dim] of the maximum grid point which is minIndex-1 for
   /// periodic BNCs
-  inline hrleIndexType getMinGridPoint(int dim) const {
+  inline IndexType getMinGridPoint(int dim) const {
     return minGridPointCoord[dim];
   }
 
   /// returns the index of the maximum grid point which is maxIndex-1 for
   /// periodic BNCs
-  inline const hrleVectorType<hrleIndexType, D> &getMaxGridPoint() const {
-    return maxGridPointCoord;
-  }
+  inline const Index<D> &getMaxGridPoint() const { return maxGridPointCoord; }
 
   /// returns the index of the maximum grid point which is minIndex-1 for
   /// periodic BNCs
-  inline const hrleVectorType<hrleIndexType, D> &getMinGridPoint() const {
-    return minGridPointCoord;
-  }
+  inline const Index<D> &getMinGridPoint() const { return minGridPointCoord; }
 
-  hrleIndexType getMinBounds(int dim) const { return minBounds[dim]; }
+  IndexType getMinBounds(int dim) const { return minBounds[dim]; }
 
-  hrleIndexType getMaxBounds(int dim) const { return maxBounds[dim]; }
+  IndexType getMaxBounds(int dim) const { return maxBounds[dim]; }
 
-  const hrleVectorType<hrleIndexType, D> &getMinBounds() const {
-    return minBounds;
-  }
+  const Index<D> &getMinBounds() const { return minBounds; }
 
-  const hrleVectorType<hrleIndexType, D> &getMaxBounds() const {
-    return maxBounds;
-  }
+  const Index<D> &getMaxBounds() const { return maxBounds; }
 
   /// returns whether the point v is at infinity in any dimension
   template <class V> inline bool isAtInfinity(const V &v) const {
@@ -271,10 +257,9 @@ public:
   /// than one global index is mapped to the same local index. For the local
   /// index always (getMinGridPoint<=local index<=getMaxGridPoint
   /// holds)
-  inline hrleIndexType localIndex2GlobalIndex(int dim,
-                                              hrleIndexType relative_coord,
-                                              int cycles,
-                                              hrleIndexType offset = 0) const {
+  inline IndexType localIndex2GlobalIndex(int dim, IndexType relative_coord,
+                                          int cycles,
+                                          IndexType offset = 0) const {
     if (cycles == 0) {
       return relative_coord - offset;
     } else {
@@ -298,10 +283,8 @@ public:
   /// than one global index are mapped to the same local index. For the local
   /// index always (getMinGridPoint<=local index<=getMaxGridPoint
   /// holds)
-  inline hrleIndexType globalIndex2LocalIndex(int dim,
-                                              hrleIndexType absolute_coord,
-                                              hrleIndexType offset,
-                                              int &cycles) const {
+  inline IndexType globalIndex2LocalIndex(int dim, IndexType absolute_coord,
+                                          IndexType offset, int &cycles) const {
     absolute_coord += offset;
     cycles = 0;
     while (absolute_coord < minIndex[dim]) {
@@ -325,9 +308,8 @@ public:
   /// than one global index are mapped to the same local index. For the local
   /// index always (getMinGridPoint<=local index<=getMaxGridPoint
   /// holds)
-  inline hrleIndexType globalIndex2LocalIndex(int dim,
-                                              hrleIndexType absolute_coord,
-                                              hrleIndexType offset = 0) const {
+  inline IndexType globalIndex2LocalIndex(int dim, IndexType absolute_coord,
+                                          IndexType offset = 0) const {
     absolute_coord += offset;
     bool b = true;
     while (absolute_coord < minIndex[dim]) {
@@ -348,9 +330,8 @@ public:
   /// This function transforms a global index vector to the corresponding
   /// local index vector.
   template <class V>
-  inline hrleVectorType<hrleIndexType, D>
-  globalIndices2LocalIndices(const V &v) const {
-    hrleVectorType<hrleIndexType, D> tmp;
+  inline Index<D> globalIndices2LocalIndices(const V &v) const {
+    Index<D> tmp;
     for (int i = 0; i < D; i++) {
       tmp[i] = globalIndex2LocalIndex(i, v[i]);
     }
@@ -358,62 +339,60 @@ public:
   }
 
   /// Returns the coordinate of the point at index "index" in the direction dir.
-  hrleCoordType index2Coordinate(hrleIndexType Index) const {
+  CoordType index2Coordinate(IndexType Index) const {
     return Index * gridDelta;
   }
 
   /// This function transforms the coordinate c in respect to the rectilinear
   /// grid into the real coordinates. Non-integer contributions in c are
   /// considered!
-  hrleCoordType localIndex2LocalCoordinate(hrleCoordType c) const {
-    hrleCoordType lc = std::floor(c);
-    hrleCoordType uc = std::ceil(c);
+  CoordType localIndex2LocalCoordinate(CoordType c) const {
+    CoordType lc = std::floor(c);
+    CoordType uc = std::ceil(c);
 
     if (lc != uc) {
-      return (index2Coordinate(static_cast<hrleIndexType>(lc)) *
+      return (index2Coordinate(static_cast<IndexType>(lc)) *
                   ((uc - c)) + // TODO
-              index2Coordinate(static_cast<hrleIndexType>(uc)) * ((c - lc)));
+              index2Coordinate(static_cast<IndexType>(uc)) * ((c - lc)));
     } else {
-      return index2Coordinate(static_cast<hrleIndexType>(lc));
+      return index2Coordinate(static_cast<IndexType>(lc));
     }
   }
 
   // This function transforms the coordinate c in respect to the rectilinear
   // grid into the real coordinates.Non-integer contributions in c are
   // considered!
-  hrleCoordType globalIndex2GlobalCoordinate(int dir, hrleCoordType c) const {
-    hrleCoordType lc = std::floor(c);
-    hrleCoordType uc = std::ceil(c);
+  CoordType globalIndex2GlobalCoordinate(int dir, CoordType c) const {
+    CoordType lc = std::floor(c);
+    CoordType uc = std::ceil(c);
     if (lc != uc) {
-      return (gridPositionOfGlobalIndex(dir, static_cast<hrleIndexType>(lc)) *
+      return (gridPositionOfGlobalIndex(dir, static_cast<IndexType>(lc)) *
                   ((uc - c) / (uc - lc)) + // TODO
-              gridPositionOfGlobalIndex(dir, static_cast<hrleIndexType>(uc)) *
+              gridPositionOfGlobalIndex(dir, static_cast<IndexType>(uc)) *
                   ((c - lc) / (uc - lc)));
     } else {
-      return gridPositionOfGlobalIndex(dir, static_cast<hrleIndexType>(lc));
+      return gridPositionOfGlobalIndex(dir, static_cast<IndexType>(lc));
     }
   }
 
   /// Transforms a global index vector to a global coordinate vector.
   template <class V>
-  hrleVectorType<hrleCoordType, D>
-  globalIndices2GlobalCoordinates(const V &v) const {
-    hrleVectorType<hrleCoordType, D> tmp;
+  VectorType<CoordType, D> globalIndices2GlobalCoordinates(const V &v) const {
+    VectorType<CoordType, D> tmp;
     for (unsigned i = 0; i < D; ++i)
       tmp[i] = globalIndex2GlobalCoordinate(i, v[i]);
     return tmp;
   }
 
   /// Transforms a global coordinate in direction dir to a global index.
-  hrleIndexType globalCoordinate2GlobalIndex(hrleCoordType c) const {
-    return static_cast<hrleIndexType>(round(c / gridDelta));
+  IndexType globalCoordinate2GlobalIndex(CoordType c) const {
+    return static_cast<IndexType>(round(c / gridDelta));
   }
 
   /// Transforms a global coordinate vector to a global index vector.
   template <class V>
-  hrleVectorType<hrleIndexType, D>
-  globalCoordinates2GlobalIndices(const V &v) const {
-    hrleVectorType<hrleIndexType, D> tmp;
+  Index<D> globalCoordinates2GlobalIndices(const V &v) const {
+    Index<D> tmp;
     for (unsigned i = 0; i < D; ++i)
       tmp[i] = globalCoordinate2GlobalIndex(v[i]);
     return tmp;
@@ -422,11 +401,11 @@ public:
   /// Transforms a local coordinate in direction dir to a local index.
   /// Non-integer contributions of c are considered.
   /// a and b allow to restrict the search between two grid indices
-  hrleCoordType localCoordinate2LocalIndex(
-      hrleCoordType c, hrleIndexType a,
-      hrleIndexType b) const { // TODO global/local coordinates
-    hrleCoordType ac = index2Coordinate(a);
-    hrleCoordType bc = index2Coordinate(b);
+  CoordType localCoordinate2LocalIndex(
+      CoordType c, IndexType a,
+      IndexType b) const { // TODO global/local coordinates
+    CoordType ac = index2Coordinate(a);
+    CoordType bc = index2Coordinate(b);
 
     if (ac > bc) {
       std::swap(ac, bc);
@@ -440,8 +419,8 @@ public:
 
     while (std::abs(a - b) > 1) {
 
-      const hrleIndexType mid = (a + b) / 2;
-      const hrleCoordType midc = index2Coordinate(mid);
+      const IndexType mid = (a + b) / 2;
+      const CoordType midc = index2Coordinate(mid);
 
       if (c <= midc) {
         b = mid;
@@ -456,24 +435,24 @@ public:
   }
 
   /// Transforms a local coordinate in direction dir to a local index.
-  hrleCoordType localCoordinate2LocalIndex(int dir, hrleCoordType c) const {
-    hrleIndexType a = getMinIndex(dir);
-    hrleIndexType b = getMaxIndex(dir);
+  CoordType localCoordinate2LocalIndex(int dir, CoordType c) const {
+    IndexType a = getMinIndex(dir);
+    IndexType b = getMaxIndex(dir);
     return localCoordinate2LocalIndex(c, a, b);
   }
 
   /// Transforms a global coordinate in direction dir to a global index.
-  hrleCoordType globalCoordinate2LocalIndex(int dir, hrleCoordType c) const {
+  CoordType globalCoordinate2LocalIndex(int dir, CoordType c) const {
     // a is closest grid point less than c
-    hrleIndexType a = std::floor(c / gridDelta);
+    IndexType a = std::floor(c / gridDelta);
     // get normalised distance within grid
-    const hrleCoordType l = c - (a * gridDelta);
+    const CoordType l = c - (a * gridDelta);
     a = globalIndex2LocalIndex(dir, a);
 
-    return static_cast<hrleCoordType>(a) + l / gridDelta;
+    return static_cast<CoordType>(a) + l / gridDelta;
   }
 
-  /*hrleCoordType globalCoordinate2GlobalIndex(int dim, hrleCoordType
+  /*CoordType globalCoordinate2GlobalIndex(int dim, CoordType
   absolute_coord) const { int cycles=0; if (isBoundaryPeriodic(dim)) { while
   (absolute_coord<getMinLocalCoordinate(dim)) { cycles--;
               absolute_coord+=(getMaxLocalCoordinate(dim)-getMinLocalCoordinate(dim));
@@ -509,13 +488,12 @@ public:
   // const GridTraitsType &grid_traits() const { return GridTraits; }
 
   /// returns the grid point separation
-  hrleCoordType getGridDelta() const { return gridDelta; }
+  CoordType getGridDelta() const { return gridDelta; }
 
   // Returns the grid position for a global index,
   // taking into account the boundary conditions.
-  hrleCoordType
-  gridPositionOfGlobalIndex(int dir,
-                            hrleIndexType offset) const { // TODO check
+  CoordType gridPositionOfGlobalIndex(int dir,
+                                      IndexType offset) const { // TODO check
     int cycles = 0;
 
     while (offset < minIndex[dir]) {
@@ -539,7 +517,7 @@ public:
   }
 
   // Returns the minimum coordinate of the domain of the grid.
-  hrleCoordType getMinLocalCoordinate(int dir) const {
+  CoordType getMinLocalCoordinate(int dir) const {
     if (parity(dir)) {
       return index2Coordinate(getMaxIndex(dir));
     } else {
@@ -548,7 +526,7 @@ public:
   }
 
   /// Returns the maximum coordinate of the domain of the grid
-  hrleCoordType getMaxLocalCoordinate(int dir) const {
+  CoordType getMaxLocalCoordinate(int dir) const {
     if (parity(dir)) {
       return index2Coordinate(getMinIndex(dir));
     } else {
@@ -595,9 +573,9 @@ public:
   // the direction of the infinite boundary.
   template <class V> bool isOutsideOfDomain(V v) const {
     for (unsigned i = 0; i < D; ++i) {
-      if (boundaryConditions[i] == hrleBoundaryType::INFINITE_BOUNDARY)
+      if (boundaryConditions[i] == BoundaryType::INFINITE_BOUNDARY)
         continue;
-      if (boundaryConditions[i] == hrleBoundaryType::PERIODIC_BOUNDARY &&
+      if (boundaryConditions[i] == BoundaryType::PERIODIC_BOUNDARY &&
           v[i] == maxIndex[i])
         return true;
       if (v[i] < minIndex[i] || v[i] > maxIndex[i])
@@ -610,21 +588,21 @@ public:
   std::ostream &serialize(std::ostream &stream) const {
     using namespace hrleUtil;
     // set identifier
-    stream << "hrleGrid";
+    stream << "Grid";
     // GRID PROPERTIES
-    hrleIndexType bounds[2 * D];
+    IndexType bounds[2 * D];
     // get the bounds to save
     for (unsigned i = 0; i < D; ++i) {
-      if (getBoundaryConditions(i) == hrleBoundaryType::INFINITE_BOUNDARY ||
-          getBoundaryConditions(i) == hrleBoundaryType::NEG_INFINITE_BOUNDARY) {
+      if (getBoundaryConditions(i) == BoundaryType::INFINITE_BOUNDARY ||
+          getBoundaryConditions(i) == BoundaryType::NEG_INFINITE_BOUNDARY) {
         // set to zero as it will be changed during deserialization
         bounds[2 * i] = 0;
       } else {
         bounds[2 * i] = minIndex[i];
       }
 
-      if (getBoundaryConditions(i) == hrleBoundaryType::INFINITE_BOUNDARY ||
-          getBoundaryConditions(i) == hrleBoundaryType::POS_INFINITE_BOUNDARY) {
+      if (getBoundaryConditions(i) == BoundaryType::INFINITE_BOUNDARY ||
+          getBoundaryConditions(i) == BoundaryType::POS_INFINITE_BOUNDARY) {
         bounds[2 * i + 1] = 0;
       } else {
         bounds[2 * i + 1] = maxIndex[i];
@@ -641,7 +619,7 @@ public:
         }
       }
       gridBoundaryBytes =
-          std::min(gridBoundaryBytes, static_cast<char>(sizeof(hrleIndexType)));
+          std::min(gridBoundaryBytes, static_cast<char>(sizeof(IndexType)));
 
       // grid properties
       stream.write(reinterpret_cast<char *>(&gridBoundaryBytes), sizeof(char));
@@ -662,34 +640,33 @@ public:
     // check identifier
     char identifier[9] = {}; // 1 more for string constructor
     stream.read(identifier, 8);
-    if (std::string(identifier).compare(0, 8, "hrleGrid")) {
-      std::cout
-          << "Reading hrleGrid from stream failed. Header could not be found."
-          << std::endl;
+    if (std::string(identifier).compare(0, 8, "Grid")) {
+      std::cout << "Reading Grid from stream failed. Header could not be found."
+                << std::endl;
       return stream;
     }
 
     char gridBoundaryBytes = 0;
     stream.read(&gridBoundaryBytes, 1);
     // READ GRID
-    hrleIndexType gridMin[D], gridMax[D];
-    hrleBoundaryType boundaryCons[D];
+    IndexType gridMin[D], gridMax[D];
+    BoundaryType boundaryCons[D];
     double gridDelta = 0.;
     for (int i = D - 1; i >= 0; --i) {
       gridMin[i] = readGridBoundary(stream, gridBoundaryBytes);
       gridMax[i] = readGridBoundary(stream, gridBoundaryBytes);
       char condition = 0;
       stream.read(&condition, 1);
-      boundaryCons[i] = static_cast<hrleBoundaryType>(condition);
+      boundaryCons[i] = static_cast<BoundaryType>(condition);
     }
     stream.read((char *)&gridDelta, sizeof(double));
     // initialize new grid
-    *this = hrleGrid(gridMin, gridMax, gridDelta, boundaryCons);
+    *this = Grid(gridMin, gridMax, gridDelta, boundaryCons);
 
     return stream;
   }
 
-  bool operator==(const hrleGrid &other) const {
+  bool operator==(const Grid &other) const {
     for (unsigned i = 0; i < D; ++i) {
       if (minIndex[i] != other.minIndex[i] ||
           maxIndex[i] != other.maxIndex[i] ||
@@ -701,7 +678,8 @@ public:
     return true;
   }
 
-  bool operator!=(const hrleGrid &other) const { return !(*this == other); }
+  bool operator!=(const Grid &other) const { return !(*this == other); }
 };
+} // namespace viennahrle
 
 #endif // HRLE_GRID_HPP

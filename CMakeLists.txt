@@ -8,35 +8,17 @@ project(
 # Library options
 # --------------------------------------------------------------------------------------------------------
 
-option(VIENNAHRLE_OPENMP "Build OpenMP" OFF)
-
 option(VIENNAHRLE_BUILD_TESTS "Build tests" OFF)
 option(VIENNAHRLE_BUILD_EXAMPLES "Build examples" OFF)
 
-option(VIENNAHRLE_ENABLE_SANITIZER "Enable Sanitizer for debug builds" OFF)
-option(VIENNAHRLE_USE_SANITIZER "Enable Sanitizer (Requires GCC or Clang)" OFF)
-
-# --------------------------------------------------------------------------------------------------------
-# Ensure valid library options
-# --------------------------------------------------------------------------------------------------------
-
-if(VIENNAHRLE_BUILD_TESTS OR VIENNAHRLE_BUILD_EXAMPLES)
-  set(VIENNAHRLE_OPENMP ON)
-endif()
+option(VIENNAHRLE_USE_SANITIZER "Enable Sanitizers" OFF)
 
 # --------------------------------------------------------------------------------------------------------
 # Configuration
 # --------------------------------------------------------------------------------------------------------
 
-if((VIENNAHRLE_ENABLE_SANITIZER AND CMAKE_BUILD_TYPE STREQUAL "Debug") OR VIENNAHRLE_USE_SANITIZER)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_compile_options(-fno-omit-frame-pointer -fsanitize=address -fsanitize=memory)
-    add_link_options(-fno-omit-frame-pointer -fsanitize=address -fsanitize=memory)
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_compile_options(-fno-omit-frame-pointer -fsanitize=address -fsanitize=leak)
-    add_link_options(-fno-omit-frame-pointer -fsanitize=address -fsanitize=leak)
-  endif()
-
+if(VIENNAHRLE_USE_SANITIZER)
+  viennacore_enable_sanitizer()
   message(STATUS "[ViennaHRLE] Using Sanitizer")
 endif()
 
@@ -69,16 +51,17 @@ target_include_directories(
 include("cmake/cpm.cmake")
 
 CPMAddPackage(
+  NAME ViennaCore
+  VERSION 1.2.1
+  GIT_TAG vector-type
+  GIT_REPOSITORY "https://github.com/ViennaTools/ViennaCore")
+
+CPMAddPackage(
   NAME PackageProject
   VERSION 1.13.0
   GIT_REPOSITORY "https://github.com/TheLartians/PackageProject.cmake")
 
-if(VIENNAHRLE_OPENMP)
-  message(STATUS "[ViennaHRLE] Enabling OMP Support")
-
-  find_package(OpenMP REQUIRED)
-  target_link_libraries(${PROJECT_NAME} INTERFACE OpenMP::OpenMP_CXX)
-endif()
+target_link_libraries(${PROJECT_NAME} INTERFACE ViennaTools::ViennaCore)
 
 # --------------------------------------------------------------------------------------------------------
 # Setup Examples

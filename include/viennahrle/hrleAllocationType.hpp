@@ -1,16 +1,18 @@
 #ifndef HRLE_ALLOCATION_TYPE_HPP
 #define HRLE_ALLOCATION_TYPE_HPP
 
-#include "hrleVectorType.hpp"
+#include <vcVectorUtil.hpp>
 
-template <class SizeType = unsigned int, int D = 3> class hrleAllocationType {
+namespace viennahrle {
+using namespace viennacore;
+template <class SizeType = unsigned int, int D = 3> class AllocationType {
 public:
-  hrleVectorType<SizeType, D> num_values;
-  hrleVectorType<SizeType, D> num_runs;
+  VectorType<SizeType, D> num_values;
+  VectorType<SizeType, D> num_runs;
 
   static constexpr double allocationFactor = 1.2;
 
-  template <class X> hrleAllocationType &operator*=(const X &x) {
+  template <class X> AllocationType &operator*=(const X &x) {
     for (int i = 0; i < D; ++i)
       num_values[i] = static_cast<SizeType>(num_values[i] * x);
     for (int i = 0; i < D; ++i)
@@ -18,13 +20,13 @@ public:
     return *this;
   }
 
-  hrleAllocationType &operator+=(const hrleAllocationType &x) {
+  AllocationType &operator+=(const AllocationType &x) {
     num_values += x.num_values;
     num_runs += x.num_runs;
     return *this;
   }
 
-  template <class X> hrleAllocationType &operator/=(const X &x) {
+  template <class X> AllocationType &operator/=(const X &x) {
     for (int i = 0; i < D; ++i)
       num_values[i] = static_cast<SizeType>(num_values[i] / x) + 1;
     for (int i = 0; i < D; ++i)
@@ -32,25 +34,26 @@ public:
     return *this;
   }
 
-  template <class X> hrleAllocationType operator*(const X &x) {
-    hrleAllocationType tmp(*this);
+  template <class X> AllocationType operator*(const X &x) {
+    AllocationType tmp(*this);
     tmp *= x;
     return tmp;
   }
 
-  template <class X> hrleAllocationType operator/(const X &x) {
-    hrleAllocationType tmp(*this);
+  template <class X> AllocationType operator/(const X &x) {
+    AllocationType tmp(*this);
     tmp /= x;
     return tmp;
   }
 
-  template <class X> hrleAllocationType operator+(const X &x) {
-    hrleAllocationType tmp(*this);
+  template <class X> AllocationType operator+(const X &x) {
+    AllocationType tmp(*this);
     tmp += x;
     return tmp;
   }
 
-  hrleAllocationType() : num_values(SizeType(0)), num_runs(SizeType(0)) {}
+  AllocationType() : num_values(SizeType(0)), num_runs(SizeType(0)) {}
 };
+} // namespace viennahrle
 
 #endif // HRLE_ALLOCATION_TYPE_HPP

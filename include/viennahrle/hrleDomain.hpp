@@ -31,19 +31,19 @@ License:         MIT (X11), see file LICENSE in the base directory
 
 #include "hrleAllocationType.hpp"
 #include "hrleDomainSegmentArray.hpp"
-#include "hrleSizeType.hpp"
 #include "hrleSparseIterator.hpp"
+#include "hrleTypes.hpp"
 #include "hrleUtil.hpp"
-#include "hrleVectorType.hpp"
 
-template <class T = double, int D = 3> class hrleDomain {
+namespace viennahrle {
+using namespace viennacore;
+template <class T = double, int D = 3> class Domain {
 public:
   // TYPEDEFS
-  typedef hrleDomainSegment<T, D> hrleDomainSegmentType;
-  typedef typename hrleDomainSegmentType::hrleValueType hrleValueType;
+  typedef DomainSegment<T, D> DomainSegmentType;
+  typedef typename DomainSegmentType::ValueType ValueType;
 
-  typedef hrleVectorType<hrleIndexType, D>
-      hrleIndexPoint; // 3d index vector type
+  typedef VectorType<IndexType, D> hrleIndexPoint; // 3d index vector type
   typedef std::vector<hrleIndexPoint> hrleIndexPoints;
 
   // CONSTANTS
@@ -51,20 +51,20 @@ public:
 
 private:
   // Private member variables
-  hrleGrid<D> *grid; // Grid stores the information about the grid, on
+  Grid<D> *grid; // Grid stores the information about the grid, on
   // which the HRLE structure is defined
 
   hrleIndexPoints segmentation;
-  hrleDomainSegmentArray<T, D> domainSegments;
+  DomainSegmentArray<T, D> domainSegments;
 
-  // std::vector<hrleSizeType> activePointIdOffsets;
-  std::vector<hrleSizeType> pointIdOffsets;
+  // std::vector<SizeType> activePointIdOffsets;
+  std::vector<SizeType> pointIdOffsets;
 
   // Friend classes
   // Iterators need private access to get the values
-  template <class> friend class hrleBaseIterator;
-  template <class> friend class hrleSparseIterator;
-  template <class> friend class hrleSparseOffsetIterator;
+  template <class> friend class BaseIterator;
+  template <class> friend class SparseIterator;
+  template <class> friend class SparseOffsetIterator;
 
   template <
       class S, class Type,
@@ -100,54 +100,52 @@ private:
 
 public:
   // CONSTRUCTORS
-  hrleDomain() = default;
-  hrleDomain(const hrleDomain &) = delete;
+  Domain() = default;
+  Domain(const Domain &) = delete;
 
   // create empty level set with one undefined run
-  explicit hrleDomain(hrleGrid<D> &g,
-                      hrleSizeType runType = hrleRunTypeValues::UNDEF_PT)
+  explicit Domain(Grid<D> &g, SizeType runType = RunTypeValues::UNDEF_PT)
       : grid(&g) {
     initialize();
     domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
   };
 
-  explicit hrleDomain(hrleGrid<D> *g,
-                      hrleSizeType runType = hrleRunTypeValues::UNDEF_PT)
+  explicit Domain(Grid<D> *g, SizeType runType = RunTypeValues::UNDEF_PT)
       : grid(g) {
     initialize();
     domainSegments[0].insertNextUndefinedRunType(grid->getMinIndex(), runType);
   };
 
   // create empty level set with one undefined value
-  hrleDomain(hrleGrid<D> &g, T value) : grid(&g) {
+  Domain(Grid<D> &g, T value) : grid(&g) {
     initialize();
     domainSegments[0].insertNextUndefinedPoint(grid->getMinIndex(), value);
   };
 
-  hrleDomain(hrleGrid<D> *g, T value) : grid(g) {
+  Domain(Grid<D> *g, T value) : grid(g) {
     initialize();
     domainSegments[0].insertNextUndefinedPoint(grid->getMinIndex(), value);
   };
 
-  void deepCopy(const hrleDomain &passedDomain) {
+  void deepCopy(const Domain &passedDomain) {
     assert(grid == &(passedDomain.getGrid()));
     pointIdOffsets = passedDomain.pointIdOffsets;
     segmentation = passedDomain.segmentation;
     domainSegments.deepCopy(grid, passedDomain.domainSegments);
   }
 
-  void deepCopy(hrleGrid<D> *passedGrid, const hrleDomain &passedDomain) {
+  void deepCopy(Grid<D> *passedGrid, const Domain &passedDomain) {
     deepCopy(*passedGrid, passedDomain);
   }
 
-  void deepCopy(hrleGrid<D> &passedGrid, const hrleDomain &passedDomain) {
+  void deepCopy(Grid<D> &passedGrid, const Domain &passedDomain) {
     grid = &passedGrid;
     pointIdOffsets = passedDomain.pointIdOffsets;
     segmentation = passedDomain.segmentation;
     domainSegments.deepCopy(grid, passedDomain.domainSegments);
   }
 
-  void shallowCopy(const hrleDomain &passedDomain) {
+  void shallowCopy(const Domain &passedDomain) {
     grid = passedDomain.grid;
     pointIdOffsets = passedDomain.pointIdOffsets;
     domainSegments.shallowCopy(passedDomain.domainSegments);
@@ -156,25 +154,23 @@ public:
 
   // Inline member functions
   void print(std::ostream &out = std::cout) const {
-    for (hrleSizeType i = 0; i != domainSegments.getNumberOfSegments(); ++i) {
+    for (SizeType i = 0; i != domainSegments.getNumberOfSegments(); ++i) {
       domainSegments[i].print(out);
       out << std::endl;
     }
   }
 
-  const hrleGrid<D> &getGrid() const { return *grid; }
+  const Grid<D> &getGrid() const { return *grid; }
 
-  hrleGrid<D> &getGrid() { return *grid; }
+  Grid<D> &getGrid() { return *grid; }
 
-  hrleDomainSegmentType &getDomainSegment(unsigned i) {
+  DomainSegmentType &getDomainSegment(unsigned i) { return domainSegments[i]; }
+
+  const DomainSegmentType &getDomainSegment(unsigned i) const {
     return domainSegments[i];
   }
 
-  const hrleDomainSegmentType &getDomainSegment(unsigned i) const {
-    return domainSegments[i];
-  }
-
-  hrleSizeType getPointIdOffset(unsigned i) const { return pointIdOffsets[i]; }
+  SizeType getPointIdOffset(unsigned i) const { return pointIdOffsets[i]; }
 
   unsigned getNumberOfPoints() const {
     unsigned totalPoints = 0;
@@ -202,53 +198,51 @@ public:
 
   const hrleIndexPoints &getSegmentation() const { return segmentation; }
 
-  hrleIndexType getMinRunBreak(int dim) const {
-    hrleIndexType minBreak = domainSegments[0].getMinRunBreak(dim);
+  IndexType getMinRunBreak(int dim) const {
+    IndexType minBreak = domainSegments[0].getMinRunBreak(dim);
     for (unsigned i = 1; i < domainSegments.getNumberOfSegments(); ++i) {
       minBreak = std::min(minBreak, domainSegments[i].getMinRunBreak(dim));
     }
     return minBreak;
   }
 
-  hrleIndexType getMaxRunBreak(int dim) const {
-    hrleIndexType maxBreak = domainSegments[0].getMaxRunBreak(dim);
+  IndexType getMaxRunBreak(int dim) const {
+    IndexType maxBreak = domainSegments[0].getMaxRunBreak(dim);
     for (unsigned i = 1; i < domainSegments.getNumberOfSegments(); ++i) {
       maxBreak = std::max(maxBreak, domainSegments[i].getMaxRunBreak(dim));
     }
     return maxBreak;
   }
 
-  hrleVectorType<hrleIndexType, D> getMinRunBreak() const {
-    hrleVectorType<hrleIndexType, D> minBreak;
+  VectorType<IndexType, D> getMinRunBreak() const {
+    VectorType<IndexType, D> minBreak;
     for (unsigned i = 0; i < D; ++i) {
       minBreak[i] = getMinRunBreak(i);
     }
     return minBreak;
   }
 
-  hrleVectorType<hrleIndexType, D> getMaxRunBreak() const {
-    hrleVectorType<hrleIndexType, D> maxBreak;
+  VectorType<IndexType, D> getMaxRunBreak() const {
+    VectorType<IndexType, D> maxBreak;
     for (unsigned i = 0; i < D; ++i) {
       maxBreak[i] = getMaxRunBreak(i);
     }
     return maxBreak;
   }
 
-  void getDomainBounds(hrleIndexType *bounds) {
+  void getDomainBounds(IndexType *bounds) {
     for (unsigned i = 0; i < D; ++i) {
-      if (grid->getBoundaryConditions(i) ==
-              hrleBoundaryType::INFINITE_BOUNDARY ||
+      if (grid->getBoundaryConditions(i) == BoundaryType::INFINITE_BOUNDARY ||
           grid->getBoundaryConditions(i) ==
-              hrleBoundaryType::NEG_INFINITE_BOUNDARY) {
+              BoundaryType::NEG_INFINITE_BOUNDARY) {
         bounds[2 * i] = getMinRunBreak(i);
       } else {
         bounds[2 * i] = grid->getMinGridPoint(i);
       }
 
-      if (grid->getBoundaryConditions(i) ==
-              hrleBoundaryType::INFINITE_BOUNDARY ||
+      if (grid->getBoundaryConditions(i) == BoundaryType::INFINITE_BOUNDARY ||
           grid->getBoundaryConditions(i) ==
-              hrleBoundaryType::POS_INFINITE_BOUNDARY) {
+              BoundaryType::POS_INFINITE_BOUNDARY) {
         bounds[2 * i + 1] = getMaxRunBreak(i);
       } else {
         bounds[2 * i + 1] = grid->getMaxGridPoint(i);
@@ -266,7 +260,7 @@ public:
   }
 
   template <class V>
-  void insertNextUndefinedRunType(int sub, const V &point, hrleSizeType rt) {
+  void insertNextUndefinedRunType(int sub, const V &point, SizeType rt) {
     // this function sets the sign of an undefined run starting at indices
     // "point" the indices of the new grid point "indices" must be greater
     // (lexiographically greater) than the indices of the current "last" grid
@@ -275,7 +269,7 @@ public:
   }
 
   template <class V>
-  void insertNextUndefinedPoint(int sub, const V &point, hrleValueType value) {
+  void insertNextUndefinedPoint(int sub, const V &point, ValueType value) {
     // this function sets the sign of an undefined run starting at indices
     // "point" the indices of the new grid point "indices" must be greater
     // (lexiographically greater) than the indices of the current "last" grid
@@ -284,48 +278,47 @@ public:
   }
 
   // create new segmentation and domainSegments
-  void initialize(const hrleIndexPoints &p = hrleIndexPoints(),
-                  const hrleAllocationType<hrleSizeType, D> &a =
-                      hrleAllocationType<hrleSizeType, D>()) {
+  void initialize(
+      const hrleIndexPoints &p = hrleIndexPoints(),
+      const AllocationType<SizeType, D> &a = AllocationType<SizeType, D>()) {
 
     segmentation = p;
 
     domainSegments.initialize(segmentation.size() + 1, *grid,
                               a); // clear old segments and create new ones
 
-    for (hrleSizeType i = 1; i < domainSegments.getNumberOfSegments(); ++i) {
-      hrleDomainSegment<T, D> &s = domainSegments[i];
+    for (SizeType i = 1; i < domainSegments.getNumberOfSegments(); ++i) {
+      DomainSegment<T, D> &s = domainSegments[i];
 
       s.insertNextUndefinedRunType(grid->getMinIndex(),
                                    grid->decrementIndices(segmentation[0]),
-                                   hrleRunTypeValues::SEGMENT_PT);
+                                   RunTypeValues::SEGMENT_PT);
 
-      for (hrleSizeType j = 1; j < i; ++j) {
+      for (SizeType j = 1; j < i; ++j) {
         s.insertNextUndefinedRunType(segmentation[j - 1],
                                      grid->decrementIndices(segmentation[j]),
-                                     hrleRunTypeValues::SEGMENT_PT + j);
+                                     RunTypeValues::SEGMENT_PT + j);
       }
     }
   }
 
-  // distribute data points evenly across hrleDomainSegments and add SEGMENT_PT
+  // distribute data points evenly across DomainSegments and add SEGMENT_PT
   // as boundary markers
   void finalize() {
 
-    for (hrleSizeType i = 0; i + 1 < domainSegments.getNumberOfSegments();
-         ++i) {
+    for (SizeType i = 0; i + 1 < domainSegments.getNumberOfSegments(); ++i) {
 
-      hrleDomainSegment<T, D> &s = domainSegments[i];
+      DomainSegment<T, D> &s = domainSegments[i];
 
-      for (hrleSizeType j = i + 1; j < segmentation.size(); ++j) {
+      for (SizeType j = i + 1; j < segmentation.size(); ++j) {
         s.insertNextUndefinedRunType(segmentation[j - 1],
                                      grid->decrementIndices(segmentation[j]),
-                                     hrleRunTypeValues::SEGMENT_PT + j);
+                                     RunTypeValues::SEGMENT_PT + j);
       }
       s.insertNextUndefinedRunType(
           segmentation.back(), grid->getMaxGridPoint(),
-          hrleRunTypeValues::SEGMENT_PT +
-              static_cast<hrleSizeType>(segmentation.size()));
+          RunTypeValues::SEGMENT_PT +
+              static_cast<SizeType>(segmentation.size()));
     }
 
     // TODO: for now do not save pointId offsets as they can easily be found
@@ -335,20 +328,19 @@ public:
     // active_pointIdOffsets.clear();
     pointIdOffsets.push_back(0);
     // activePointId_offsets.push_back(0);
-    for (hrleSizeType i = 0; i < domainSegments.getNumberOfSegments() - 1;
-         ++i) {
+    for (SizeType i = 0; i < domainSegments.getNumberOfSegments() - 1; ++i) {
       pointIdOffsets.push_back(pointIdOffsets.back() +
                                domainSegments[i].getNumberOfPoints());
       //     activePointId_offsets.push_back(activePointId_offsets.back()+domainSegments[i].num_active_pts());
     }
 
-    // assert(activePointId_offsets.size()==hrleDomainSegment.size());
+    // assert(activePointId_offsets.size()==DomainSegment.size());
     assert(pointIdOffsets.size() == domainSegments.getNumberOfSegments());
   }
 
   /// Converts a pointId(given by lexicographical order of points) to a spatial
   /// coordinate
-  hrleIndexPoint ptIdToCoordinate(hrleSizeType pt) const {
+  hrleIndexPoint ptIdToCoordinate(SizeType pt) const {
     hrleIndexPoint pointCoords;
 
     // find domainSegment of point
@@ -358,12 +350,12 @@ public:
 
     pt -= pointIdOffsets[segment]; // local point id
 
-    const hrleDomainSegmentType &s = domainSegments[segment];
+    const DomainSegmentType &s = domainSegments[segment];
 
     // find right PointID by bisection
     for (int g = 0; g < D; ++g) {
-      hrleSizeType min = 0;
-      hrleSizeType max = hrleSizeType(s.runTypes[g].size()) - 1;
+      SizeType min = 0;
+      SizeType max = SizeType(s.runTypes[g].size()) - 1;
 
       while (!s.isPtIdDefined(s.runTypes[g][min]))
         ++min;
@@ -371,7 +363,7 @@ public:
         --max;
 
       while (min != max) {
-        hrleSizeType mid = (max + min + 1) / 2;
+        SizeType mid = (max + min + 1) / 2;
         while (!s.isPtIdDefined(s.runTypes[g][mid]))
           ++mid;
 
@@ -386,10 +378,10 @@ public:
 
       pointCoords[g] = pt - s.runTypes[g][min];
 
-      pt = static_cast<hrleSizeType>(
-          std::upper_bound(s.startIndices[g].begin() + 1,
-                           s.startIndices[g].end(), min) -
-          (s.startIndices[g].begin() + 1));
+      pt =
+          static_cast<SizeType>(std::upper_bound(s.startIndices[g].begin() + 1,
+                                                 s.startIndices[g].end(), min) -
+                                (s.startIndices[g].begin() + 1));
 
       pointCoords[g] += s.getRunStartCoord(g, pt, min);
     }
@@ -406,8 +398,8 @@ public:
 #ifdef _OPENMP
     n = omp_get_max_threads();
 #endif
-    hrleSizeType n_pts = getNumberOfPoints(); // number of defined grid points
-    hrleSizeType sum = 0;
+    SizeType n_pts = getNumberOfPoints(); // number of defined grid points
+    SizeType sum = 0;
 
     for (unsigned int g = 0; g < static_cast<unsigned int>(n - 1); ++g) {
       sum += n_pts / n + ((n_pts % n) > g);
@@ -423,14 +415,14 @@ public:
   /// for all the domainSegments members num_values[0] is to contain level set
   /// values, num_values[i] contains the start indices at the i-th dimension
   /// num_runs[i] is to contain the run types at the i-th dimension
-  hrleAllocationType<hrleSizeType, D> getAllocation() const {
-    hrleAllocationType<hrleSizeType, D> a;
-    a.num_values = hrleVectorType<hrleIndexType, D>(0);
-    a.num_runs = hrleVectorType<hrleIndexType, D>(0);
+  AllocationType<SizeType, D> getAllocation() const {
+    AllocationType<SizeType, D> a;
+    a.num_values = VectorType<IndexType, D>(0);
+    a.num_runs = VectorType<IndexType, D>(0);
     for (unsigned i = 0; i < domainSegments.getNumberOfSegments(); ++i) {
-      hrleAllocationType<hrleSizeType, D> b = domainSegments[i].getAllocation();
-      a.num_values = hrleUtil::Max(a.num_values, b.num_values);
-      a.num_runs = hrleUtil::Max(a.num_runs, b.num_runs);
+      AllocationType<SizeType, D> b = domainSegments[i].getAllocation();
+      a.num_values = Max(a.num_values, b.num_values);
+      a.num_runs = Max(a.num_runs, b.num_runs);
     }
 
     return (a * domainSegments.getNumberOfSegments());
@@ -442,7 +434,7 @@ public:
     if (getNumberOfPoints() == 0) {
       return;
     }
-    hrleDomain newDomain(grid);
+    Domain newDomain(grid);
     newDomain.initialize(getNewSegmentation(), getAllocation());
 
 #pragma omp parallel num_threads(                                              \
@@ -453,17 +445,17 @@ public:
       p = omp_get_thread_num();
 #endif
 
-      hrleDomainSegmentType &s = newDomain.domainSegments[p];
+      DomainSegmentType &s = newDomain.domainSegments[p];
 
-      hrleVectorType<hrleIndexType, D> startOfSegment =
+      VectorType<IndexType, D> startOfSegment =
           (p == 0) ? grid->getMinIndex() : newDomain.segmentation[p - 1];
 
-      hrleVectorType<hrleIndexType, D> endOfSegment =
+      VectorType<IndexType, D> endOfSegment =
           (p != static_cast<int>(newDomain.segmentation.size()))
               ? newDomain.segmentation[p]
               : grid->getMaxGridPoint();
 
-      for (hrleConstSparseIterator<hrleDomain> it(*this, startOfSegment);
+      for (SparseIterator<Domain> it(*this, startOfSegment);
            it.getStartIndices() < endOfSegment; it.next()) {
         if (it.isDefined()) {
           s.insertNextDefinedPoint(it.getStartIndices(), it.getValue());
@@ -481,12 +473,11 @@ public:
   /// HRLE structure
   void desegment() {
     if (domainSegments.getNumberOfSegments() > 1) {
-      hrleDomain newDomain(grid);
+      Domain newDomain(grid);
       newDomain.initialize(); // initialize with only one segment
 
-      hrleDomainSegmentType &s = newDomain.domainSegments[0];
-      for (hrleConstSparseIterator<hrleDomain> it(*this); !it.isFinished();
-           ++it) {
+      DomainSegmentType &s = newDomain.domainSegments[0];
+      for (ConstSparseIterator<Domain> it(*this); !it.isFinished(); ++it) {
         if (it.isDefined()) {
           s.insertNextDefinedPoint(it.getStartIndices(), it.getDefinedValue());
         } else {
@@ -544,7 +535,7 @@ public:
   std::ostream &serialize(std::ostream &stream) {
     using namespace hrleUtil;
     // write identifier
-    stream << "hrleDomain";
+    stream << "Domain";
 
     bool structureIsSerial = true;
     if (getNumberOfSegments() > 1) {
@@ -553,17 +544,16 @@ public:
     }
 
     // get domain bounds
-    hrleIndexType bounds[2 * D];
+    IndexType bounds[2 * D];
     getDomainBounds(bounds);
 
     // START INDICES, RUN TYPES, RUN BREAKS FOR EACH DIMENSION
     for (int dim = D - 1; dim >= 0; --dim) {
       // get start indices, runbreaks and runtypes
-      const std::vector<hrleSizeType> &startIndices =
+      const std::vector<SizeType> &startIndices =
           domainSegments[0].startIndices[dim];
-      const std::vector<hrleSizeType> &runTypes =
-          domainSegments[0].runTypes[dim];
-      const std::vector<hrleIndexType> &runBreaks =
+      const std::vector<SizeType> &runTypes = domainSegments[0].runTypes[dim];
+      const std::vector<IndexType> &runBreaks =
           domainSegments[0].runBreaks[dim];
 
       const char bytesPerIndex =
@@ -609,7 +599,7 @@ public:
       }
 
       // write all runtypes to the file, skipping all segments and indices
-      std::vector<hrleSizeType>
+      std::vector<SizeType>
           definedRunIndices; // store all indices of defined runtypes
       if (bitsPerRunType > 0) {
         int count = 8 / bitsPerRunType - 1;
@@ -618,10 +608,10 @@ public:
         // each runType needs at least one byte
         if (bitsPerRunType > 4) {
           for (unsigned long runType : runTypes) {
-            hrleSizeType PtId = 0;
+            SizeType PtId = 0;
             // if undefined point, need to shift id
-            if (runType >= hrleRunTypeValues::UNDEF_PT)
-              PtId = runType - hrleRunTypeValues::UNDEF_PT + 1;
+            if (runType >= RunTypeValues::UNDEF_PT)
+              PtId = runType - RunTypeValues::UNDEF_PT + 1;
             else
               definedRunIndices.push_back(runType);
 
@@ -629,9 +619,9 @@ public:
           }
         } else { // can fit more than one value in a byte
           for (unsigned long runType : runTypes) {
-            hrleSizeType PtId = 0;
-            if (runType >= hrleRunTypeValues::UNDEF_PT)
-              PtId = runType - hrleRunTypeValues::UNDEF_PT + 1;
+            SizeType PtId = 0;
+            if (runType >= RunTypeValues::UNDEF_PT)
+              PtId = runType - RunTypeValues::UNDEF_PT + 1;
             else
               definedRunIndices.push_back(runType);
 
@@ -681,18 +671,17 @@ public:
     }
     // DATA
     {
-      std::vector<hrleValueType> &definedValues =
-          domainSegments[0].definedValues;
-      for (typename std::vector<hrleValueType>::const_iterator it =
+      std::vector<ValueType> &definedValues = domainSegments[0].definedValues;
+      for (typename std::vector<ValueType>::const_iterator it =
                definedValues.begin();
            it != definedValues.end(); ++it) {
         writeValue(stream, *it);
         // stream.write(reinterpret_cast<char*>*it) //<< *it;
       }
 
-      std::vector<hrleValueType> &undefinedValues =
+      std::vector<ValueType> &undefinedValues =
           domainSegments[0].undefinedValues;
-      for (typename std::vector<hrleValueType>::const_iterator it =
+      for (typename std::vector<ValueType>::const_iterator it =
                undefinedValues.begin();
            it != undefinedValues.end(); ++it) {
         writeValue(stream, *it);
@@ -700,7 +689,7 @@ public:
       }
     }
 
-    // if the hrleDomain was segmented before, segment it again
+    // if the Domain was segmented before, segment it again
     if (!structureIsSerial) {
       segment();
     }
@@ -712,9 +701,9 @@ public:
     // check identifier
     char identifier[11] = {}; // 1 more for string constructor
     stream.read(identifier, 10);
-    if (std::string(identifier).compare(0, 10, "hrleDomain")) {
+    if (std::string(identifier).compare(0, 10, "Domain")) {
       std::cout
-          << "Reading hrleDomain from stream failed. Header could not be found."
+          << "Reading Domain from stream failed. Header could not be found."
           << std::endl;
       return stream;
     }
@@ -722,10 +711,9 @@ public:
     // READ HRLE PROPERTIES
     for (int dim = D - 1; dim >= 0; --dim) {
       // get the start indices, runtypes and runbreaks vectors
-      std::vector<hrleSizeType> &startIndices =
-          domainSegments[0].startIndices[dim];
-      std::vector<hrleSizeType> &runTypes = domainSegments[0].runTypes[dim];
-      std::vector<hrleIndexType> &runBreaks = domainSegments[0].runBreaks[dim];
+      std::vector<SizeType> &startIndices = domainSegments[0].startIndices[dim];
+      std::vector<SizeType> &runTypes = domainSegments[0].runTypes[dim];
+      std::vector<IndexType> &runBreaks = domainSegments[0].runBreaks[dim];
 
       uint32_t numberOfStartIndices, numberOfRunTypes, numberOfRunBreaks;
       char bytesPerIndex, bitsPerRunType, bytesPerRunBreak;
@@ -748,7 +736,7 @@ public:
             unsigned long long current = 0;
             stream.read((char *)&current, bytesPerIndex);
             sum += current;
-            startIndices.push_back(hrleSizeType(sum));
+            startIndices.push_back(SizeType(sum));
           }
         }
       }
@@ -767,13 +755,13 @@ public:
         runTypes.resize(numberOfRunTypes);
         if (bitsPerRunType > 4) {
           for (unsigned i = 0; i < numberOfRunTypes; ++i) {
-            hrleSizeType current = 0;
+            SizeType current = 0;
             stream.read((char *)&current, (bitsPerRunType - 1) / 8 + 1);
             if (current == 0) { // defined run
               // for a defined run, store 0, so it can be replaced later
               runTypes[i] = 0;
             } else { // undefined run
-              runTypes[i] = current - 1 + hrleRunTypeValues::UNDEF_PT;
+              runTypes[i] = current - 1 + RunTypeValues::UNDEF_PT;
             }
           }
         } else { // if there are several values in each byte
@@ -786,13 +774,13 @@ public:
             for (unsigned j = 0; j < numberOfValuesPerByte; ++j) {
               if (readValues == numberOfRunTypes)
                 break;
-              hrleSizeType current = (byte & bitMask) >> (8 - bitsPerRunType);
+              SizeType current = (byte & bitMask) >> (8 - bitsPerRunType);
               byte <<= bitsPerRunType;
               if (current == 0) { // defined run
                 runTypes[i * numberOfValuesPerByte + j] = 0;
               } else { // undefined run
                 runTypes[i * numberOfValuesPerByte + j] =
-                    current - 1 + hrleRunTypeValues::UNDEF_PT;
+                    current - 1 + RunTypeValues::UNDEF_PT;
               }
               ++readValues;
             }
@@ -831,7 +819,7 @@ public:
           stream.read((char *)&runBreak, bytesPerRunBreak);
           if (runBreak >> (bytesPerRunBreak * 8 - 1))
             runBreak |= bitMask;
-          runBreaks.push_back(hrleSizeType(runBreak));
+          runBreaks.push_back(SizeType(runBreak));
         }
       }
     }
@@ -846,7 +834,7 @@ public:
       domainSegments[0].definedValues.clear();
       // DEFINED VALUES
       for (unsigned i = 0; i < numberOfDefinedValues; ++i) {
-        hrleValueType definedValue;
+        ValueType definedValue;
         readValue(stream, definedValue);
         domainSegments[0].definedValues.push_back(definedValue);
       }
@@ -854,7 +842,7 @@ public:
       domainSegments[0].undefinedValues.clear();
       // UNDEFINED VALUES
       for (unsigned i = 0; i < numberOfUndefinedValues; ++i) {
-        hrleValueType undefinedValue;
+        ValueType undefinedValue;
         readValue(stream, undefinedValue);
         domainSegments[0].undefinedValues.push_back(undefinedValue);
       }
@@ -866,5 +854,6 @@ public:
     return stream;
   }
 };
+} // namespace viennahrle
 
 #endif // HRLE_DOMAIN_HPP_

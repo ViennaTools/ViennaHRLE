@@ -6,20 +6,21 @@
 int main() {
 
   constexpr int D = 2;
+  using namespace viennahrle;
 
   // set domain bounds
-  hrleIndexType min[D], max[D];
+  IndexType min[D], max[D];
   for (unsigned i = 0; i < D; ++i) {
     min[i] = -20;
     max[i] = 20;
   }
 
   // declare domain with bounds min,max
-  hrleGrid<D> grid(min, max);
-  hrleDomain<char, D> data(grid);
+  Grid<D> grid(min, max);
+  Domain<char, D> data(grid);
 
-  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, char>> pointData;
-  hrleVectorType<hrleIndexType, D> index(0, 5, 0);
+  std::vector<std::pair<Index<D>, char>> pointData;
+  Index<D> index(0, 5, 0);
 
   std::string helloString = "Hello, World!";
 
@@ -36,20 +37,19 @@ int main() {
     // index[1] += 1;
   }
 
-  hrleFillDomainFromPointList(
-      data, pointData,
-      '.'); // last parameter is the background value to use
+  FillDomainFromPointList(data, pointData,
+                          '.'); // last parameter is the background value to use
 
   // go to the first 'l' and output all neighbors
   constexpr int order = 3;
-  hrleConstSparseStarIterator<hrleDomain<char, D>, order> neighborIt(data);
+  ConstSparseStarIterator<Domain<char, D>, order> neighborIt(data);
   while (!(neighborIt.getCenter().getValue() == 'l')) {
     neighborIt.next();
   }
 
   --neighborIt;
 
-  hrleVectorType<hrleIndexType, D> testIndex(-1, 0);
+  Index<D> testIndex(-1, 0);
   std::cout << "Value at index " << testIndex << ": "
             << neighborIt.getNeighbor(testIndex).getValue() << std::endl;
 
