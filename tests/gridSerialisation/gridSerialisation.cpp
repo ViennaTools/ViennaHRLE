@@ -2,23 +2,26 @@
 #include <iostream>
 
 #include <hrleGrid.hpp>
-#include <hrleTestAsserts.hpp>
+#include <hrleTypes.hpp>
+
+#include <vcTestAsserts.hpp>
 
 int main() {
   constexpr int D = 2;
+  using namespace viennahrle;
 
-  hrleIndexType min[D] = {-10000000, -100000000};
-  hrleIndexType max[D] = {10, 10};
+  IndexType min[D] = {-10000000, -100000000};
+  IndexType max[D] = {10, 10};
   const double gridDelta = 1.0;
-  hrleBoundaryType boundaryCons[D];
+  BoundaryType boundaryCons[D];
   for (unsigned i = 0; i < D; ++i) {
     boundaryCons[i] =
-        hrleBoundaryType::REFLECTIVE_BOUNDARY; // Reflective boundary conditions
+        BoundaryType::REFLECTIVE_BOUNDARY; // Reflective boundary conditions
   }
-  boundaryCons[D - 1] = hrleBoundaryType::INFINITE_BOUNDARY;
+  boundaryCons[D - 1] = BoundaryType::INFINITE_BOUNDARY;
 
   // Initialise example grid
-  auto grid = hrleGrid<D>(min, max, gridDelta, boundaryCons);
+  auto grid = Grid<D>(min, max, gridDelta, boundaryCons);
 
   // grid.print();
   // std::cout << "\n\n" << std::flush;
@@ -35,7 +38,7 @@ int main() {
   // Now read the grid in again
   std::ifstream fin("test.grid");
 
-  hrleGrid<D> newGrid;
+  Grid<D> newGrid;
 
   newGrid.deserialize(fin);
 
@@ -43,7 +46,7 @@ int main() {
 
   // newGrid.print();
 
-  HRLETEST_ASSERT(grid == newGrid)
+  VC_TEST_ASSERT(grid == newGrid)
 
   return 0;
 }

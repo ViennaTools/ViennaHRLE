@@ -14,15 +14,6 @@ option(VIENNAHRLE_BUILD_EXAMPLES "Build examples" OFF)
 option(VIENNAHRLE_USE_SANITIZER "Enable Sanitizers" OFF)
 
 # --------------------------------------------------------------------------------------------------------
-# Configuration
-# --------------------------------------------------------------------------------------------------------
-
-if(VIENNAHRLE_USE_SANITIZER)
-  viennacore_enable_sanitizer()
-  message(STATUS "[ViennaHRLE] Using Sanitizer")
-endif()
-
-# --------------------------------------------------------------------------------------------------------
 # Setup Library
 # --------------------------------------------------------------------------------------------------------
 
@@ -64,12 +55,21 @@ CPMAddPackage(
 target_link_libraries(${PROJECT_NAME} INTERFACE ViennaTools::ViennaCore)
 
 # --------------------------------------------------------------------------------------------------------
+# Configuration
+# --------------------------------------------------------------------------------------------------------
+
+if(VIENNAHRLE_USE_SANITIZER)
+  message(STATUS "[ViennaHRLE] Using Sanitizer")
+  viennacore_enable_sanitizer()
+endif()
+
+# --------------------------------------------------------------------------------------------------------
 # Setup Examples
 # --------------------------------------------------------------------------------------------------------
 
 if(VIENNAHRLE_BUILD_EXAMPLES)
   message(STATUS "[ViennaHRLE] Building Examples")
-  add_subdirectory(Examples)
+  add_subdirectory(examples)
 endif()
 
 # --------------------------------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ if(VIENNAHRLE_BUILD_TESTS)
   message(STATUS "[ViennaHRLE] Building Tests")
 
   enable_testing()
-  add_subdirectory(Tests)
+  add_subdirectory(tests)
 endif()
 
 # --------------------------------------------------------------------------------------------------------

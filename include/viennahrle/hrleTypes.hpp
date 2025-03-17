@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vcVectorUtil.hpp>
+#include <vcVectorType.hpp>
 
 namespace viennahrle {
 using namespace viennacore;

@@ -84,7 +84,7 @@ public:
     currentIndices = minIndex;
   }
 
-  DenseIterator<hrleDomain> &operator++() {
+  DenseIterator &operator++() {
     // move iterator with currentIndices if they are the same
     incrementIndices(currentIndices);
     while (runsIterator.getEndIndices() < currentIndices &&
@@ -95,13 +95,13 @@ public:
     return *this;
   }
 
-  DenseIterator<hrleDomain> operator++(int) {
-    DenseIterator<hrleDomain> tmp(*this);
+  DenseIterator operator++(int) {
+    DenseIterator tmp(*this);
     ++(*this);
     return tmp;
   }
 
-  DenseIterator<hrleDomain> &operator--() {
+  DenseIterator &operator--() {
     // move iterator with currentIndices if they are the same
     decrementIndices(currentIndices);
     while (runsIterator.getEndIndices() > currentIndices &&
@@ -112,8 +112,8 @@ public:
     return *this;
   }
 
-  DenseIterator<hrleDomain> operator--(int) {
-    DenseIterator<hrleDomain> tmp(*this);
+  DenseIterator operator--(int) {
+    DenseIterator tmp(*this);
     --(*this);
     return tmp;
   }

@@ -1,7 +1,6 @@
 #ifndef HRLE_SQUARE_ITERATOR_HPP
 #define HRLE_SQUARE_ITERATOR_HPP
 
-#include "hrleSparseIterator.hpp"
 #include "hrleSparseOffsetIterator.hpp"
 #include "hrleUtil.hpp"
 
@@ -145,6 +144,8 @@ public:
         increment = std::vector<bool>(numNeighbors + 1, false);
       case 0:
         increment[i] = true;
+      default:
+        break;
       }
     }
 
@@ -172,6 +173,8 @@ public:
         decrement = std::vector<bool>(numNeighbors + 1, false);
       case 0:
         decrement[i] = true;
+      default:
+        break;
       }
     }
 

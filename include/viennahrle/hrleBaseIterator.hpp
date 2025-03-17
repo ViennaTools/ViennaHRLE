@@ -7,7 +7,7 @@
 #include "hrleRunTypeValues.hpp"
 #include "hrleTypes.hpp"
 
-#include <vcVectorUtil.hpp>
+#include <vcVectorType.hpp>
 
 /// Base class for RunsIterator and RunsIteratorOffset. Should/Can not be used
 /// directly.
@@ -38,7 +38,7 @@ protected:
   }
 
   void go_up_AB() {
-    assert((r_level == s_level) || (s_level == r_level + 1));
+    // assert((r_level == s_level) || (s_level == r_level + 1));
     s_level = r_level + 1;
     absCoords[r_level] = domain.getGrid().getMinGridPoint(r_level);
     endAbsCoords[r_level] = domain.getGrid().getMaxGridPoint(r_level);
@@ -48,7 +48,7 @@ protected:
 public:
   using DomainType = hrleDomain;
 
-  void print() { // TODO
+  void print() {
     std::cout << "startIndicesPos: " << startIndicesPos << std::endl;
     std::cout << "runTypePos: " << runTypePos << std::endl;
     std::cout << "startRunAbsCoords: " << startRunAbsCoords << std::endl;

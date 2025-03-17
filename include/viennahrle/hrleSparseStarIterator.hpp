@@ -9,7 +9,6 @@
 
 namespace viennahrle {
 using namespace viennacore;
-
 /// This neighbor iterator consists of 2*Dimensions SparseOffsetIterator s
 /// for the cartesian neighbors and an SparseIterator
 /// for the center.

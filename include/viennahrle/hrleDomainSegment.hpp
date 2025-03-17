@@ -2,6 +2,7 @@
 #define HRLE_DOMAIN_SEGMENT_HPP
 
 #include <cassert>
+#include <iomanip>
 #include <sstream>
 
 #include "hrleAllocationType.hpp"

@@ -20,7 +20,6 @@ License:         MIT (X11), see file LICENSE in the base directory
 #include <type_traits>
 #include <vector>
 
-#include <iomanip>
 #include <iostream>
 #include <istream>
 #include <ostream>
@@ -42,9 +41,7 @@ public:
   // TYPEDEFS
   typedef DomainSegment<T, D> DomainSegmentType;
   typedef typename DomainSegmentType::ValueType ValueType;
-
-  typedef VectorType<IndexType, D> hrleIndexPoint; // 3d index vector type
-  typedef std::vector<hrleIndexPoint> hrleIndexPoints;
+  typedef std::vector<Index<D>> IndexPoints;
 
   // CONSTANTS
   static constexpr int dimension = D;
@@ -54,7 +51,7 @@ private:
   Grid<D> *grid; // Grid stores the information about the grid, on
   // which the HRLE structure is defined
 
-  hrleIndexPoints segmentation;
+  IndexPoints segmentation;
   DomainSegmentArray<T, D> domainSegments;
 
   // std::vector<SizeType> activePointIdOffsets;
@@ -196,7 +193,7 @@ public:
     return domainSegments[segmentId].getNumberOfRuns(dimension);
   }
 
-  const hrleIndexPoints &getSegmentation() const { return segmentation; }
+  const IndexPoints &getSegmentation() const { return segmentation; }
 
   IndexType getMinRunBreak(int dim) const {
     IndexType minBreak = domainSegments[0].getMinRunBreak(dim);
@@ -279,7 +276,7 @@ public:
 
   // create new segmentation and domainSegments
   void initialize(
-      const hrleIndexPoints &p = hrleIndexPoints(),
+      const IndexPoints &p = IndexPoints(),
       const AllocationType<SizeType, D> &a = AllocationType<SizeType, D>()) {
 
     segmentation = p;
@@ -340,8 +337,8 @@ public:
 
   /// Converts a pointId(given by lexicographical order of points) to a spatial
   /// coordinate
-  hrleIndexPoint ptIdToCoordinate(SizeType pt) const {
-    hrleIndexPoint pointCoords;
+  Index<D> ptIdToCoordinate(SizeType pt) const {
+    Index<D> pointCoords;
 
     // find domainSegment of point
     const int segment = int(
@@ -355,7 +352,7 @@ public:
     // find right PointID by bisection
     for (int g = 0; g < D; ++g) {
       SizeType min = 0;
-      SizeType max = SizeType(s.runTypes[g].size()) - 1;
+      SizeType max = static_cast<SizeType>(s.runTypes[g].size()) - 1;
 
       while (!s.isPtIdDefined(s.runTypes[g][min]))
         ++min;
@@ -391,8 +388,8 @@ public:
 
   /// finds the ideal coordinates at which to break between domainSegments
   /// for balanced distribution of points
-  hrleIndexPoints getNewSegmentation() const {
-    hrleIndexPoints tempSegmentation;
+  IndexPoints getNewSegmentation() const {
+    IndexPoints tempSegmentation;
 
     int n = 1;
 #ifdef _OPENMP
@@ -535,7 +532,7 @@ public:
   std::ostream &serialize(std::ostream &stream) {
     using namespace hrleUtil;
     // write identifier
-    stream << "Domain";
+    stream << "hrleDomain";
 
     bool structureIsSerial = true;
     if (getNumberOfSegments() > 1) {
@@ -701,7 +698,7 @@ public:
     // check identifier
     char identifier[11] = {}; // 1 more for string constructor
     stream.read(identifier, 10);
-    if (std::string(identifier).compare(0, 10, "Domain")) {
+    if (std::string(identifier).compare(0, 10, "hrleDomain")) {
       std::cout
           << "Reading Domain from stream failed. Header could not be found."
           << std::endl;
@@ -819,7 +816,7 @@ public:
           stream.read((char *)&runBreak, bytesPerRunBreak);
           if (runBreak >> (bytesPerRunBreak * 8 - 1))
             runBreak |= bitMask;
-          runBreaks.push_back(SizeType(runBreak));
+          runBreaks.push_back(static_cast<IndexType>(runBreak));
         }
       }
     }

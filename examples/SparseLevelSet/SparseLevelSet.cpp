@@ -13,9 +13,10 @@ int main() {
   // set dimension for domain
   constexpr int D = 2;
   typedef double valueType;
+  using namespace viennahrle;
 
   // set the spacial extension of the domain
-  hrleIndexType min[D], max[D];
+  IndexType min[D], max[D];
   for (unsigned i = 0; i < D; ++i) {
     min[i] = -5;
     max[i] = 5;
@@ -23,26 +24,26 @@ int main() {
 
   // initialise a domain with extensions min, max in which we can store the type
   // char
-  hrleGrid<D> grid(min, max);
-  hrleDomain<valueType, D> data(grid);
+  Grid<D> grid(min, max);
+  Domain<valueType, D> data(grid);
 
   // the simplest way to fill the domain with data is using a vector of
   // index/value pairs
-  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, valueType>> pointData;
+  std::vector<std::pair<Index<D>, valueType>> pointData;
 
   constexpr double radius = 3.3;
-  hrleVectorType<hrleIndexType, D> centre(0); // initialise with all zeros
+  Index<D> centre(0); // initialise with all zeros
 
   // fill point list with values
   {
-    hrleVectorType<hrleIndexType, D> index(grid.getMinIndex());
+    Index<D> index(grid.getMinIndex());
     while (index < grid.getMaxIndex()) {
       // write only first point outside and all inside circle
-      hrleVectorType<double, D> distanceVec;
+      VectorType<double, D> distanceVec;
       for (int i = 0; i < D; ++i)
         distanceVec[i] = double(index[i]) - double(centre[i]);
       double distanceFromCentre =
-          std::sqrt(hrleUtil::DotProduct(distanceVec, distanceVec));
+          std::sqrt(DotProduct(distanceVec, distanceVec));
       if (std::abs(distanceFromCentre - radius) < 1.) {
         pointData.emplace_back(index, distanceFromCentre - radius);
       }
@@ -54,7 +55,7 @@ int main() {
   hrleFillDomainWithSignedDistance(data, pointData, -1., 1.);
 
   // visualise signed distance field on command line
-  hrleConstDenseIterator<hrleDomain<valueType, D>> it(data);
+  ConstDenseIterator<Domain<valueType, D>> it(data);
   int y = data.getGrid().getMinIndex(1);
   while (!it.isFinished()) {
     if (y < it.getIndex(1)) {

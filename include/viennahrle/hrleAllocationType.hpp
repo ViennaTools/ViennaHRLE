@@ -1,7 +1,7 @@
 #ifndef HRLE_ALLOCATION_TYPE_HPP
 #define HRLE_ALLOCATION_TYPE_HPP
 
-#include <vcVectorUtil.hpp>
+#include <vcVectorType.hpp>
 
 namespace viennahrle {
 using namespace viennacore;

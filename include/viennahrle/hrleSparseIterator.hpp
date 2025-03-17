@@ -218,7 +218,7 @@ public:
   // iterator results in a segfault because r_level==D in
   // endRunAbsCoords[r_level] in go_next_B, it would make more sense to check
   // finished first, do nothing if it is and return false
-  SparseIterator<hrleDomain> &operator++() {
+  SparseIterator &operator++() {
     while (true) {
       if (go_next_A())
         break;
@@ -254,13 +254,13 @@ public:
     return *this;
   }
 
-  SparseIterator<hrleDomain> operator++(int) {
+  SparseIterator operator++(int) {
     SparseIterator temp(*this);
     operator++();
     return temp;
   }
 
-  SparseIterator<hrleDomain> &operator--() {
+  SparseIterator &operator--() {
     while (true) {
       if (go_previous_A())
         break;
@@ -300,7 +300,7 @@ public:
     return *this;
   }
 
-  SparseIterator<hrleDomain> operator--(int) {
+  SparseIterator operator--(int) {
     SparseIterator temp(*this);
     operator--();
     return temp;
@@ -345,8 +345,7 @@ public:
 
   template <class V> void goToIndices(const V &v) {
     goToIndices(0, v); // TODO
-    int s = BaseIterator<hrleDomain>::getSegmentRun();
-    if (s != 0)
+    if (int s = this->getSegmentRun(); s != 0)
       goToIndices(s, v);
   }
 

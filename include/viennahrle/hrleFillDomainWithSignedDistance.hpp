@@ -1,6 +1,11 @@
 #ifndef HRLE_FILL_DOMAIN_WITH_SIGNED_DISTANCE_HPP
 #define HRLE_FILL_DOMAIN_WITH_SIGNED_DISTANCE_HPP
 
+#include "hrleDomain.hpp"
+#include "hrleTypes.hpp"
+
+namespace viennahrle {
+using namespace viennacore;
 /// Helper function to fill hrleDomain with narrowband/sparse-field
 /// signed distance function values. Empty space (undefined runs) is
 /// filled with the sign of the last defined run.
@@ -9,11 +14,10 @@
 /// connected by edges of the grid, which are intersected by the surface
 template <class T, int D>
 void hrleFillDomainWithSignedDistance(
-    hrleDomain<T, D> &newDomain,
-    std::vector<std::pair<hrleVectorType<hrleIndexType, D>, T>> pointData,
+    Domain<T, D> &newDomain, std::vector<std::pair<Index<D>, T>> pointData,
     const T &negValue, const T &posValue, const bool sortPointList = true) {
 
-  typedef std::pair<hrleVectorType<hrleIndexType, D>, T> indexValuePairType;
+  typedef std::pair<Index<D>, T> indexValuePairType;
 
   // TODO: is not parallelized yet
   newDomain.initialize();
@@ -31,7 +35,7 @@ void hrleFillDomainWithSignedDistance(
         });
   }
 
-  const hrleGrid<D> &grid = newDomain.getGrid();
+  const Grid<D> &grid = newDomain.getGrid();
 
   if (pointData.front().first != grid.getMinGridPoint()) {
     newDomain.insertNextUndefinedPoint(
@@ -42,11 +46,11 @@ void hrleFillDomainWithSignedDistance(
   auto pointDataBegin = pointData.begin(); //+starts[t_num];
   auto pointDataEnd = pointData.end();     // pointData.begin()+starts[t_num+1];
 
-  hrleVectorType<hrleIndexType, D> currentIndex = pointDataBegin->first;
+  Index<D> currentIndex = pointDataBegin->first;
 
   auto pointDataIt = pointDataBegin;
 
-  hrleVectorType<bool, D> signs(pointDataBegin->second < 0);
+  VectorType<bool, D> signs(pointDataBegin->second < 0);
 
   while (pointDataIt != pointDataEnd) {
     bool setPoint = true;
@@ -54,8 +58,7 @@ void hrleFillDomainWithSignedDistance(
     // if boundary conditions are infinite always set the point
     // if not, check, whether it is inside of domain
     for (unsigned i = 0; i < D; ++i) {
-      if (grid.getBoundaryConditions(i) !=
-          hrleBoundaryType::INFINITE_BOUNDARY) {
+      if (grid.getBoundaryConditions(i) != BoundaryType::INFINITE_BOUNDARY) {
         if (pointDataIt->first[i] > grid.getMaxBounds(i) ||
             pointDataIt->first[i] < grid.getMinBounds(i))
           setPoint = false;
@@ -80,8 +83,8 @@ void hrleFillDomainWithSignedDistance(
       }
     }
 
-    hrleVectorType<hrleIndexType, D> index = pointDataIt->first;
-    hrleVectorType<hrleIndexType, D> next_index;
+    Index<D> index = pointDataIt->first;
+    Index<D> next_index;
 
     ++pointDataIt;
 
@@ -97,7 +100,7 @@ void hrleFillDomainWithSignedDistance(
     // point has the same index, if not, there must be an undefined
     // run inbetween
     for (int q = 0; q < D; q++) {
-      hrleVectorType<hrleIndexType, D> tmp = index;
+      Index<D> tmp = index;
       ++tmp[q];
       if (tmp[q] > grid.getMaxGridPoint(q))
         continue;
@@ -114,5 +117,6 @@ void hrleFillDomainWithSignedDistance(
 
   newDomain.finalize();
 }
+} // namespace viennahrle
 
 #endif // HRLE_FILL_DOMAIN_WITH_SIGNED_DISTANCE_HPP

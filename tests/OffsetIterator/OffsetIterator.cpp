@@ -54,13 +54,13 @@ void fillDomain(Domain<DataType, D> &domain) {
                           '.'); // last parameter is the background value to use
 }
 
-bool checkOffset(Grid<D> &grid, Index<D> coord, Index<D> nbor,
+bool checkOffset(const Grid<D> &grid, Index<D> coord, Index<D> nbor,
                  Index<D> offset) {
   Index<D> realOffset;
   auto gridMin = grid.getMinGridPoint();
   auto gridMax = grid.getMaxGridPoint();
   coord += offset;
-  for (unsigned i = 0; i < D; ++i) {
+  for (int i = 0; i < D; ++i) {
     // if neighbour is outside of domain
     if (coord[i] > gridMax[i]) {
       if (grid.isBoundaryReflective(i)) {
@@ -96,15 +96,15 @@ void runTest(Domain<DataType, D> &domain) {
   fillDomain(domain);
 
   // march through domain and check if all neighbors are correct
-  const unsigned iteratorOrder = 2;
+  constexpr int iteratorOrder = 2;
   ConstSparseBoxIterator<Domain<char, D>, iteratorOrder> it(domain);
-  const unsigned numNeighbors = unsigned(std::pow((1 + 2 * iteratorOrder), D));
+  constexpr int numNeighbors = hrleUtil::pow((1 + 2 * iteratorOrder), D);
 
   for (; !it.isFinished(); ++it) {
     if (!it.getCenter().isDefined()) {
       continue;
     }
-    for (unsigned i = 0; i < numNeighbors; ++i) {
+    for (int i = 0; i < numNeighbors; ++i) {
       const auto &neighbor = it.getNeighbor(i);
       if (!neighbor.isDefined()) {
         continue;

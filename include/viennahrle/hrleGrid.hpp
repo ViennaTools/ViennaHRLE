@@ -81,11 +81,8 @@ public:
   Grid(const IndexType *min, const IndexType *max,
        const CoordType delta = 1.0) {
     BoundaryType boundaryCons[D];
-    for (unsigned i = 0; i < D; ++i) {
-      boundaryCons[i] =
-          BoundaryType::REFLECTIVE_BOUNDARY; // Reflective boundary
-                                             // conditions
-    }
+    for (unsigned i = 0; i < D; ++i)
+      boundaryCons[i] = BoundaryType::REFLECTIVE_BOUNDARY;
 
     *this = Grid(min, max, delta, boundaryCons);
   }
@@ -133,7 +130,8 @@ public:
   /// copy constructor
   // Grid(const Grid &gt)
   //     : minIndex(gt.minIndex), maxIndex(gt.maxIndex),
-  //       indexExtension(gt.indexExtension),
+  //     indexExtension(gt.indexExtension),
+  //       gridDelta(gt.gridDelta),
   //       boundaryConditions(gt.boundaryConditions),
   //       minGridPointCoord(gt.minGridPointCoord),
   //       maxGridPointCoord(gt.maxGridPointCoord), parities(gt.parities) {}
@@ -169,17 +167,17 @@ public:
 
   IndexType getMaxIndex(int dim) const { return maxIndex[dim]; }
 
-  inline const Index<D> &getMinIndex() const { return minIndex; }
+  const Index<D> &getMinIndex() const { return minIndex; }
 
-  inline const Index<D> &getMaxIndex() const { return maxIndex; }
+  const Index<D> &getMaxIndex() const { return maxIndex; }
 
   /// returns all 2 or 3 boundary conditions
-  inline const VectorType<BoundaryType, D> &getBoundaryConditions() const {
+  const VectorType<BoundaryType, D> &getBoundaryConditions() const {
     return boundaryConditions;
   }
 
   /// returns the boundary conditions in the specified direction
-  inline BoundaryType getBoundaryConditions(int dir) const {
+  BoundaryType getBoundaryConditions(int dir) const {
     return boundaryConditions[dir];
   }
 
@@ -216,23 +214,19 @@ public:
 
   /// returns the index[dim] of the maximum grid point which is maxIndex-1 for
   /// periodic BNCs
-  inline IndexType getMaxGridPoint(int dim) const {
-    return maxGridPointCoord[dim];
-  }
+  IndexType getMaxGridPoint(int dim) const { return maxGridPointCoord[dim]; }
 
   /// returns the index[dim] of the maximum grid point which is minIndex-1 for
   /// periodic BNCs
-  inline IndexType getMinGridPoint(int dim) const {
-    return minGridPointCoord[dim];
-  }
+  IndexType getMinGridPoint(int dim) const { return minGridPointCoord[dim]; }
 
   /// returns the index of the maximum grid point which is maxIndex-1 for
   /// periodic BNCs
-  inline const Index<D> &getMaxGridPoint() const { return maxGridPointCoord; }
+  const Index<D> &getMaxGridPoint() const { return maxGridPointCoord; }
 
   /// returns the index of the maximum grid point which is minIndex-1 for
   /// periodic BNCs
-  inline const Index<D> &getMinGridPoint() const { return minGridPointCoord; }
+  const Index<D> &getMinGridPoint() const { return minGridPointCoord; }
 
   IndexType getMinBounds(int dim) const { return minBounds[dim]; }
 
@@ -243,7 +237,7 @@ public:
   const Index<D> &getMaxBounds() const { return maxBounds; }
 
   /// returns whether the point v is at infinity in any dimension
-  template <class V> inline bool isAtInfinity(const V &v) const {
+  template <class V> bool isAtInfinity(const V &v) const {
     for (int i = 0; i < D; i++) {
       if (std::abs(v[i]) == INF_EXTENSION)
         return true;
@@ -257,24 +251,20 @@ public:
   /// than one global index is mapped to the same local index. For the local
   /// index always (getMinGridPoint<=local index<=getMaxGridPoint
   /// holds)
-  inline IndexType localIndex2GlobalIndex(int dim, IndexType relative_coord,
-                                          int cycles,
-                                          IndexType offset = 0) const {
-    if (cycles == 0) {
+  IndexType localIndex2GlobalIndex(int dim, IndexType relative_coord,
+                                   int cycles, IndexType offset = 0) const {
+    if (cycles == 0)
       return relative_coord - offset;
-    } else {
-      if (isBoundaryPeriodic(dim)) {
-        return relative_coord - offset +
-               cycles * (maxIndex[dim] - minIndex[dim]);
-      } else {
-        if ((cycles & 1) == 0) { // if cycles is even
-          return cycles * indexExtension[dim] + relative_coord - offset;
-        } else { // if cycle is odd
-          return cycles * indexExtension[dim] + maxIndex[dim] + minIndex[dim] -
-                 relative_coord - offset;
-        }
-      }
-    }
+
+    if (isBoundaryPeriodic(dim))
+      return relative_coord - offset + cycles * (maxIndex[dim] - minIndex[dim]);
+
+    if ((cycles & 1) == 0) // if cycles is even
+      return cycles * indexExtension[dim] + relative_coord - offset;
+
+    // if cycle is odd
+    return cycles * indexExtension[dim] + maxIndex[dim] + minIndex[dim] -
+           relative_coord - offset;
   }
 
   /// This function transforms a global index to the corresponding local
@@ -283,8 +273,8 @@ public:
   /// than one global index are mapped to the same local index. For the local
   /// index always (getMinGridPoint<=local index<=getMaxGridPoint
   /// holds)
-  inline IndexType globalIndex2LocalIndex(int dim, IndexType absolute_coord,
-                                          IndexType offset, int &cycles) const {
+  IndexType globalIndex2LocalIndex(int dim, IndexType absolute_coord,
+                                   IndexType offset, int &cycles) const {
     absolute_coord += offset;
     cycles = 0;
     while (absolute_coord < minIndex[dim]) {
@@ -295,11 +285,11 @@ public:
       cycles++;
       absolute_coord -= indexExtension[dim];
     }
-    if (((cycles & 1) == 0) || (isBoundaryPeriodic(dim))) {
+
+    if ((cycles & 1) == 0 || isBoundaryPeriodic(dim))
       return absolute_coord;
-    } else {
-      return minIndex[dim] + maxIndex[dim] - absolute_coord;
-    }
+
+    return minIndex[dim] + maxIndex[dim] - absolute_coord;
   }
 
   /// This function transforms a global index to the corresponding local
@@ -308,8 +298,8 @@ public:
   /// than one global index are mapped to the same local index. For the local
   /// index always (getMinGridPoint<=local index<=getMaxGridPoint
   /// holds)
-  inline IndexType globalIndex2LocalIndex(int dim, IndexType absolute_coord,
-                                          IndexType offset = 0) const {
+  IndexType globalIndex2LocalIndex(int dim, IndexType absolute_coord,
+                                   IndexType offset = 0) const {
     absolute_coord += offset;
     bool b = true;
     while (absolute_coord < minIndex[dim]) {
@@ -320,56 +310,51 @@ public:
       b = !b;
       absolute_coord -= indexExtension[dim];
     }
-    if (b || isBoundaryPeriodic(dim)) {
+
+    if (b || isBoundaryPeriodic(dim))
       return absolute_coord;
-    } else {
-      return minIndex[dim] + maxIndex[dim] - absolute_coord;
-    }
+
+    return minIndex[dim] + maxIndex[dim] - absolute_coord;
   }
 
   /// This function transforms a global index vector to the corresponding
   /// local index vector.
-  template <class V>
-  inline Index<D> globalIndices2LocalIndices(const V &v) const {
+  template <class V> Index<D> globalIndices2LocalIndices(const V &v) const {
     Index<D> tmp;
-    for (int i = 0; i < D; i++) {
+    for (int i = 0; i < D; i++)
       tmp[i] = globalIndex2LocalIndex(i, v[i]);
-    }
     return tmp;
   }
 
-  /// Returns the coordinate of the point at index "index" in the direction dir.
-  CoordType index2Coordinate(IndexType Index) const {
-    return Index * gridDelta;
-  }
+  /// Returns the coordinate of the point at index "index" in the direction
+  /// dir.
+  CoordType index2Coordinate(IndexType idx) const { return idx * gridDelta; }
 
   /// This function transforms the coordinate c in respect to the rectilinear
   /// grid into the real coordinates. Non-integer contributions in c are
   /// considered!
   CoordType localIndex2LocalCoordinate(CoordType c) const {
-    CoordType lc = std::floor(c);
-    CoordType uc = std::ceil(c);
+    const CoordType lc = std::floor(c);
+    const CoordType uc = std::ceil(c);
 
-    if (lc != uc) {
-      return (index2Coordinate(static_cast<IndexType>(lc)) *
-                  ((uc - c)) + // TODO
-              index2Coordinate(static_cast<IndexType>(uc)) * ((c - lc)));
-    } else {
-      return index2Coordinate(static_cast<IndexType>(lc));
-    }
+    if (lc != uc)
+      return index2Coordinate(static_cast<IndexType>(lc)) * (uc - c) +
+             index2Coordinate(static_cast<IndexType>(uc)) * (c - lc);
+
+    return index2Coordinate(static_cast<IndexType>(lc));
   }
 
-  // This function transforms the coordinate c in respect to the rectilinear
-  // grid into the real coordinates.Non-integer contributions in c are
-  // considered!
+  /// This function transforms the coordinate c in respect to the rectilinear
+  /// grid into the real coordinates.Non-integer contributions in c are
+  /// considered!
   CoordType globalIndex2GlobalCoordinate(int dir, CoordType c) const {
     CoordType lc = std::floor(c);
     CoordType uc = std::ceil(c);
     if (lc != uc) {
-      return (gridPositionOfGlobalIndex(dir, static_cast<IndexType>(lc)) *
-                  ((uc - c) / (uc - lc)) + // TODO
-              gridPositionOfGlobalIndex(dir, static_cast<IndexType>(uc)) *
-                  ((c - lc) / (uc - lc)));
+      return gridPositionOfGlobalIndex(dir, static_cast<IndexType>(lc)) *
+                 ((uc - c) / (uc - lc)) +
+             gridPositionOfGlobalIndex(dir, static_cast<IndexType>(uc)) *
+                 ((c - lc) / (uc - lc));
     } else {
       return gridPositionOfGlobalIndex(dir, static_cast<IndexType>(lc));
     }
@@ -385,7 +370,7 @@ public:
   }
 
   /// Transforms a global coordinate in direction dir to a global index.
-  IndexType globalCoordinate2GlobalIndex(CoordType c) const {
+  IndexType globalCoordinate2GlobalIndex(const CoordType c) const {
     return static_cast<IndexType>(round(c / gridDelta));
   }
 
@@ -490,8 +475,8 @@ public:
   /// returns the grid point separation
   CoordType getGridDelta() const { return gridDelta; }
 
-  // Returns the grid position for a global index,
-  // taking into account the boundary conditions.
+  /// Returns the grid position for a global index,
+  /// taking into account the boundary conditions.
   CoordType gridPositionOfGlobalIndex(int dir,
                                       IndexType offset) const { // TODO check
     int cycles = 0;
@@ -505,7 +490,7 @@ public:
       offset -= indexExtension[dir];
     }
 
-    if (((cycles & 1) == 0) || isBoundaryPeriodic(dir)) {
+    if ((cycles & 1) == 0 || isBoundaryPeriodic(dir)) {
       return index2Coordinate(offset) +
              cycles * (index2Coordinate(getMaxIndex(dir)) -
                        index2Coordinate(getMinIndex(dir)));
@@ -560,7 +545,7 @@ public:
     return v;
   }
 
-  // Determine whether index is on border of simulation domain.
+  /// Determine whether index is on border of simulation domain.
   template <class V> bool isBorderPoint(V v) const {
     for (unsigned i = 0; i < D; ++i) {
       if (v[i] <= minIndex[i] || v[i] >= maxIndex[i])
@@ -569,8 +554,8 @@ public:
     return false;
   }
 
-  // Determine whether point is outside the domain in direction other than
-  // the direction of the infinite boundary.
+  /// Determine whether point is outside the domain in direction other than
+  /// the direction of the infinite boundary.
   template <class V> bool isOutsideOfDomain(V v) const {
     for (unsigned i = 0; i < D; ++i) {
       if (boundaryConditions[i] == BoundaryType::INFINITE_BOUNDARY)
@@ -584,11 +569,11 @@ public:
     return false;
   }
 
-  // Serialize the grid
+  /// Serialize the grid
   std::ostream &serialize(std::ostream &stream) const {
     using namespace hrleUtil;
     // set identifier
-    stream << "Grid";
+    stream << "hrleGrid";
     // GRID PROPERTIES
     IndexType bounds[2 * D];
     // get the bounds to save
@@ -640,7 +625,7 @@ public:
     // check identifier
     char identifier[9] = {}; // 1 more for string constructor
     stream.read(identifier, 8);
-    if (std::string(identifier).compare(0, 8, "Grid")) {
+    if (std::string(identifier).compare(0, 8, "hrleGrid")) {
       std::cout << "Reading Grid from stream failed. Header could not be found."
                 << std::endl;
       return stream;

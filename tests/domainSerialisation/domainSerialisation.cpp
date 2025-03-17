@@ -3,9 +3,10 @@
 
 #include <hrleDomain.hpp>
 #include <hrleFillDomainFromPointList.hpp>
-#include <hrleGrid.hpp>
-#include <hrleTestAsserts.hpp>
 
+#include <vcTestAsserts.hpp>
+
+using namespace viennahrle;
 constexpr int D = 3;
 using DataType = char;
 
@@ -14,8 +15,7 @@ void writeString(std::string const &fileName, std::string const &s) {
   out << s;
 }
 
-void testSerialization(hrleDomain<DataType, D> &domain,
-                       bool writeOutput = false) {
+void testSerialization(Domain<DataType, D> &domain, bool writeOutput = false) {
   std::stringstream domainStream;
 
   // serialise grid
@@ -29,18 +29,18 @@ void testSerialization(hrleDomain<DataType, D> &domain,
     writeString("domainTest.hrle", domainString);
 
   // deserialize
-  hrleGrid<D> newGrid;
+  Grid<D> newGrid;
   newGrid.deserialize(domainStream);
   // newGrid.deserialize(gridStream);
 
-  hrleDomain<DataType, D> newDomain(&newGrid);
+  Domain<DataType, D> newDomain(&newGrid);
   newDomain.deserialize(domainStream);
 
-  HRLETEST_ASSERT(newGrid == domain.getGrid())
+  VC_TEST_ASSERT(newGrid == domain.getGrid())
   std::stringstream ss1, ss2;
   domain.print(ss1);
   newDomain.print(ss2);
-  HRLETEST_ASSERT(ss1.str() == ss2.str())
+  VC_TEST_ASSERT(ss1.str() == ss2.str())
 
   // serialize new grid again to see if all internal variables are also the same
   std::stringstream newDomainStream;
@@ -48,20 +48,20 @@ void testSerialization(hrleDomain<DataType, D> &domain,
   newDomain.serialize(newDomainStream);
 
   auto newDomainString = newDomainStream.str();
-  HRLETEST_ASSERT(domainString == newDomainString)
+  VC_TEST_ASSERT(domainString == newDomainString)
 
   if (writeOutput)
     writeString("newDomainTest.hrle", newDomainString);
 }
 
-void fillDomain(hrleDomain<DataType, D> &domain) {
-  std::vector<std::pair<hrleVectorType<hrleIndexType, D>, char>> pointData;
-  hrleVectorType<hrleIndexType, D> index(0, 5, 0);
+void fillDomain(Domain<DataType, D> &domain) {
+  std::vector<std::pair<Index<D>, char>> pointData;
+  Index<D> index(0, 5, 0);
 
   std::string helloString = "Hello, World!";
 
-  for (unsigned i = 0; i < helloString.size(); ++i) {
-    pointData.emplace_back(index, helloString[i]);
+  for (char &i : helloString) {
+    pointData.emplace_back(index, i);
     index[0] += 1;
     // index[1] += 1;
   }
@@ -73,24 +73,22 @@ void fillDomain(hrleDomain<DataType, D> &domain) {
     // index[1] += 1;
   }
 
-  hrleFillDomainFromPointList(
-      domain, pointData,
-      '.'); // last parameter is the background value to use
+  FillDomainFromPointList(domain, pointData,
+                          '.'); // last parameter is the background value to use
 }
 
 int main() {
   omp_set_num_threads(1);
 
-  std::array<hrleIndexType, D> min = {-20, -20, -20};
-  std::array<hrleIndexType, D> max = {20, 20, 20};
-  std::array<hrleBoundaryType, D> bounds = {
-      hrleBoundaryType::REFLECTIVE_BOUNDARY,
-      hrleBoundaryType::INFINITE_BOUNDARY,
-      hrleBoundaryType::REFLECTIVE_BOUNDARY};
+  std::array<IndexType, D> min = {-20, -20, -20};
+  std::array<IndexType, D> max = {20, 20, 20};
+  std::array<BoundaryType, D> bounds = {BoundaryType::REFLECTIVE_BOUNDARY,
+                                        BoundaryType::INFINITE_BOUNDARY,
+                                        BoundaryType::REFLECTIVE_BOUNDARY};
 
-  hrleGrid<D> grid(min.data(), max.data(), 1.0, bounds.data());
+  Grid<D> grid(min.data(), max.data(), 1.0, bounds.data());
 
-  hrleDomain<DataType, D> domain(&grid);
+  Domain<DataType, D> domain(&grid);
 
   // test empty domain
   testSerialization(domain);

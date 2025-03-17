@@ -94,6 +94,8 @@ public:
           increment.fill(false);
         case 0:
           increment[i] = true;
+        default:
+          break;
         }
       }
 
@@ -120,6 +122,8 @@ public:
           decrement.fill(false);
         case 0:
           decrement[i] = true;
+        default:
+          break;
         }
       }
 

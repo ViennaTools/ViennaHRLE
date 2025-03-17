@@ -21,21 +21,22 @@
 ///   1         6  7  8        15
 ///            center: 10
 
-template <class hrleDomain, int order = 1> class hrleCartesianPlaneIterator {
-
-  typedef std::conditional_t<std::is_const_v<hrleDomain>,
-                             const typename hrleDomain::hrleValueType,
-                             typename hrleDomain::hrleValueType>
-      hrleValueType;
+namespace viennahrle {
+using namespace viennacore;
+template <class hrleDomain, int order = 1> class CartesianPlaneIterator {
 
   static constexpr int D = hrleDomain::dimension;
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::ValueType,
+                             typename hrleDomain::ValueType>
+      ValueType;
 
   hrleDomain &domain;
-  static constexpr hrleIndexType sideLength = 1 + 2 * order;
-  static constexpr hrleIndexType sliceArea = sideLength * sideLength;
-  const hrleIndexType centerIndex;
-  hrleVectorType<hrleIndexType, D> currentCoords;
-  std::vector<std::unique_ptr<hrleSparseOffsetIterator<hrleDomain>>>
+  static constexpr IndexType sideLength = 1 + 2 * order;
+  static constexpr IndexType sliceArea = sideLength * sideLength;
+  const IndexType centerIndex;
+  Index<D> currentCoords;
+  std::vector<std::unique_ptr<SparseOffsetIterator<hrleDomain>>>
       neighborIterators;
   std::vector<unsigned> planeCoords;
 
@@ -49,9 +50,8 @@ template <class hrleDomain, int order = 1> class hrleCartesianPlaneIterator {
     return false;
   }
 
-  hrleVectorType<hrleIndexType, D>
-  indexToCoordinate(hrleIndexType index) const {
-    hrleVectorType<hrleIndexType, D> coordinate;
+  Index<D> indexToCoordinate(IndexType index) const {
+    Index<D> coordinate;
 
     if (D > 2) {
       coordinate[2] = index / sliceArea;
@@ -68,13 +68,13 @@ template <class hrleDomain, int order = 1> class hrleCartesianPlaneIterator {
     return coordinate;
   }
 
-  template <class V> hrleIndexType coordinateToIndex(V coordinate) const {
+  template <class V> IndexType coordinateToIndex(V coordinate) const {
     // TODO: consider empty indices
     // shift to the middle
     for (unsigned i = 0; i < D; ++i)
       coordinate[i] += order;
 
-    hrleIndexType index = 0;
+    IndexType index = 0;
     if (D > 2) {
       index += coordinate[2] * sliceArea;
     }
@@ -100,7 +100,7 @@ template <class hrleDomain, int order = 1> class hrleCartesianPlaneIterator {
     planeCoords.reserve(numPlaneCoords);
 
     for (unsigned i = 0; i < numNeighbors; ++i) {
-      hrleVectorType<hrleIndexType, D> offset = indexToCoordinate(i);
+      Index<D> offset = indexToCoordinate(i);
       // get coordinates that only lie in planes
       int coords = 0;
       for (int j = 0; j < D; j++) {
@@ -111,8 +111,8 @@ template <class hrleDomain, int order = 1> class hrleCartesianPlaneIterator {
       // cartesian plane
       if (coords < 3) {
         neighborIterators.push_back(
-            std::make_unique<hrleSparseOffsetIterator<hrleDomain>>(domain,
-                                                                   offset, v));
+            std::make_unique<SparseOffsetIterator<hrleDomain>>(domain, offset,
+                                                               v));
         planeCoords.push_back(i);
       } else {
         neighborIterators.push_back(nullptr);
@@ -122,39 +122,36 @@ template <class hrleDomain, int order = 1> class hrleCartesianPlaneIterator {
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleCartesianPlaneIterator operator++(int) { // use pre increment instead
+  CartesianPlaneIterator operator++(int) { // use pre increment instead
     return *this;
   }
-  hrleCartesianPlaneIterator operator--(int) { // use pre decrement instead
+  CartesianPlaneIterator operator--(int) { // use pre decrement instead
     return *this;
   }
 
 public:
   using DomainType = hrleDomain;
 
-  hrleCartesianPlaneIterator(hrleDomain &passedDomain,
-                             const hrleVectorType<hrleIndexType, D> &v)
-      : domain(passedDomain),
-        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
+  CartesianPlaneIterator(hrleDomain &passedDomain, const Index<D> &v)
+      : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
         currentCoords(v) {
 
     initializeNeighbors(v);
   }
 
-  explicit hrleCartesianPlaneIterator(hrleDomain &passedDomain)
-      : domain(passedDomain),
-        centerIndex(coordinateToIndex(hrleVectorType<hrleIndexType, D>(0))),
+  explicit CartesianPlaneIterator(hrleDomain &passedDomain)
+      : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
         currentCoords(domain.getGrid().getMinGridPoint()) {
 
     initializeNeighbors(passedDomain.getGrid().getMinIndex());
   }
 
-  hrleCartesianPlaneIterator &operator++() {
+  CartesianPlaneIterator &operator++() {
     next();
     return *this;
   }
 
-  hrleCartesianPlaneIterator &operator--() {
+  CartesianPlaneIterator &operator--() {
     previous();
     return *this;
   }
@@ -164,21 +161,22 @@ public:
     std::vector<bool> increment(numPlaneNeighbours + 1, false);
     increment[numPlaneNeighbours] = true;
 
-    hrleVectorType<hrleIndexType, D> end_coords =
-        neighborIterators[centerIndex]->getEndIndices();
+    Index<D> end_coords = neighborIterators[centerIndex]->getEndIndices();
 
     // iterate over plane coords
     for (int i = 0; i < numPlaneNeighbours; i++) {
       if (planeCoords[i] == centerIndex)
         continue;
 
-      switch (hrleUtil::Compare(
-          end_coords, neighborIterators[planeCoords[i]]->getEndIndices())) {
+      switch (Compare(end_coords,
+                      neighborIterators[planeCoords[i]]->getEndIndices())) {
       case 1:
         end_coords = neighborIterators[planeCoords[i]]->getEndIndices();
         increment = std::vector<bool>(numPlaneNeighbours + 1, false);
       case 0:
         increment[i] = true;
+      default:
+        break;
       }
     }
 
@@ -197,19 +195,20 @@ public:
     std::vector<bool> decrement(numPlaneNeighbours + 1, false);
     decrement[numPlaneNeighbours] = true;
 
-    hrleVectorType<hrleIndexType, D> start_coords =
-        neighborIterators[centerIndex]->getStartIndices();
+    Index<D> start_coords = neighborIterators[centerIndex]->getStartIndices();
     for (int i = 0; i < numPlaneNeighbours; i++) {
       if (i == centerIndex)
         continue;
 
-      switch (hrleUtil::Compare(
-          start_coords, neighborIterators[planeCoords[i]]->getStartIndices())) {
+      switch (Compare(start_coords,
+                      neighborIterators[planeCoords[i]]->getStartIndices())) {
       case -1:
         start_coords = neighborIterators[planeCoords[i]]->getStartIndices();
         decrement = std::vector<bool>(numPlaneNeighbours + 1, false);
       case 0:
         decrement[i] = true;
+      default:
+        break;
       }
     }
 
@@ -222,24 +221,24 @@ public:
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
-  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(int index) {
+  SparseOffsetIterator<hrleDomain> &getNeighbor(int index) {
     return *(neighborIterators[planeCoords[index]]);
   }
 
-  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(unsigned index) {
+  SparseOffsetIterator<hrleDomain> &getNeighbor(unsigned index) {
     return *(neighborIterators[planeCoords[index]]);
   }
 
   template <class V>
-  hrleSparseOffsetIterator<hrleDomain> &getNeighbor(V relativeCoordinate) {
+  SparseOffsetIterator<hrleDomain> &getNeighbor(V relativeCoordinate) {
     return *(neighborIterators[coordinateToIndex(relativeCoordinate)]);
   }
 
-  hrleSparseOffsetIterator<hrleDomain> &getCenter() {
+  SparseOffsetIterator<hrleDomain> &getCenter() {
     return *(neighborIterators[centerIndex]);
   }
 
-  const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
+  const Index<D> &getIndices() { return currentCoords; }
 
   unsigned getSize() const { return planeCoords.size(); }
 
@@ -277,7 +276,9 @@ public:
 };
 
 template <class hrleDomain, int order>
-using hrleConstCartesianPlaneIterator =
-    hrleCartesianPlaneIterator<const hrleDomain, order>;
+using ConstCartesianPlaneIterator =
+    CartesianPlaneIterator<const hrleDomain, order>;
+
+} // namespace viennahrle
 
 #endif // HRLE_CARTESIAN_PLANE_ITERATOR_HPP

@@ -138,6 +138,8 @@ public:
         // increment = std::vector<bool>(numCorners, false);
       case 0:
         cornerIterators[i].next();
+      default:
+        break;
       }
     }
 
@@ -159,6 +161,8 @@ public:
         // decrement = std::vector<bool>(numCorners, false);
       case 0:
         cornerIterators[i].previous();
+      default:
+        break;
       }
     }
 

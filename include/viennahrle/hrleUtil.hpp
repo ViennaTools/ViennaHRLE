@@ -5,7 +5,10 @@
 
 namespace hrleUtil {
 constexpr int pow(int base, int exp) {
-  return exp == 0 ? 1 : base * pow(base, exp - 1);
+  int result = 1;
+  for (int i = 0; i < exp; ++i)
+    result *= base;
+  return result;
 }
 
 inline unsigned getBitSizeOfNumber(long number) {

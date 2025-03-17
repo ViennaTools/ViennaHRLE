@@ -6,14 +6,12 @@
 int main() {
 
   constexpr int D = 2;
+  using namespace viennahrle;
 
-  // we have to know the type we are reading and the dimension of it
-  typedef hrleDomain<char, D> hrleDomainType;
+  Grid<D> grid; // grid will be filled during file read
+  Domain<char, D> data(grid);
 
-  hrleGrid<D> grid; // grid will be filled during file read
-  hrleDomainType data(grid);
-
-  hrleDomainReader<hrleDomainType> reader(data);
+  DomainReader<Domain<char, D>> reader(data);
   reader.setFilePath("foxDomain.hrle");
   reader.apply();
 
