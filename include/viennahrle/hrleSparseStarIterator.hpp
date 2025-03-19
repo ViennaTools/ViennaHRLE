@@ -40,6 +40,7 @@ template <class hrleDomain, int order> class SparseStarIterator {
   }
 
   template <class V> void initializeNeighbors(const V &v) {
+    neighborIterators.reserve(numNeighbors);
     for (int i = 0; i < order; ++i) {
       for (int j = 0; j < 2 * D; ++j) {
         Index<D> relativeIndex(0);
@@ -47,8 +48,7 @@ template <class hrleDomain, int order> class SparseStarIterator {
           relativeIndex[j] = i + 1;
         else
           relativeIndex[j - D] = -(i + 1);
-        neighborIterators.push_back(
-            SparseOffsetIterator<hrleDomain>(domain, relativeIndex, v));
+        neighborIterators.emplace_back(domain, relativeIndex, v);
       }
     }
   }
@@ -60,14 +60,12 @@ public:
   SparseStarIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), currentCoords(v),
         centerIterator(passedDomain, v) {
-
     initializeNeighbors(v);
   }
 
   explicit SparseStarIterator(hrleDomain &passedDomain)
       : domain(passedDomain), currentCoords(domain.getGrid().getMinGridPoint()),
         centerIterator(passedDomain) {
-
     initializeNeighbors(passedDomain.getGrid().getMinIndex());
   }
 
@@ -149,15 +147,6 @@ public:
         const_cast<const SparseStarIterator *>(this)->getNeighbor(index));
   }
 
-  const OffsetIterator &getNeighbor(int index) const {
-    return neighborIterators[index];
-  }
-
-  OffsetIterator &getNeighbor(const int index) {
-    return const_cast<OffsetIterator &>(
-        const_cast<const SparseStarIterator *>(this)->getNeighbor(index));
-  }
-
   template <class V> const OffsetIterator &getNeighbor(V &relativeIndex) const {
     // check first if it is a valid index
     unsigned char directions = 0;
@@ -198,11 +187,8 @@ public:
   /// than goToIndicesSequential for repeated serial calls.
   template <class V> void goToIndices(V &v) {
     centerIterator.goToIndices(v);
-    for (int i = 0; i < order; ++i) {
-      for (int j = 0; j < 2 * D; ++j) {
-        neighborIterators[i * 2 * D + j].goToIndices(v);
-      }
-    }
+    for (auto &neighbor : neighborIterators)
+      neighbor.goToIndices(v);
   }
 
   /// Advances the iterator to position v.

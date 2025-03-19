@@ -4,6 +4,7 @@
 #include <hrleFillDomainFromPointList.hpp>
 #include <hrleSparseBoxIterator.hpp>
 #include <hrleSparseCellIterator.hpp>
+#include <hrleSparseStarIterator.hpp>
 #include <iostream>
 #include <string>
 
@@ -90,6 +91,8 @@ int main() {
   std::cout << numNeighbors << std::endl;
   for (unsigned i = 0; i < numNeighbors; ++i)
     std::cout << it4.getNeighbor(i).getValue() << std::endl;
+
+  ConstSparseStarIterator<Domain<char, D>, order> it5(alpha);
 
   return 0;
 }
