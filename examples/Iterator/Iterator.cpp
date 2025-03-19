@@ -94,5 +94,8 @@ int main() {
 
   ConstSparseStarIterator<Domain<char, D>, order> it5(alpha);
 
+  SparseBoxIterator<Domain<char, D>, order> it6(alpha, idx);
+  it6.next();
+
   return 0;
 }

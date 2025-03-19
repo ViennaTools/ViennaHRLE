@@ -47,8 +47,8 @@ public:
   // points-1 if the grid point is not active, its value is
   // set to the constant RunTypeValues::INACTIVE_PT
 
-  SizeType numberOfActivePoints; // numberOfActivePoints stores the number
-                                 // of active points
+  // SizeType numberOfActivePoints; // numberOfActivePoints stores the number
+  // of active points
 
   // STATIC FUNCTIONS
   static bool isPtIdDefined(const SizeType r) { // returns if the grid point
@@ -86,7 +86,7 @@ public:
   /// memory required for the start indexes, run types and run breaks arrays, as
   /// well as the LS values
   DomainSegment(const Grid<D> &g, const AllocationType<SizeType, D> &a)
-      : grid(&g), numberOfActivePoints(0) {
+      : grid(&g) {
     definedValues.reserve(a.num_values[0]);
     runTypes[0].reserve(a.num_runs[0]);
 
@@ -100,8 +100,7 @@ public:
     runBreaks[D - 1].reserve(a.num_runs[D - 1] - 1);
   };
 
-  DomainSegment(const Grid<D> &g, const DomainSegment &s)
-      : grid(&g), numberOfActivePoints(0) {
+  DomainSegment(const Grid<D> &g, const DomainSegment &s) : grid(&g) {
     for (int i = 0; i < D; ++i)
       startIndices[i] = s.startIndices[i];
     for (int i = 0; i < D; ++i)
@@ -110,7 +109,6 @@ public:
       runBreaks[i] = s.runBreaks[i];
     definedValues = s.definedValues;
     undefinedValues = s.undefinedValues;
-    numberOfActivePoints = s.numberOfActivePoints;
     grid = &g;
   };
 
@@ -127,7 +125,7 @@ public:
     definedValues = s.definedValues;
     undefinedValues = s.undefinedValues;
     // activePointIds = s.activePointIds;
-    numberOfActivePoints = s.numberOfActivePoints;
+    // numberOfActivePoints = s.numberOfActivePoints;
     grid = s.grid;
     return *this;
   }
@@ -401,7 +399,7 @@ public:
   /// Inserts an undefined point into the HRLE structure.
   /// CAREFUL: If the same point is inserted twice, the structure might break!
   template <class V>
-  void insertNextDefinedPoint(const V &point, ValueType distance) {
+  void insertNextDefinedPoint(const V &point, ValueType value) {
 
     int level;
     for (level = 0; level < D; ++level) {
@@ -483,9 +481,9 @@ public:
       }
     }
 
-    definedValues.push_back(distance);
+    definedValues.push_back(value);
 
-    // if (abs(distance) <= ValueType(0.5)) {
+    // if (abs(value) <= ValueType(0.5)) {
     //   activePointIds.push_back(numberOfActivePoints);
     //   ++numberOfActivePoints;
     //

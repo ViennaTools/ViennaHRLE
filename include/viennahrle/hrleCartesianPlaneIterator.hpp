@@ -34,6 +34,11 @@ template <class hrleDomain, int order = 1> class CartesianPlaneIterator {
   hrleDomain &domain;
   static constexpr IndexType sideLength = 1 + 2 * order;
   static constexpr IndexType sliceArea = sideLength * sideLength;
+  static constexpr auto numNeighbors =
+      static_cast<unsigned>(hrleUtil::pow(1 + 2 * order, D));
+  static constexpr auto numPlaneCoords = static_cast<unsigned>(
+      hrleUtil::pow(1 + 2 * order, D) - 8 * hrleUtil::pow(order, D));
+
   const IndexType centerIndex;
   Index<D> currentCoords;
   std::vector<std::unique_ptr<SparseOffsetIterator<hrleDomain>>>
@@ -68,7 +73,7 @@ template <class hrleDomain, int order = 1> class CartesianPlaneIterator {
     return coordinate;
   }
 
-  template <class V> IndexType coordinateToIndex(V coordinate) const {
+  template <class V> static IndexType coordinateToIndex(V coordinate) {
     // TODO: consider empty indices
     // shift to the middle
     for (unsigned i = 0; i < D; ++i)
@@ -89,16 +94,8 @@ template <class hrleDomain, int order = 1> class CartesianPlaneIterator {
   // Create a planeCords array that contains the indices of the cartesian planes
   // Only increment the iterators with indices in the planeCoords array
   template <class V> void initializeNeighbors(const V &v) {
-    constexpr auto numNeighbors =
-        static_cast<unsigned>(hrleUtil::pow(1 + 2 * order, D));
-
-    constexpr auto numPlaneCoords = static_cast<unsigned>(
-        hrleUtil::pow(1 + 2 * order, D) - 8 * hrleUtil::pow(order, D));
-
     neighborIterators.reserve(numNeighbors);
-
     planeCoords.reserve(numPlaneCoords);
-
     for (unsigned i = 0; i < numNeighbors; ++i) {
       Index<D> offset = indexToCoordinate(i);
       // get coordinates that only lie in planes
@@ -120,31 +117,25 @@ template <class hrleDomain, int order = 1> class CartesianPlaneIterator {
     }
   }
 
-  // make post in/decrement private, since they should not be used, due to the
-  // size of the structure
-  CartesianPlaneIterator operator++(int) { // use pre increment instead
-    return *this;
-  }
-  CartesianPlaneIterator operator--(int) { // use pre decrement instead
-    return *this;
-  }
-
 public:
   using DomainType = hrleDomain;
 
   CartesianPlaneIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
         currentCoords(v) {
-
     initializeNeighbors(v);
   }
 
   explicit CartesianPlaneIterator(hrleDomain &passedDomain)
       : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
         currentCoords(domain.getGrid().getMinGridPoint()) {
-
     initializeNeighbors(passedDomain.getGrid().getMinIndex());
   }
+
+  // delete post in/decrement, since they should not be used, due to the
+  // size of the structure
+  CartesianPlaneIterator operator++(int) = delete; // use pre increment instead
+  CartesianPlaneIterator operator--(int) = delete; // use pre decrement instead
 
   CartesianPlaneIterator &operator++() {
     next();
@@ -157,14 +148,14 @@ public:
   }
 
   void next() {
-    const int numPlaneNeighbours = static_cast<int>(planeCoords.size());
+    const auto numPlaneNeighbours = planeCoords.size();
     std::vector<bool> increment(numPlaneNeighbours + 1, false);
     increment[numPlaneNeighbours] = true;
 
     Index<D> end_coords = neighborIterators[centerIndex]->getEndIndices();
 
     // iterate over plane coords
-    for (int i = 0; i < numPlaneNeighbours; i++) {
+    for (size_t i = 0; i < numPlaneNeighbours; i++) {
       if (planeCoords[i] == centerIndex)
         continue;
 
@@ -183,7 +174,7 @@ public:
     if (increment[numPlaneNeighbours])
       neighborIterators[centerIndex]->next();
 
-    for (int i = 0; i < numPlaneNeighbours; i++)
+    for (size_t i = 0; i < numPlaneNeighbours; i++)
       if (increment[i])
         neighborIterators[planeCoords[i]]->next();
 
@@ -191,12 +182,12 @@ public:
   }
 
   void previous() {
-    const int numPlaneNeighbours = static_cast<int>(planeCoords.size());
+    const auto numPlaneNeighbours = planeCoords.size();
     std::vector<bool> decrement(numPlaneNeighbours + 1, false);
     decrement[numPlaneNeighbours] = true;
 
     Index<D> start_coords = neighborIterators[centerIndex]->getStartIndices();
-    for (int i = 0; i < numPlaneNeighbours; i++) {
+    for (size_t i = 0; i < numPlaneNeighbours; i++) {
       if (i == centerIndex)
         continue;
 
@@ -214,7 +205,7 @@ public:
 
     if (decrement[numPlaneNeighbours])
       neighborIterators[centerIndex]->previous();
-    for (int i = 0; i < numPlaneNeighbours; i++)
+    for (size_t i = 0; i < numPlaneNeighbours; i++)
       if (decrement[i])
         neighborIterators[planeCoords[i]]->previous();
 

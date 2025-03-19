@@ -30,19 +30,12 @@ template <class hrleDomain, int order = 1> class SparseBoxIterator {
   hrleDomain &domain;
   static constexpr IndexType sideLength = 1 + 2 * order;
   static constexpr IndexType sliceArea = sideLength * sideLength;
+  static constexpr auto numNeighbors =
+      static_cast<unsigned>(hrleUtil::pow(1 + 2 * order, D));
+
   const IndexType centerIndex;
   Index<D> currentCoords;
   std::vector<SparseOffsetIterator<hrleDomain>> neighborIterators;
-
-  bool isDefined() const {
-    if (neighborIterators[centerIndex].isDefined())
-      return true;
-    for (int i = 0; i < 2 * D; i++) {
-      if (neighborIterators[i].isDefined())
-        return true;
-    }
-    return false;
-  }
 
   Index<D> indexToCoordinate(IndexType index) const {
     Index<D> coordinate;
@@ -80,43 +73,33 @@ template <class hrleDomain, int order = 1> class SparseBoxIterator {
   /// push offset iterators lexicographically into std::vector from -order to
   /// +order
   template <class V> void initializeNeighbors(const V &v) {
-    constexpr auto numNeighbors =
-        static_cast<unsigned>(hrleUtil::pow(1 + 2 * order, D));
-
     neighborIterators.reserve(numNeighbors);
-
     for (unsigned i = 0; i < numNeighbors; ++i) {
       auto offset = indexToCoordinate(i);
-      neighborIterators.push_back(
-          SparseOffsetIterator<hrleDomain>(domain, offset, v));
+      neighborIterators.emplace_back(domain, offset, v);
     }
-  }
-
-  // make post in/decrement private, since they should not be used, due to the
-  // size of the structure
-  SparseBoxIterator operator++(int) { // use pre increment instead
-    return *this;
-  }
-  SparseBoxIterator operator--(int) { // use pre decrement instead
-    return *this;
   }
 
 public:
   using DomainType = hrleDomain;
+  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
   SparseBoxIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
         currentCoords(v) {
-
     initializeNeighbors(v);
   }
 
   explicit SparseBoxIterator(hrleDomain &passedDomain)
       : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
         currentCoords(domain.getGrid().getMinGridPoint()) {
-
     initializeNeighbors(passedDomain.getGrid().getMinIndex());
   }
+
+  // delete post in/decrement, since they should not be used, due to the
+  // size of the structure
+  SparseBoxIterator operator++(int) = delete; // use pre increment instead
+  SparseBoxIterator operator--(int) = delete; // use pre decrement instead
 
   SparseBoxIterator &operator++() {
     next();
@@ -129,8 +112,8 @@ public:
   }
 
   void next() {
-    const int numNeighbors = static_cast<int>(neighborIterators.size());
-    std::vector<bool> increment(numNeighbors + 1, false);
+    std::array<bool, numNeighbors + 1> increment;
+    increment.fill(false);
     increment[numNeighbors] = true;
 
     Index<D> end_coords = neighborIterators[centerIndex].getEndIndices();
@@ -141,7 +124,7 @@ public:
       switch (Compare(end_coords, neighborIterators[i].getEndIndices())) {
       case 1:
         end_coords = neighborIterators[i].getEndIndices();
-        increment = std::vector<bool>(numNeighbors + 1, false);
+        increment.fill(false);
       case 0:
         increment[i] = true;
       default:
@@ -159,8 +142,8 @@ public:
   }
 
   void previous() {
-    const int numNeighbors = neighborIterators.size();
-    std::vector<bool> decrement(numNeighbors + 1, false);
+    std::array<bool, numNeighbors + 1> decrement;
+    decrement.fill(false);
     decrement[numNeighbors] = true;
 
     Index<D> start_coords = neighborIterators[centerIndex].getStartIndices();
@@ -170,7 +153,7 @@ public:
       switch (Compare(start_coords, neighborIterators[i].getStartIndices())) {
       case -1:
         start_coords = neighborIterators[i].getStartIndices();
-        decrement = std::vector<bool>(numNeighbors + 1, false);
+        decrement.fill(false);
       case 0:
         decrement[i] = true;
       default:
@@ -188,10 +171,12 @@ public:
   }
 
   SparseOffsetIterator<hrleDomain> &getNeighbor(int index) {
+    assert(index >= 0 && index < numNeighbors);
     return neighborIterators[index];
   }
 
   SparseOffsetIterator<hrleDomain> &getNeighbor(unsigned index) {
+    assert(index < numNeighbors);
     return neighborIterators[index];
   }
 

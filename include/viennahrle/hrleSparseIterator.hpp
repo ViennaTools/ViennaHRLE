@@ -2,9 +2,6 @@
 #define HRLE_RUNS_ITERATOR_HPP
 
 #include "hrleBaseIterator.hpp"
-#include "hrleTypes.hpp"
-
-#include <cassert>
 
 namespace viennahrle {
 using namespace viennacore;

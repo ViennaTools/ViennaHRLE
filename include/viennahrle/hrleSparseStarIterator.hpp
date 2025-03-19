@@ -29,16 +29,6 @@ template <class hrleDomain, int order> class SparseStarIterator {
   SparseIterator<hrleDomain> centerIterator;
   std::vector<SparseOffsetIterator<hrleDomain>> neighborIterators;
 
-  bool isDefined() const {
-    if (centerIterator.isDefined())
-      return true;
-    for (int i = 0; i < 2 * D; i++) {
-      if (neighborIterators[i].isDefined())
-        return true;
-    }
-    return false;
-  }
-
   template <class V> void initializeNeighbors(const V &v) {
     neighborIterators.reserve(numNeighbors);
     for (int i = 0; i < order; ++i) {
@@ -138,6 +128,15 @@ public:
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
+  const OffsetIterator &getNeighbor(int index) const {
+    return neighborIterators[index];
+  }
+
+  OffsetIterator &getNeighbor(int index) {
+    return const_cast<OffsetIterator &>(
+        const_cast<const SparseStarIterator *>(this)->getNeighbor(index));
+  }
+
   const OffsetIterator &getNeighbor(unsigned index) const {
     return neighborIterators[index];
   }
@@ -187,8 +186,8 @@ public:
   /// than goToIndicesSequential for repeated serial calls.
   template <class V> void goToIndices(V &v) {
     centerIterator.goToIndices(v);
-    for (auto &neighbor : neighborIterators)
-      neighbor.goToIndices(v);
+    for (auto &it : neighborIterators)
+      it.goToIndices(v);
   }
 
   /// Advances the iterator to position v.

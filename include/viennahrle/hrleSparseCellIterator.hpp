@@ -18,6 +18,7 @@ template <class hrleDomain> class SparseCellIterator {
       ValueType;
 
   static constexpr int D = hrleDomain::dimension;
+  static constexpr int numCorners = 1 << D;
 
   hrleDomain &domain;
   Index<D> currentCoords;
@@ -32,6 +33,7 @@ template <class hrleDomain> class SparseCellIterator {
 
 public:
   using DomainType = hrleDomain;
+  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
   SparseCellIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), currentCoords(v) {
@@ -81,8 +83,7 @@ public:
 
   void next() {
     do {
-      const int numCorners = 1 << D;
-      std::array<bool, 1 << D> increment;
+      std::array<bool, numCorners> increment;
       increment.fill(false);
       increment[0] = true;
 
@@ -109,8 +110,7 @@ public:
 
   void previous() {
     do {
-      const int numCorners = 1 << D;
-      std::array<bool, 1 << D> decrement;
+      std::array<bool, numCorners> decrement;
       decrement.fill(false);
       decrement[0] = true;
 
@@ -149,6 +149,7 @@ public:
       if (vector[i])
         index |= 1 << i;
     }
+    assert(index < numCorners);
     return cornerIterators[index];
   }
 

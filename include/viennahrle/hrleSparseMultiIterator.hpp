@@ -35,7 +35,7 @@ private:
   template <class V> void initializeIterators(const V &v) {
     iterators.clear();
     for (unsigned i = 0; i < domains.size(); ++i) {
-      iterators.push_back(SparseIterator<hrleDomain>(*(domains[i]), v));
+      iterators.push_back(SparseIterator<hrleDomain>(*domains[i], v));
     }
   }
 
@@ -96,9 +96,8 @@ public:
     }
 
     // do {
-    // find shortest current run to find next run
+    // find the shortest current run to find next run
     Index<D> endIndices = iterators[0].getEndIndices();
-    // std::cout << "End Indices: " << endIndices << std::endl;
     for (unsigned i = 1; i < iterators.size(); ++i) {
       if (!iterators[i].isFinished() &&
           iterators[i].getEndIndices() < endIndices) {
