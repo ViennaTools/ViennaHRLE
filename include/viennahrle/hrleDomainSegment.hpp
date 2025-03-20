@@ -33,10 +33,10 @@ public:
                      // defined grid points
 
   std::vector<ValueType> undefinedValues; // this vector keeps all the values of
-                                          // undefined runs ( background values)
+                                          // undefined runs (background values)
 
-  // std::vector<SizeType>
-  //     activePointIds; // an additional vector, which has the same size as the
+  // std::vector<SizeType> activePointIds;
+  // an additional vector, which has the same size as the
   // distances-vector in case the defined grid point is
   // active in terms of the sparse field level set method
   // (the level set value is in the range [-0.5,0.5]) this
@@ -46,9 +46,8 @@ public:
   // active point ID equals the number of active grid
   // points-1 if the grid point is not active, its value is
   // set to the constant RunTypeValues::INACTIVE_PT
-
-  // SizeType numberOfActivePoints; // numberOfActivePoints stores the number
-  // of active points
+  // SizeType numberOfActivePoints;
+  // numberOfActivePoints stores the number of active points
 
   // STATIC FUNCTIONS
   static bool isPtIdDefined(const SizeType r) { // returns if the grid point

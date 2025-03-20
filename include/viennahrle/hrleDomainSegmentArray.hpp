@@ -11,9 +11,7 @@ template <class T = double, int D = 3> class DomainSegmentArray {
 
   typedef DomainSegment<T, D> *segmentPointer; // pointer to memory containing
                                                // hrleDomainSegment object
-
-  typedef std::vector<segmentPointer> DomainSegmentPointerArray;
-  DomainSegmentPointerArray domainSegmentPointers;
+  std::vector<segmentPointer> domainSegmentPointers;
 
 public:
   // assignment operator and copy-constructor are deleted since vector only
@@ -21,7 +19,7 @@ public:
   DomainSegmentArray &operator=(const DomainSegmentArray &s) = delete;
   DomainSegmentArray(const DomainSegmentArray &s) = delete;
 
-  typedef typename DomainSegmentPointerArray::size_type size_type;
+  using size_type = typename std::vector<segmentPointer>::size_type;
 
   const DomainSegment<T, D> &operator[](size_type i) const {
     return *(domainSegmentPointers[i]);
@@ -42,11 +40,9 @@ public:
   }
 
   void clear() {
-    for (typename DomainSegmentPointerArray::iterator it =
-             domainSegmentPointers.begin();
-         it != domainSegmentPointers.end(); ++it)
-      if (*it != 0)
-        delete *it;
+    for (auto &segP : domainSegmentPointers)
+      if (segP)
+        delete segP;
     domainSegmentPointers.clear();
   }
 
