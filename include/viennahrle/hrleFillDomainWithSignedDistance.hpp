@@ -13,9 +13,10 @@ using namespace viennacore;
 /// NOTE: a valid list of points must include all grid points, which are
 /// connected by edges of the grid, which are intersected by the surface
 template <class T, int D>
-void hrleFillDomainWithSignedDistance(
-    Domain<T, D> &newDomain, std::vector<std::pair<Index<D>, T>> pointData,
-    const T &negValue, const T &posValue, const bool sortPointList = true) {
+void FillDomainWithSignedDistance(Domain<T, D> &newDomain,
+                                  std::vector<std::pair<Index<D>, T>> pointData,
+                                  const T &negValue, const T &posValue,
+                                  const bool sortPointList = true) {
 
   typedef std::pair<Index<D>, T> indexValuePairType;
 

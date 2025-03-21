@@ -42,7 +42,6 @@ protected:
     s_level = r_level + 1;
     absCoords[r_level] = domain.getGrid().getMinGridPoint(r_level);
     endAbsCoords[r_level] = domain.getGrid().getMaxGridPoint(r_level);
-    assert(s_level == r_level + 1);
   }
 
 public:
@@ -59,8 +58,6 @@ public:
     std::cout << "s_level: " << s_level << std::endl;
     std::cout << "sub: " << sub << std::endl;
     std::cout << "value: " << getValue() << std::endl;
-    // std::cout << "sign: " << sign() << std::endl;
-    // std::cout << "active: " << is_active() << std::endl;
     std::cout << "current segment: " << getSegmentRun() << std::endl
               << std::endl;
   }

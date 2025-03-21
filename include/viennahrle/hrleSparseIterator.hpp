@@ -31,8 +31,8 @@ class SparseIterator : public BaseIterator<hrleDomain> {
     const DomainSegmentType &sl = domain.domainSegments[sub];
     const SizeType &s = startIndicesPos[s_level];
 
-    --r_level;
-    SizeType r = sl.startIndices[r_level][s];
+    --r_level;                                // go down one level
+    SizeType r = sl.startIndices[r_level][s]; // r is the start index of the run
 
     auto start_breaks = sl.runBreaks[r_level].begin() + (r - s);
     auto end_breaks = sl.runBreaks[r_level].begin() +
@@ -45,15 +45,20 @@ class SparseIterator : public BaseIterator<hrleDomain> {
     r += static_cast<SizeType>(pos_breaks - start_breaks);
 
     if (pos_breaks == start_breaks) {
+      // position c is before the first break -> position is undefined
       startRunAbsCoords[r_level] = domain.getGrid().getMinGridPoint(r_level);
     } else {
+      // position c is between two breaks -> position is in defined run
       assert(pos_breaks > start_breaks);
       startRunAbsCoords[r_level] = *(pos_breaks - 1);
     }
 
     if (pos_breaks == end_breaks) {
+      // position c is after the last break -> position is undefined
       endRunAbsCoords[r_level] = domain.getGrid().getMaxGridPoint(r_level);
     } else {
+      // position c is between two breaks -> position is in defined run
+      // start run = end run -> single defined run
       endRunAbsCoords[r_level] = (*pos_breaks) - 1;
     }
 
@@ -64,7 +69,6 @@ class SparseIterator : public BaseIterator<hrleDomain> {
   }
 
   void go_down_AB_first() { // find right runTypePos
-
     assert(s_level == r_level);
 
     const DomainSegmentType &sl = domain.domainSegments[sub];
@@ -86,7 +90,6 @@ class SparseIterator : public BaseIterator<hrleDomain> {
   }
 
   void go_down_AB_last() { // find right runTypePos
-
     assert(s_level == r_level);
 
     const DomainSegmentType &sl = domain.domainSegments[sub];
@@ -110,8 +113,6 @@ class SparseIterator : public BaseIterator<hrleDomain> {
   bool go_down_BA(IndexType c) {
     assert(s_level == r_level + 1);
     assert(s_level >= 1);
-    // std::cout << "go_down_BA:" << std::endl;
-    // print();
 
     const DomainSegmentType &sl = domain.domainSegments[sub];
 
@@ -151,6 +152,7 @@ class SparseIterator : public BaseIterator<hrleDomain> {
     const DomainSegmentType &sl = domain.domainSegments[sub];
 
     if (endRunAbsCoords[r_level] != domain.getGrid().getMaxGridPoint(r_level)) {
+      // current run is not the last run in the segment
       ++runTypePos[r_level];
       startRunAbsCoords[r_level] = endRunAbsCoords[r_level] + 1;
       endRunAbsCoords[r_level] = sl.getRunEndCoord(
