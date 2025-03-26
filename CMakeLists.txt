@@ -11,6 +11,7 @@ project(
 option(VIENNAHRLE_BUILD_TESTS "Build tests" OFF)
 option(VIENNAHRLE_BUILD_EXAMPLES "Build examples" OFF)
 
+option(VIENNAHRLE_USE_OPENMP "Enable OpenMP" ON)
 option(VIENNAHRLE_USE_SANITIZER "Enable Sanitizers" OFF)
 
 # --------------------------------------------------------------------------------------------------------
@@ -43,8 +44,9 @@ include("cmake/cpm.cmake")
 
 CPMAddPackage(
   NAME ViennaCore
-  VERSION 1.2.1
+  VERSION 1.3.1
   GIT_TAG vector-type
+  OPTIONS "VIENNACORE_USE_OPENMP ${VIENNAHRLE_USE_OPENMP}"
   GIT_REPOSITORY "https://github.com/ViennaTools/ViennaCore")
 
 CPMAddPackage(

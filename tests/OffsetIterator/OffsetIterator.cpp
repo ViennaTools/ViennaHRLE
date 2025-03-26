@@ -10,6 +10,8 @@
 
 #include <vcTestAsserts.hpp>
 
+#include <omp.h>
+
 using namespace viennahrle;
 constexpr int D = 2;
 using DataType = char;
