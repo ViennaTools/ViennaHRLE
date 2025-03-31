@@ -147,6 +147,28 @@ public:
     str += std::to_string(x[D - 1]) + "]";
     return str;
   }
+
+  struct hash {
+  private:
+    static size_t hash_combine(size_t lhs, size_t rhs) {
+      lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
+      return lhs;
+    }
+
+  public:
+    size_t operator()(const Index &v) const {
+
+      /*
+        https://stackoverflow.com/questions/5889238/why-is-xor-the-default-way-to-combine-hashes
+      */
+      size_t result = std::hash<IndexType>{}(v[0]);
+      result = hash_combine(result, std::hash<IndexType>{}(v[1]));
+      if (D == 3) {
+        result = hash_combine(result, std::hash<IndexType>{}(v[2]));
+      }
+      return result;
+    }
+  };
 };
 
 #define _define_operator(op)                                                   \
