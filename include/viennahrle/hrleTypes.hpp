@@ -129,6 +129,9 @@ public:
   IndexType *data() { return x.data(); }
   const IndexType *data() const { return x.data(); }
 
+  const std::array<IndexType, D> &get() const { return x; }
+  std::array<IndexType, D> &get() { return x; }
+
   auto begin() { return x.begin(); }
   auto end() { return x.end(); }
   auto begin() const { return x.begin(); }
