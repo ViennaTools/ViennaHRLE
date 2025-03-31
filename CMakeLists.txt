@@ -11,7 +11,6 @@ project(
 option(VIENNAHRLE_BUILD_TESTS "Build tests" OFF)
 option(VIENNAHRLE_BUILD_EXAMPLES "Build examples" OFF)
 
-option(VIENNAHRLE_USE_OPENMP "Enable OpenMP" ON)
 option(VIENNAHRLE_USE_SANITIZER "Enable Sanitizers" OFF)
 
 # --------------------------------------------------------------------------------------------------------
