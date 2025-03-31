@@ -173,23 +173,30 @@ public:
 
 #define _define_operator(op)                                                   \
   /* index op index */                                                         \
-  template <int D>                                                             \
-  inline __both__ Index<D> operator op(const Index<D> &a, const Index<D> &b) { \
-    return Index<D>{a[0] op b[0], a[1] op b[1]};                               \
+  inline Index<2> operator op(const Index<2> &a, const Index<2> &b) {          \
+    return Index<2>{a[0] op b[0], a[1] op b[1]};                               \
+  }                                                                            \
+                                                                               \
+  inline Index<3> operator op(const Index<3> &a, const Index<3> &b) {          \
+    return Index<3>{a[0] op b[0], a[1] op b[1], a[2] op b[2]};                 \
   }                                                                            \
                                                                                \
   /* index op scalar */                                                        \
-  template <int D>                                                             \
-  inline __both__ Index<D> operator op(const Index<D> &a,                      \
-                                       const IndexType & b) {                  \
-    return Index<D>{a[0] op b, a[1] op b};                                     \
+  inline Index<2> operator op(const Index<2> &a, const IndexType & b) {        \
+    return Index<2>{a[0] op b, a[1] op b};                                     \
+  }                                                                            \
+                                                                               \
+  inline Index<3> operator op(const Index<3> &a, const IndexType & b) {        \
+    return Index<3>{a[0] op b, a[1] op b, a[2] op b};                          \
   }                                                                            \
                                                                                \
   /* scalar op index */                                                        \
-  template <int D>                                                             \
-  inline __both__ Index<D> operator op(const IndexType & a,                    \
-                                       const Index<D> &b) {                    \
-    return Index<D>{a op b[0], a op b[1]};                                     \
+  inline Index<2> operator op(const IndexType & a, const Index<2> &b) {        \
+    return Index<2>{a op b[0], a op b[1]};                                     \
+  }                                                                            \
+                                                                               \
+  inline Index<3> operator op(const IndexType & a, const Index<3> &b) {        \
+    return Index<3>{a op b[0], a op b[1], a op b[2]};                          \
   }
 
 _define_operator(+);
