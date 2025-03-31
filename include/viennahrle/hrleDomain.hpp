@@ -211,16 +211,16 @@ public:
     return maxBreak;
   }
 
-  VectorType<IndexType, D> getMinRunBreak() const {
-    VectorType<IndexType, D> minBreak;
+  Index<D> getMinRunBreak() const {
+    Index<D> minBreak;
     for (unsigned i = 0; i < D; ++i) {
       minBreak[i] = getMinRunBreak(i);
     }
     return minBreak;
   }
 
-  VectorType<IndexType, D> getMaxRunBreak() const {
-    VectorType<IndexType, D> maxBreak;
+  Index<D> getMaxRunBreak() const {
+    Index<D> maxBreak;
     for (unsigned i = 0; i < D; ++i) {
       maxBreak[i] = getMaxRunBreak(i);
     }
@@ -414,15 +414,13 @@ public:
   /// num_runs[i] is to contain the run types at the i-th dimension
   AllocationType<SizeType, D> getAllocation() const {
     AllocationType<SizeType, D> a;
-    a.num_values = VectorType<IndexType, D>(0);
-    a.num_runs = VectorType<IndexType, D>(0);
     for (unsigned i = 0; i < domainSegments.getNumberOfSegments(); ++i) {
       AllocationType<SizeType, D> b = domainSegments[i].getAllocation();
       a.num_values = Max(a.num_values, b.num_values);
       a.num_runs = Max(a.num_runs, b.num_runs);
     }
 
-    return (a * domainSegments.getNumberOfSegments());
+    return a * domainSegments.getNumberOfSegments();
   }
 
   /// distribute points evenly across domainSegments, so that they can be
@@ -444,10 +442,10 @@ public:
 
       DomainSegmentType &s = newDomain.domainSegments[p];
 
-      VectorType<IndexType, D> startOfSegment =
+      Index<D> startOfSegment =
           (p == 0) ? grid->getMinIndex() : newDomain.segmentation[p - 1];
 
-      VectorType<IndexType, D> endOfSegment =
+      Index<D> endOfSegment =
           (p != static_cast<int>(newDomain.segmentation.size()))
               ? newDomain.segmentation[p]
               : grid->getMaxGridPoint();

@@ -146,7 +146,8 @@ public:
         const_cast<const SparseStarIterator *>(this)->getNeighbor(index));
   }
 
-  template <class V> const OffsetIterator &getNeighbor(V &relativeIndex) const {
+  template <class V>
+  const OffsetIterator &getNeighbor(V const &relativeIndex) const {
     // check first if it is a valid index
     unsigned char directions = 0;
     unsigned neighborIndex;
@@ -165,7 +166,7 @@ public:
     return neighborIterators[neighborIndex];
   }
 
-  template <class V> OffsetIterator &getNeighbor(V &relativeIndex) {
+  template <class V> OffsetIterator &getNeighbor(V const &relativeIndex) {
     return const_cast<OffsetIterator &>(
         const_cast<const SparseStarIterator *>(this)->getNeighbor(
             relativeIndex));

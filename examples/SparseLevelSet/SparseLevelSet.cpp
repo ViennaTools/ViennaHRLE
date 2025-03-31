@@ -52,7 +52,7 @@ int main() {
   }
 
   // now put the data into an hrleDomain using a helper function
-  hrleFillDomainWithSignedDistance(data, pointData, -1., 1.);
+  viennahrle::FillDomainWithSignedDistance(data, pointData, -1., 1.);
 
   // visualise signed distance field on command line
   ConstDenseIterator<Domain<valueType, D>> it(data);

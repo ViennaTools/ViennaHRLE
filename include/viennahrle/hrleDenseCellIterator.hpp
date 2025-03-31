@@ -25,9 +25,9 @@ template <class hrleDomain> class DenseCellIterator {
   Index<D> minIndex, maxIndex;
 
   template <class V> void initialize(const V &v) {
-    for (int i = 0; i < (1 << D); ++i) {
-      cornerIterators.push_back(SparseOffsetIterator<hrleDomain>(
-          domain, BitMaskToVector<D, IndexType>(i), v));
+    for (unsigned i = 0; i < 1 << D; ++i) {
+      cornerIterators.push_back(
+          SparseOffsetIterator<hrleDomain>(domain, BitMaskToIndex<D>(i), v));
     }
   }
 

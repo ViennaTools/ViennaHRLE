@@ -46,7 +46,6 @@ CPMAddPackage(
   NAME ViennaCore
   VERSION 1.3.1
   GIT_TAG vector-type
-  OPTIONS "VIENNACORE_USE_OPENMP ${VIENNAHRLE_USE_OPENMP}"
   GIT_REPOSITORY "https://github.com/ViennaTools/ViennaCore")
 
 CPMAddPackage(

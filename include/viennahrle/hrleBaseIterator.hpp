@@ -24,10 +24,10 @@ protected:
   hrleDomain &domain;
   VectorType<SizeType, D + 1> startIndicesPos;
   VectorType<SizeType, D> runTypePos;
-  VectorType<IndexType, D> startRunAbsCoords;
-  VectorType<IndexType, D> endRunAbsCoords;
-  VectorType<IndexType, D> absCoords;
-  VectorType<IndexType, D> endAbsCoords;
+  Index<D> startRunAbsCoords;
+  Index<D> endRunAbsCoords;
+  Index<D> absCoords;
+  Index<D> endAbsCoords;
   int r_level;
   int s_level;
   int sub;
@@ -96,14 +96,14 @@ public:
     return absCoords[dir];
   }
 
-  const VectorType<IndexType, D> &getStartIndices() const { return absCoords; }
+  const Index<D> &getStartIndices() const { return absCoords; }
 
   IndexType getEndIndices(int dir) const {
     // returns the end index of a run for a certain axis direction
     return endAbsCoords[dir];
   }
 
-  const VectorType<IndexType, D> &getEndIndices() const { return endAbsCoords; }
+  const Index<D> &getEndIndices() const { return endAbsCoords; }
 
   SizeType getRunTypePosition() const {
     if (s_level == 0) {

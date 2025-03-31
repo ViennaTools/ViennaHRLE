@@ -17,8 +17,8 @@ int main() {
   Grid<D> grid(min, max);
   Domain<char, D> data(grid);
 
-  std::vector<std::pair<VectorType<IndexType, D>, char>> pointData;
-  VectorType<IndexType, D> index = data.getGrid().getMinIndex();
+  std::vector<std::pair<Index<D>, char>> pointData;
+  auto index = data.getGrid().getMinIndex();
 
   std::string dataString = "The quick brown fox jumps over the lazy dog.";
 

@@ -51,7 +51,8 @@ void FillDomainWithSignedDistance(Domain<T, D> &newDomain,
 
   auto pointDataIt = pointDataBegin;
 
-  VectorType<bool, D> signs(pointDataBegin->second < 0);
+  VectorType<bool, D> signs;
+  std::fill(signs.begin(), signs.end(), pointDataBegin->second < 0);
 
   while (pointDataIt != pointDataEnd) {
     bool setPoint = true;

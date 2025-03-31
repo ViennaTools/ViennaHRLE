@@ -52,7 +52,10 @@ public:
     return tmp;
   }
 
-  AllocationType() : num_values(SizeType(0)), num_runs(SizeType(0)) {}
+  AllocationType() {
+    std::fill(num_runs.begin(), num_runs.end(), SizeType(0));
+    std::fill(num_values.begin(), num_values.end(), SizeType(0));
+  }
 };
 } // namespace viennahrle
 

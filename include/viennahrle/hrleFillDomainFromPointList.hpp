@@ -13,12 +13,12 @@ using namespace viennacore;
 // and fills it with the Data in pointData,
 // a sorted list of index/value pairs
 template <class T, int D>
-void FillDomainFromPointList(
-    Domain<T, D> &newDomain,
-    std::vector<std::pair<VectorType<IndexType, D>, T>> pointData,
-    const T &backgroundValue, const bool sortPointList = true) {
+void FillDomainFromPointList(Domain<T, D> &newDomain,
+                             std::vector<std::pair<Index<D>, T>> pointData,
+                             const T &backgroundValue,
+                             const bool sortPointList = true) {
 
-  typedef std::pair<VectorType<IndexType, D>, T> indexValuePairType;
+  typedef std::pair<Index<D>, T> indexValuePairType;
 
   // TODO: is not parallelized yet
   newDomain.initialize();
@@ -53,8 +53,8 @@ void FillDomainFromPointList(
     newDomain.insertNextDefinedPoint(0, pointDataIt->first,
                                      pointDataIt->second);
 
-    VectorType<IndexType, D> index = pointDataIt->first;
-    VectorType<IndexType, D> next_index;
+    Index<D> index = pointDataIt->first;
+    Index<D> next_index;
 
     ++pointDataIt;
 
@@ -67,7 +67,7 @@ void FillDomainFromPointList(
     }
 
     for (int q = 0; q < D; q++) {
-      VectorType<IndexType, D> tmp = index;
+      Index<D> tmp = index;
       ++tmp[q];
       if (tmp[q] > grid.getMaxGridPoint(q))
         continue;
