@@ -3,7 +3,7 @@
 
 #include <limits>
 
-#include "hrleSizeType.hpp"
+#include "hrleTypes.hpp"
 
 // the number of possible undefined run value, ergo how many different
 // background values there can be
@@ -16,19 +16,19 @@
 #define MAX_NUMBER_OF_OMP_THREADS 100
 #endif // MAX_NUMBER_OF_OMP_THREADS
 
-struct hrleRunTypeValues {
-  static constexpr hrleSizeType SEGMENT_PT =
-      std::numeric_limits<hrleSizeType>::max() -
+namespace viennahrle {
+struct RunTypeValues {
+  static constexpr SizeType SEGMENT_PT =
+      std::numeric_limits<SizeType>::max() -
       (MAX_NUMBER_OF_OMP_THREADS); // this value signifies end the of
                                    // the current hrleDomainSegment
 
-  static constexpr hrleSizeType
-      UNDEF_PT = // undef runs have ids up to SEGMENT_PT
-      std::numeric_limits<hrleSizeType>::max() -
+  static constexpr SizeType UNDEF_PT = // undef runs have ids up to SEGMENT_PT
+      std::numeric_limits<SizeType>::max() -
       (MAX_NUMBER_OF_BACKGROUND_VALUES + MAX_NUMBER_OF_OMP_THREADS);
 
-  static constexpr hrleSizeType INACTIVE_PT =
-      std::numeric_limits<hrleSizeType>::max();
+  static constexpr SizeType INACTIVE_PT = std::numeric_limits<SizeType>::max();
 };
+} // namespace viennahrle
 
 #endif // HRLE_RUN_TYPE_VALUES_HPP

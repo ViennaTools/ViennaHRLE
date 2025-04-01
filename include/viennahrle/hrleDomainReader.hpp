@@ -3,23 +3,22 @@
 
 #define HRLE_FILE_READ_VERSION_NUMBER 1
 
-#include <cmath>
 #include <fstream>
 #include <iostream>
 
 #include <hrleGrid.hpp>
-#include <hrleIndexType.hpp>
-#include <hrleRunTypeValues.hpp>
 
+namespace viennahrle {
+using namespace viennacore;
 /// Class which handles the input of an hrleDomain
 /// from a binary .hrle file
-template <class hrleDomain> class hrleDomainReader {
-  typedef typename hrleDomain::hrleValueType hrleValueType;
+template <class hrleDomain> class DomainReader {
+  typedef typename hrleDomain::ValueType ValueType;
   static constexpr int D = hrleDomain::dimension;
 
   hrleDomain *domain = nullptr;
   std::string filePath;
-  int valueTypeByteSize;
+  int valueTypeByteSize = 0;
 
   union {
     uint16_t shortVar;  // binary  number of length 16 Bits
@@ -32,9 +31,9 @@ template <class hrleDomain> class hrleDomainReader {
   }
 
 public:
-  hrleDomainReader() {}
-  hrleDomainReader(hrleDomain *domainPointer) : domain(domainPointer) {}
-  hrleDomainReader(hrleDomain &passedDomain) : domain(&passedDomain) {}
+  DomainReader() = default;
+  explicit DomainReader(hrleDomain *domainPointer) : domain(domainPointer) {}
+  explicit DomainReader(hrleDomain &passedDomain) : domain(&passedDomain) {}
   void setDomain(hrleDomain *domainPointer) { domain = domainPointer; }
   void setDomain(hrleDomain &passedDomain) { domain = &passedDomain; }
   hrleDomain &getDomain() { return *domain; }
@@ -53,7 +52,7 @@ public:
     if (domain == nullptr) {
       std::cout
           << "ERROR: In order to read an hrleDomain, you first have to set the "
-             "object to read it into. Use hrleDomainReader.setDomain()"
+             "object to read it into. Use DomainReader.setDomain()"
           << std::endl;
       return;
     }
@@ -107,5 +106,6 @@ public:
     domain->deserialize(fin);
   }
 };
+} // namespace viennahrle
 
 #endif // HRLE_DOMAIN_READER_HPP

@@ -6,16 +6,19 @@
 
 #include "hrleDomain.hpp"
 
+namespace viennahrle {
+using namespace viennacore;
+
 // this functions clears the hrleDomain
 // and fills it with the Data in pointData,
 // a sorted list of index/value pairs
 template <class T, int D>
-void hrleFillDomainFromPointList(
-    hrleDomain<T, D> &newDomain,
-    std::vector<std::pair<hrleVectorType<hrleIndexType, D>, T>> pointData,
-    const T &backgroundValue, const bool sortPointList = true) {
+void FillDomainFromPointList(Domain<T, D> &newDomain,
+                             std::vector<std::pair<Index<D>, T>> pointData,
+                             const T &backgroundValue,
+                             const bool sortPointList = true) {
 
-  typedef std::pair<hrleVectorType<hrleIndexType, D>, T> indexValuePairType;
+  typedef std::pair<Index<D>, T> indexValuePairType;
 
   // TODO: is not parallelized yet
   newDomain.initialize();
@@ -33,7 +36,7 @@ void hrleFillDomainFromPointList(
         });
   }
 
-  const hrleGrid<D> &grid = newDomain.getGrid();
+  const auto &grid = newDomain.getGrid();
 
   if (pointData.front().first != grid.getMinGridPoint()) {
     newDomain.insertNextUndefinedPoint(0, grid.getMinGridPoint(),
@@ -50,22 +53,22 @@ void hrleFillDomainFromPointList(
     newDomain.insertNextDefinedPoint(0, pointDataIt->first,
                                      pointDataIt->second);
 
-    hrleVectorType<hrleIndexType, D> index = pointDataIt->first;
-    hrleVectorType<hrleIndexType, D> next_index;
+    Index<D> index = pointDataIt->first;
+    Index<D> next_index;
 
-    pointDataIt++;
+    ++pointDataIt;
 
     // choose correct next index
     if (pointDataIt == pointDataEnd) {
       next_index = grid.getMaxGridPoint();
-      next_index[D - 1]++;
+      ++next_index[D - 1];
     } else {
       next_index = pointDataIt->first;
     }
 
     for (int q = 0; q < D; q++) {
-      hrleVectorType<hrleIndexType, D> tmp = index;
-      tmp[q]++;
+      Index<D> tmp = index;
+      ++tmp[q];
       if (tmp[q] > grid.getMaxGridPoint(q))
         continue;
       for (int r = 0; r < q; ++r)
@@ -80,5 +83,6 @@ void hrleFillDomainFromPointList(
 
   newDomain.finalize();
 }
+} // namespace viennahrle
 
 #endif // HRLE_DOMAIN_FROM_POINT_LIST_HPP

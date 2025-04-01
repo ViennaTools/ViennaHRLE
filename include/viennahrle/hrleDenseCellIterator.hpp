@@ -1,37 +1,37 @@
 #ifndef HRLE_DENSE_CELL_ITERATOR_HPP
 #define HRLE_DENSE_CELL_ITERATOR_HPP
 
-#include <cassert>
-
 #include "hrleSparseOffsetIterator.hpp"
 
-/// This neighbor iterator consists of 2*Dimensions hrleSparseOffsetIterator s
+namespace viennahrle {
+using namespace viennacore;
+/// This neighbor iterator consists of 2*Dimensions SparseOffsetIterator s
 /// for the cartesian neighbors and an hrleSparseIterator
 /// for the center.
 /// Whenever one of these (2*Dimensions+1) iterators reach a defined grid point,
 /// the iterator stops.
-template <class hrleDomain> class hrleDenseCellIterator {
+template <class hrleDomain> class DenseCellIterator {
 
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
-      hrleValueType;
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::ValueType,
+                             typename hrleDomain::ValueType>
+      ValueType;
 
   static constexpr int D = hrleDomain::dimension;
 
   hrleDomain &domain;
-  hrleVectorType<hrleIndexType, D> currentCoords;
-  std::vector<hrleSparseOffsetIterator<hrleDomain>> cornerIterators;
-  hrleVectorType<hrleIndexType, D> minIndex, maxIndex;
+  Index<D> currentCoords;
+  std::vector<SparseOffsetIterator<hrleDomain>> cornerIterators;
+  Index<D> minIndex, maxIndex;
 
   template <class V> void initialize(const V &v) {
-    for (int i = 0; i < (1 << D); ++i) {
-      cornerIterators.push_back(hrleSparseOffsetIterator<hrleDomain>(
-          domain, BitMaskToVector<D, hrleIndexType>(i), v));
+    for (unsigned i = 0; i < 1 << D; ++i) {
+      cornerIterators.push_back(
+          SparseOffsetIterator<hrleDomain>(domain, BitMaskToIndex<D>(i), v));
     }
   }
 
-  void incrementIndices(hrleVectorType<hrleIndexType, D> &v) {
+  void incrementIndices(Index<D> &v) {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       bool posInfinite = domain.getGrid().isPosBoundaryInfinite(dim);
@@ -45,7 +45,7 @@ template <class hrleDomain> class hrleDenseCellIterator {
     ++v[dim];
   }
 
-  void decrementIndices(hrleVectorType<hrleIndexType, D> &v) {
+  void decrementIndices(Index<D> &v) {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       bool posInfinite = domain.getGrid().isPosBoundaryInfinite(dim);
@@ -61,16 +61,15 @@ template <class hrleDomain> class hrleDenseCellIterator {
 
   // make post in/decrement private, since they should not be used, due to the
   // size of the structure
-  hrleDenseCellIterator<hrleDomain>
-  operator++(int); // use pre increment instead
-  hrleDenseCellIterator<hrleDomain>
-  operator--(int); // use pre decrement instead
+  DenseCellIterator operator++(int) { return *this; }
+  // use pre increment instead
+  DenseCellIterator operator--(int) { return *this; }
+  // use pre decrement instead
 
 public:
   using DomainType = hrleDomain;
 
-  hrleDenseCellIterator(hrleDomain &passedDomain,
-                        const hrleVectorType<hrleIndexType, D> &v)
+  DenseCellIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), currentCoords(v) {
 
     initialize(currentCoords);
@@ -78,7 +77,7 @@ public:
       next();
   }
 
-  hrleDenseCellIterator(hrleDomain &passedDomain, bool reverse = false)
+  explicit DenseCellIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain),
         currentCoords(domain.getGrid().getMinGridPoint()) {
 
@@ -114,12 +113,12 @@ public:
     return false;
   }
 
-  hrleDenseCellIterator<hrleDomain> &operator++() {
+  DenseCellIterator<hrleDomain> &operator++() {
     next();
     return *this;
   }
 
-  hrleDenseCellIterator<hrleDomain> &operator--() {
+  DenseCellIterator<hrleDomain> &operator--() {
     previous();
     return *this;
   }
@@ -129,15 +128,18 @@ public:
     // std::vector<bool> increment(numCorners, false);
     // increment[0] = true;
 
-    hrleVectorType<hrleIndexType, D> end_coords = currentCoords;
+    Index<D> end_coords = currentCoords;
     // cornerIterators[0].getEndIndices();
     for (int i = 0; i < numCorners; i++) {
-      switch (compare(end_coords, cornerIterators[i].getEndIndices())) {
+      switch (Compare(end_coords, cornerIterators[i].getEndIndices())) {
       case 1:
+        // TODO
         // end_coords = cornerIterators[i].getEndIndices();
         // increment = std::vector<bool>(numCorners, false);
       case 0:
         cornerIterators[i].next();
+      default:
+        break;
       }
     }
 
@@ -149,30 +151,33 @@ public:
     // std::vector<bool> decrement(numCorners, false);
     // decrement[0] = true;
 
-    hrleVectorType<hrleIndexType, D> start_coords = currentCoords;
+    Index<D> start_coords = currentCoords;
     // cornerIterators[0].getStartIndices();
     for (int i = 0; i < numCorners; i++) {
-      switch (compare(start_coords, cornerIterators[i].getStartIndices())) {
+      switch (Compare(start_coords, cornerIterators[i].getStartIndices())) {
       case -1:
+        // TODO
         // start_coords = cornerIterators[i].getStartIndices();
         // decrement = std::vector<bool>(numCorners, false);
       case 0:
         cornerIterators[i].previous();
+      default:
+        break;
       }
     }
 
     decrementIndices(currentCoords);
   }
 
-  hrleSparseOffsetIterator<hrleDomain> &getCorner(unsigned index) {
+  SparseOffsetIterator<hrleDomain> &getCorner(unsigned index) {
     return cornerIterators[index];
   }
 
-  hrleSparseOffsetIterator<hrleDomain> &getCorner(int index) {
+  SparseOffsetIterator<hrleDomain> &getCorner(int index) {
     return cornerIterators[index];
   }
 
-  template <class V> hrleSparseOffsetIterator<hrleDomain> &getCorner(V vector) {
+  template <class V> SparseOffsetIterator<hrleDomain> &getCorner(V vector) {
     unsigned index = 0;
     for (unsigned i = 0; i < D; ++i) {
       if (vector[i])
@@ -181,9 +186,9 @@ public:
     return cornerIterators[index];
   }
 
-  const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
+  const Index<D> &getIndices() { return currentCoords; }
 
-  const hrleIndexType &getIndices(unsigned i) { return currentCoords[i]; }
+  const IndexType &getIndices(unsigned i) { return currentCoords[i]; }
 
   const DomainType &getDomain() { return domain; }
 
@@ -214,6 +219,8 @@ public:
 };
 
 template <class hrleDomain>
-using hrleConstDenseCellIterator = hrleDenseCellIterator<const hrleDomain>;
+using ConstDenseCellIterator = DenseCellIterator<const hrleDomain>;
+
+} // namespace viennahrle
 
 #endif // HRLE_DENSE_CELL_ITERATOR_HPP

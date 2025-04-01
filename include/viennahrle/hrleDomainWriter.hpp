@@ -3,13 +3,8 @@
 
 #define HRLE_FILE_VERSION_NUMBER 1
 
-#include <cmath>
 #include <fstream>
 #include <iostream>
-#include <vector>
-
-#include <hrleIndexType.hpp>
-#include <hrleRunTypeValues.hpp>
 
 /*
 *********************************************************************
@@ -68,10 +63,12 @@
 *********************************************************************
 */
 
+namespace viennahrle {
+using namespace viennacore;
 /// Class which handles the output of an hrleDomain
 /// to the binary .hrle format
-template <class hrleDomain> class hrleDomainWriter {
-  typedef typename hrleDomain::hrleValueType hrleValueType;
+template <class hrleDomain> class DomainWriter {
+  typedef typename hrleDomain::ValueType ValueType;
 
   static constexpr int D = hrleDomain::dimension;
 
@@ -83,8 +80,8 @@ template <class hrleDomain> class hrleDomainWriter {
   hrleDomain *domain;
   std::string filePath;
   int valueTypeByteSize =
-      sizeof(hrleValueType); // if hrleValueType is float or double, reduce to
-                             // this bytesize before saving
+      sizeof(ValueType); // if ValueType is float or double, reduce to
+  // this bytesize before saving
 
   bool bigEndian() {
     test_endianness.shortVar = 0x8000; // MSB of 16
@@ -92,11 +89,9 @@ template <class hrleDomain> class hrleDomainWriter {
   }
 
 public:
-  hrleDomainWriter() {}
-
-  hrleDomainWriter(hrleDomain *domainPointer) : domain(domainPointer) {}
-
-  hrleDomainWriter(hrleDomain &passedDomain) : domain(&passedDomain) {}
+  DomainWriter() = default;
+  explicit DomainWriter(hrleDomain *domainPointer) : domain(domainPointer) {}
+  explicit DomainWriter(hrleDomain &passedDomain) : domain(&passedDomain) {}
 
   // setters and getters
   void setDomain(hrleDomain *domainPointer) { domain = domainPointer; }
@@ -135,5 +130,6 @@ public:
     domain->serialize(fout);
   }
 };
+} // namespace viennahrle
 
 #endif // HRLE_DOMAIN_WRITER_HPP

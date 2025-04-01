@@ -3,5 +3,10 @@
 *.json
 *.vs
 !foxDomain.hrle
-Examples/build/
+examples/build/
 build*/
+.idea/
+.vscode/
+cmake-build-*
+.DS_Store
+

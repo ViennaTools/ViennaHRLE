@@ -5,105 +5,90 @@
 
 #include "hrleSparseIterator.hpp"
 #include "hrleSparseOffsetIterator.hpp"
+#include "hrleTypes.hpp"
 
-/// This neighbor iterator consists of 2*Dimensions hrleSparseOffsetIterator s
-/// for the cartesian neighbors and an hrleSparseIterator
+namespace viennahrle {
+using namespace viennacore;
+/// This neighbor iterator consists of 2*Dimensions SparseOffsetIterator s
+/// for the cartesian neighbors and an SparseIterator
 /// for the center.
 /// Whenever one of these (2*Dimensions+1) iterators reach a defined grid point,
 /// the iterator stops.
-template <class hrleDomain, int order> class hrleSparseStarIterator {
+template <class hrleDomain, int order> class SparseStarIterator {
 
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
-      hrleValueType;
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::ValueType,
+                             typename hrleDomain::ValueType>
+      ValueType;
 
   static constexpr int D = hrleDomain::dimension;
+  static constexpr int numNeighbors = 2 * order * D;
 
   hrleDomain &domain;
-  hrleVectorType<hrleIndexType, D> currentCoords;
-  hrleSparseIterator<hrleDomain> centerIterator;
-  std::vector<hrleSparseOffsetIterator<hrleDomain>> neighborIterators;
+  Index<D> currentCoords;
+  SparseIterator<hrleDomain> centerIterator;
+  std::vector<SparseOffsetIterator<hrleDomain>> neighborIterators;
 
-  bool isDefined() const {
-    if (centerIterator.isDefined())
-      return true;
-    for (int i = 0; i < 2 * D; i++) {
-      if (neighborIterators[i].isDefined())
-        return true;
-    }
-    return false;
-  }
-
-  template <class V> void initializeNeigbors(const V &v) {
-    for (int i = 0; i < int(order); ++i) {
+  template <class V> void initializeNeighbors(const V &v) {
+    neighborIterators.reserve(numNeighbors);
+    for (int i = 0; i < order; ++i) {
       for (int j = 0; j < 2 * D; ++j) {
-        hrleVectorType<hrleIndexType, D> relativeIndex(hrleIndexType(0));
+        Index<D> relativeIndex(0);
         if (j < D)
           relativeIndex[j] = i + 1;
         else
           relativeIndex[j - D] = -(i + 1);
-        neighborIterators.push_back(
-            hrleSparseOffsetIterator<hrleDomain>(domain, relativeIndex, v));
+        neighborIterators.emplace_back(domain, relativeIndex, v);
       }
     }
   }
 
-  // make post in/decrement private, since they should not be used, due to the
-  // size of the structure
-  hrleSparseStarIterator<hrleDomain, order>
-  operator++(int) { // use pre increment instead
-    return *this;
-  }
-  hrleSparseStarIterator<hrleDomain, order>
-  operator--(int) { // use pre decrement instead
-    return *this;
-  }
-
 public:
   using DomainType = hrleDomain;
-  using OffsetIterator = hrleSparseOffsetIterator<hrleDomain>;
+  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
-  hrleSparseStarIterator(hrleDomain &passedDomain,
-                         const hrleVectorType<hrleIndexType, D> &v)
+  SparseStarIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), currentCoords(v),
         centerIterator(passedDomain, v) {
-
-    initializeNeigbors(v);
+    initializeNeighbors(v);
   }
 
-  hrleSparseStarIterator(hrleDomain &passedDomain)
+  explicit SparseStarIterator(hrleDomain &passedDomain)
       : domain(passedDomain), currentCoords(domain.getGrid().getMinGridPoint()),
         centerIterator(passedDomain) {
-
-    initializeNeigbors(passedDomain.getGrid().getMinIndex());
+    initializeNeighbors(passedDomain.getGrid().getMinIndex());
   }
 
-  hrleSparseStarIterator<hrleDomain, order> &operator++() {
+  // delete post in/decrement, since they should not be used, due to the
+  // size of the structure
+  SparseStarIterator operator++(int) = delete; // use pre increment instead
+  SparseStarIterator operator--(int) = delete; // use pre decrement instead
+
+  SparseStarIterator &operator++() {
     next();
     return *this;
   }
 
-  hrleSparseStarIterator<hrleDomain, order> &operator--() {
+  SparseStarIterator &operator--() {
     previous();
     return *this;
   }
 
   void next() {
-    constexpr int numNeighbors = 2 * order * D;
     std::array<bool, numNeighbors + 1> increment;
     increment.fill(false);
     increment[numNeighbors] = true;
 
-    hrleVectorType<hrleIndexType, D> end_coords =
-        centerIterator.getEndIndices();
+    Index<D> end_coords = centerIterator.getEndIndices();
     for (int i = 0; i < numNeighbors; i++) {
-      switch (compare(end_coords, neighborIterators[i].getEndIndices())) {
+      switch (Compare(end_coords, neighborIterators[i].getEndIndices())) {
       case 1:
         end_coords = neighborIterators[i].getEndIndices();
         increment.fill(false);
       case 0:
         increment[i] = true;
+      default:
+        break;
       }
     }
 
@@ -117,20 +102,20 @@ public:
   }
 
   void previous() {
-    constexpr int numNeighbors = 2 * order * D;
     std::array<bool, numNeighbors + 1> decrement;
     decrement.fill(false);
     decrement[numNeighbors] = true;
 
-    hrleVectorType<hrleIndexType, D> start_coords =
-        centerIterator.getStartIndices();
+    Index<D> start_coords = centerIterator.getStartIndices();
     for (int i = 0; i < numNeighbors; i++) {
-      switch (compare(start_coords, neighborIterators[i].getStartIndices())) {
+      switch (Compare(start_coords, neighborIterators[i].getStartIndices())) {
       case -1:
         start_coords = neighborIterators[i].getStartIndices();
         decrement.fill(false);
       case 0:
         decrement[i] = true;
+      default:
+        break;
       }
     }
 
@@ -143,30 +128,31 @@ public:
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
-  const OffsetIterator &getNeighbor(unsigned index) const {
-    return neighborIterators[index];
-  }
-
-  OffsetIterator &getNeighbor(unsigned index) {
-    return const_cast<OffsetIterator &>(
-        const_cast<const hrleSparseStarIterator *>(this)->getNeighbor(index));
-  }
-
   const OffsetIterator &getNeighbor(int index) const {
     return neighborIterators[index];
   }
 
   OffsetIterator &getNeighbor(int index) {
     return const_cast<OffsetIterator &>(
-        const_cast<const hrleSparseStarIterator *>(this)->getNeighbor(index));
+        const_cast<const SparseStarIterator *>(this)->getNeighbor(index));
   }
 
-  template <class V> const OffsetIterator &getNeighbor(V &relativeIndex) const {
+  const OffsetIterator &getNeighbor(unsigned index) const {
+    return neighborIterators[index];
+  }
+
+  OffsetIterator &getNeighbor(unsigned index) {
+    return const_cast<OffsetIterator &>(
+        const_cast<const SparseStarIterator *>(this)->getNeighbor(index));
+  }
+
+  template <class V>
+  const OffsetIterator &getNeighbor(V const &relativeIndex) const {
     // check first if it is a valid index
     unsigned char directions = 0;
     unsigned neighborIndex;
     for (unsigned i = 0; i < D; ++i) {
-      assert(unsigned(abs(relativeIndex[i])) <= order);
+      assert(abs(relativeIndex[i]) <= order);
       if (relativeIndex[i] != 0) {
         ++directions;
         if (relativeIndex[i] > 0)
@@ -180,36 +166,29 @@ public:
     return neighborIterators[neighborIndex];
   }
 
-  template <class V> OffsetIterator &getNeighbor(V &relativeIndex) {
+  template <class V> OffsetIterator &getNeighbor(V const &relativeIndex) {
     return const_cast<OffsetIterator &>(
-        const_cast<const hrleSparseStarIterator *>(this)->getNeighbor(
+        const_cast<const SparseStarIterator *>(this)->getNeighbor(
             relativeIndex));
   }
 
-  hrleSparseIterator<hrleDomain> &getCenter() { return centerIterator; }
+  SparseIterator<hrleDomain> &getCenter() { return centerIterator; }
 
-  const hrleSparseIterator<hrleDomain> &getCenter() const {
-    return centerIterator;
-  }
+  const SparseIterator<hrleDomain> &getCenter() const { return centerIterator; }
 
-  const hrleVectorType<hrleIndexType, D> &getIndices() const {
-    return currentCoords;
-  }
+  const Index<D> &getIndices() const { return currentCoords; }
 
   const DomainType &getDomain() const { return domain; }
 
   bool isFinished() const { return centerIterator.isFinished(); }
 
   /// Sets the iterator to position v.
-  /// Uses random access to move, so it is be slower
+  /// Uses random access to move, so it is slower
   /// than goToIndicesSequential for repeated serial calls.
   template <class V> void goToIndices(V &v) {
     centerIterator.goToIndices(v);
-    for (int i = 0; i < int(order); ++i) {
-      for (int j = 0; j < 2 * D; ++j) {
-        neighborIterators[i * 2 * D + j].goToIndices(v);
-      }
-    }
+    for (auto &it : neighborIterators)
+      it.goToIndices(v);
   }
 
   /// Advances the iterator to position v.
@@ -229,15 +208,16 @@ public:
     }
   }
 
-  // const hrleVectorType<hrleIndexType, D> &getStartIndices() const {
+  // const Index<D> &getStartIndices() const {
   //   return startCoords;
   // }
   //
-  // hrleIndexType getStartIndex(int dir) const { return startCoords[dir]; }
+  // IndexType getStartIndex(int dir) const { return startCoords[dir]; }
 };
 
 template <class hrleDomain, int order>
-using hrleConstSparseStarIterator =
-    hrleSparseStarIterator<const hrleDomain, order>;
+using ConstSparseStarIterator = SparseStarIterator<const hrleDomain, order>;
+
+} // namespace viennahrle
 
 #endif // HRLE_CROSS_ITERATOR_HPP

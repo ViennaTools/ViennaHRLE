@@ -1,47 +1,41 @@
 #ifndef HRLE_CELL_ITERATOR_HPP
 #define HRLE_CELL_ITERATOR_HPP
 
-#include <cassert>
-
 #include "hrleSparseOffsetIterator.hpp"
 
-/// This neighbor iterator consists of 2*Dimensions hrleSparseOffsetIterator s
+namespace viennahrle {
+using namespace viennacore;
+/// This neighbor iterator consists of 2*Dimensions SparseOffsetIterator s
 /// for the cartesian neighbors and an hrleSparseIterator
 /// for the center.
 /// Whenever one of these (2*Dimensions+1) iterators reach a defined grid point,
 /// the iterator stops.
-template <class hrleDomain> class hrleSparseCellIterator {
+template <class hrleDomain> class SparseCellIterator {
 
-  typedef typename std::conditional<std::is_const<hrleDomain>::value,
-                                    const typename hrleDomain::hrleValueType,
-                                    typename hrleDomain::hrleValueType>::type
-      hrleValueType;
+  typedef std::conditional_t<std::is_const_v<hrleDomain>,
+                             const typename hrleDomain::ValueType,
+                             typename hrleDomain::ValueType>
+      ValueType;
 
   static constexpr int D = hrleDomain::dimension;
+  static constexpr int numCorners = 1 << D;
 
   hrleDomain &domain;
-  hrleVectorType<hrleIndexType, D> currentCoords;
-  std::vector<hrleSparseOffsetIterator<hrleDomain>> cornerIterators;
+  Index<D> currentCoords;
+  std::vector<SparseOffsetIterator<hrleDomain>> cornerIterators;
 
   template <class V> void initialize(const V &v) {
-    for (int i = 0; i < (1 << D); ++i) {
-      cornerIterators.push_back(hrleSparseOffsetIterator<hrleDomain>(
-          domain, BitMaskToVector<D, hrleIndexType>(i), v));
+    for (unsigned i = 0; i < 1 << D; ++i) {
+      cornerIterators.push_back(
+          SparseOffsetIterator<hrleDomain>(domain, BitMaskToIndex<D>(i), v));
     }
   }
 
-  // make post in/decrement private, since they should not be used, due to the
-  // size of the structure
-  hrleSparseCellIterator<hrleDomain>
-  operator++(int); // use pre increment instead
-  hrleSparseCellIterator<hrleDomain>
-  operator--(int); // use pre decrement instead
-
 public:
   using DomainType = hrleDomain;
+  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
-  hrleSparseCellIterator(hrleDomain &passedDomain,
-                         const hrleVectorType<hrleIndexType, D> &v)
+  SparseCellIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), currentCoords(v) {
 
     initialize(v);
@@ -49,7 +43,7 @@ public:
       next();
   }
 
-  hrleSparseCellIterator(hrleDomain &passedDomain)
+  explicit SparseCellIterator(hrleDomain &passedDomain)
       : domain(passedDomain),
         currentCoords(domain.getGrid().getMinGridPoint()) {
 
@@ -57,6 +51,11 @@ public:
     if (!isDefined())
       next();
   }
+
+  // delete post in/decrement, since they should not be used, due to the
+  // size of the structure
+  SparseCellIterator operator++(int) = delete; // use pre increment instead
+  SparseCellIterator operator--(int) = delete; // use pre decrement instead
 
   bool isDefined() const {
     for (unsigned i = 0; i < D; ++i) {
@@ -72,32 +71,32 @@ public:
     return false;
   }
 
-  hrleSparseCellIterator<hrleDomain> &operator++() {
+  SparseCellIterator &operator++() {
     next();
     return *this;
   }
 
-  hrleSparseCellIterator<hrleDomain> &operator--() {
+  SparseCellIterator &operator--() {
     previous();
     return *this;
   }
 
   void next() {
     do {
-      const int numCorners = 1 << D;
-      std::array<bool, 1 << D> increment;
+      std::array<bool, numCorners> increment;
       increment.fill(false);
       increment[0] = true;
 
-      hrleVectorType<hrleIndexType, D> end_coords =
-          cornerIterators[0].getEndIndices();
+      auto end_coords = cornerIterators[0].getEndIndices();
       for (int i = 1; i < numCorners; i++) {
-        switch (compare(end_coords, cornerIterators[i].getEndIndices())) {
+        switch (Compare(end_coords, cornerIterators[i].getEndIndices())) {
         case 1:
           end_coords = cornerIterators[i].getEndIndices();
           increment.fill(false);
         case 0:
           increment[i] = true;
+        default:
+          break;
         }
       }
 
@@ -111,20 +110,20 @@ public:
 
   void previous() {
     do {
-      const int numCorners = 1 << D;
-      std::array<bool, 1 << D> decrement;
+      std::array<bool, numCorners> decrement;
       decrement.fill(false);
       decrement[0] = true;
 
-      hrleVectorType<hrleIndexType, D> start_coords =
-          cornerIterators[0].getStartIndices();
+      auto start_coords = cornerIterators[0].getStartIndices();
       for (int i = 1; i < numCorners; i++) {
-        switch (compare(start_coords, cornerIterators[i].getStartIndices())) {
+        switch (Compare(start_coords, cornerIterators[i].getStartIndices())) {
         case -1:
           start_coords = cornerIterators[i].getStartIndices();
           decrement.fill(false);
         case 0:
           decrement[i] = true;
+        default:
+          break;
         }
       }
 
@@ -136,26 +135,27 @@ public:
     } while (!isDefined() && !isFinished());
   }
 
-  hrleSparseOffsetIterator<hrleDomain> &getCorner(unsigned index) {
+  SparseOffsetIterator<hrleDomain> &getCorner(unsigned index) {
     return cornerIterators[index];
   }
 
-  hrleSparseOffsetIterator<hrleDomain> &getCorner(int index) {
+  SparseOffsetIterator<hrleDomain> &getCorner(int index) {
     return cornerIterators[index];
   }
 
-  template <class V> hrleSparseOffsetIterator<hrleDomain> &getCorner(V vector) {
+  template <class V> SparseOffsetIterator<hrleDomain> &getCorner(V vector) {
     unsigned index = 0;
     for (unsigned i = 0; i < D; ++i) {
       if (vector[i])
         index |= 1 << i;
     }
+    assert(index < numCorners);
     return cornerIterators[index];
   }
 
-  const hrleVectorType<hrleIndexType, D> &getIndices() { return currentCoords; }
+  const Index<D> &getIndices() { return currentCoords; }
 
-  const hrleIndexType &getIndices(unsigned i) { return currentCoords[i]; }
+  const IndexType &getIndices(unsigned i) { return currentCoords[i]; }
 
   const DomainType &getDomain() { return domain; }
 
@@ -163,6 +163,8 @@ public:
 };
 
 template <class hrleDomain>
-using hrleConstSparseCellIterator = hrleSparseCellIterator<const hrleDomain>;
+using ConstSparseCellIterator = SparseCellIterator<const hrleDomain>;
+
+} // namespace viennahrle
 
 #endif // HRLE_CELL_ITERATOR_HPP
