@@ -48,5 +48,7 @@ int main() {
 
   VC_TEST_ASSERT(grid == newGrid)
 
+  newGrid.print();
+
   return 0;
 }

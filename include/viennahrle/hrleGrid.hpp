@@ -20,6 +20,23 @@ enum class BoundaryType : unsigned {
   NEG_INFINITE_BOUNDARY = 4
 };
 
+inline std::ostream &operator<<(std::ostream &os, const BoundaryType &type) {
+  switch (type) {
+  case BoundaryType::REFLECTIVE_BOUNDARY:
+    return os << "REFLECTIVE";
+  case BoundaryType::INFINITE_BOUNDARY:
+    return os << "INFINITE";
+  case BoundaryType::PERIODIC_BOUNDARY:
+    return os << "PERIODIC";
+  case BoundaryType::POS_INFINITE_BOUNDARY:
+    return os << "POS_INFINITE";
+  case BoundaryType::NEG_INFINITE_BOUNDARY:
+    return os << "NEG_INFINITE";
+  default:
+    return os << "UNKNOWN";
+  }
+}
+
 template <int D> class Grid {
 public:
   static const int dimension = D;
@@ -142,7 +159,11 @@ public:
     std::cout << "indexExtension: " << indexExtension << std::endl;
     std::cout << "MinGridPoint: " << minGridPointCoord << std::endl;
     std::cout << "MaxGridPoint: " << maxGridPointCoord << std::endl;
-    std::cout << "BNC: " << boundaryConditions << std::endl;
+    std::cout << "BNC: ";
+    for (auto &bc : boundaryConditions) {
+      std::cout << bc << " ";
+    }
+    std::cout << std::endl;
     std::cout << "GridDelta: " << gridDelta << std::endl;
   }
 
