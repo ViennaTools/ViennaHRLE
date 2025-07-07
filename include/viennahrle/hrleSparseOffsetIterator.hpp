@@ -601,8 +601,6 @@ public:
     std::cout << "move_inverse: " << move_inverse << std::endl;
   }
 
-  SparseOffsetIterator() = default;
-
   template <class V>
   SparseOffsetIterator(hrleDomain &passedDomain, const V &o,
                        bool reverse = false)
