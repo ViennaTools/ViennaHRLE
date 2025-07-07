@@ -5,11 +5,8 @@
 
 namespace viennahrle {
 using namespace viennacore;
-/// This neighbor iterator consists of 2*Dimensions SparseOffsetIterator s
-/// for the cartesian neighbors and an hrleSparseIterator
-/// for the center.
-/// Whenever one of these (2*Dimensions+1) iterators reach a defined grid point,
-/// the iterator stops.
+/// This iterator consists of 2^Dimensions SparseOffsetIterators
+/// for the cartesian neighbors and an SparseIterator for the center.
 template <class hrleDomain> class DenseCellIterator {
 
   typedef std::conditional_t<std::is_const_v<hrleDomain>,
@@ -18,6 +15,7 @@ template <class hrleDomain> class DenseCellIterator {
       ValueType;
 
   static constexpr int D = hrleDomain::dimension;
+  static constexpr int numCorners = 1 << D;
 
   hrleDomain &domain;
   Index<D> currentCoords;
@@ -25,10 +23,12 @@ template <class hrleDomain> class DenseCellIterator {
   Index<D> minIndex, maxIndex;
 
   template <class V> void initialize(const V &v) {
-    for (unsigned i = 0; i < 1 << D; ++i) {
+    cornerIterators.reserve(numCorners);
+    for (unsigned i = 0; i < numCorners; ++i) {
       cornerIterators.push_back(
           SparseOffsetIterator<hrleDomain>(domain, BitMaskToIndex<D>(i), v));
     }
+    cornerIterators.shrink_to_fit();
   }
 
   void incrementIndices(Index<D> &v) {
@@ -73,8 +73,6 @@ public:
       : domain(passedDomain), currentCoords(v) {
 
     initialize(currentCoords);
-    if (!isDefined())
-      next();
   }
 
   explicit DenseCellIterator(hrleDomain &passedDomain, bool reverse = false)
@@ -95,8 +93,6 @@ public:
       currentCoords = minIndex;
 
     initialize(currentCoords);
-    if (!isDefined())
-      next();
   }
 
   bool isDefined() const {
@@ -106,7 +102,7 @@ public:
         return false;
       }
     }
-    for (int i = 0; i < 2 * D; i++) {
+    for (int i = 0; i < numCorners; i++) {
       if (cornerIterators[i].isDefined())
         return true;
     }

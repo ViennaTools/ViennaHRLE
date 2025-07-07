@@ -25,10 +25,12 @@ template <class hrleDomain> class SparseCellIterator {
   std::vector<SparseOffsetIterator<hrleDomain>> cornerIterators;
 
   template <class V> void initialize(const V &v) {
+    cornerIterators.reserve(numCorners);
     for (unsigned i = 0; i < 1 << D; ++i) {
       cornerIterators.push_back(
           SparseOffsetIterator<hrleDomain>(domain, BitMaskToIndex<D>(i), v));
     }
+    cornerIterators.shrink_to_fit();
   }
 
 public:
@@ -64,7 +66,7 @@ public:
         return false;
       }
     }
-    for (int i = 0; i < 2 * D; i++) {
+    for (int i = 0; i < numCorners; i++) {
       if (cornerIterators[i].isDefined())
         return true;
     }
