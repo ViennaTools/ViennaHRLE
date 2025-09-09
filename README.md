@@ -16,12 +16,6 @@ For help with getting started, have a look at the [examples](examples/).
 
 Bug reports and suggestions should be filed on [GitHub](https://github.com/ViennaTools/ViennaHRLE/issues/new).
 
-## Contributing
-
-If you want to contribute to ViennaHRLE, make sure to follow
-the [LLVM Coding guidelines](https://llvm.org/docs/CodingStandards.html). Before creating a pull request, make sure ALL
-files have been formatted by clang-format, which can be done using the format-project.sh script in the root directory.
-
 ## Releases
 
 Releases are tagged on the maser branch and available in
