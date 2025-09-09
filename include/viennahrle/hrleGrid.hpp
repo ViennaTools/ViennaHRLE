@@ -167,14 +167,14 @@ public:
     std::cout << "GridDelta: " << gridDelta << std::endl;
   }
 
-  bool parity(int dim) const {
+  bool parity(int dim) const noexcept {
     // parity is false/true if the "grid_position" function in GridTraitsType
     // is monotonic increasing/decreasing respectively for the given grid
     // direction
     return parities[dim];
   }
 
-  bool parity() const {
+  bool parity() const noexcept {
     // returns the total parity of the grid
     bool b = parity(0);
     for (int i = 1; i < D; i++)
@@ -182,50 +182,52 @@ public:
     return b;
   }
 
-  IndexType getGridExtent(int dim) const { return indexExtension[dim]; }
+  IndexType getGridExtent(int dim) const noexcept {
+    return indexExtension[dim];
+  }
 
-  IndexType getMinIndex(int dim) const { return minIndex[dim]; }
+  IndexType getMinIndex(int dim) const noexcept { return minIndex[dim]; }
 
-  IndexType getMaxIndex(int dim) const { return maxIndex[dim]; }
+  IndexType getMaxIndex(int dim) const noexcept { return maxIndex[dim]; }
 
-  const Index<D> &getMinIndex() const { return minIndex; }
+  const Index<D> &getMinIndex() const noexcept { return minIndex; }
 
-  const Index<D> &getMaxIndex() const { return maxIndex; }
+  const Index<D> &getMaxIndex() const noexcept { return maxIndex; }
 
   /// returns all 2 or 3 boundary conditions
-  const VectorType<BoundaryType, D> &getBoundaryConditions() const {
+  const VectorType<BoundaryType, D> &getBoundaryConditions() const noexcept {
     return boundaryConditions;
   }
 
   /// returns the boundary conditions in the specified direction
-  BoundaryType getBoundaryConditions(int dir) const {
+  BoundaryType getBoundaryConditions(int dir) const noexcept {
     return boundaryConditions[dir];
   }
 
   /// returns whether the boundary condition in direction dim is periodic
-  bool isBoundaryPeriodic(int dim) const {
+  bool isBoundaryPeriodic(int dim) const noexcept {
     return boundaryConditions[dim] == BoundaryType::PERIODIC_BOUNDARY;
   }
 
   /// returns whether the boundary condition in direction dim is reflective
-  bool isBoundaryReflective(int dim) const {
+  bool isBoundaryReflective(int dim) const noexcept {
     return boundaryConditions[dim] == BoundaryType::REFLECTIVE_BOUNDARY;
   }
 
   /// returns whether the boundary condition in direction +dim is infinite
-  bool isPosBoundaryInfinite(int dim) const {
+  bool isPosBoundaryInfinite(int dim) const noexcept {
     return ((boundaryConditions[dim] == BoundaryType::INFINITE_BOUNDARY) ||
             (boundaryConditions[dim] == BoundaryType::POS_INFINITE_BOUNDARY));
   }
 
   /// returns whether the boundary condition in direction -dim is infinite
-  bool isNegBoundaryInfinite(int dim) const {
+  bool isNegBoundaryInfinite(int dim) const noexcept {
     return ((boundaryConditions[dim] == BoundaryType::INFINITE_BOUNDARY) ||
             (boundaryConditions[dim] == BoundaryType::NEG_INFINITE_BOUNDARY));
   }
 
   /// return whether the point given by vec is within the simulation domain
-  template <class V> bool isInDomain(const V &vec) const {
+  template <class V> bool isInDomain(const V &vec) const noexcept {
     for (int i = 0; i < D; ++i) {
       if ((vec[i] < getMinIndex(i)) || (vec[i] >= getMaxIndex(i)))
         return false;
@@ -235,30 +237,34 @@ public:
 
   /// returns the index[dim] of the maximum grid point which is maxIndex-1 for
   /// periodic BNCs
-  IndexType getMaxGridPoint(int dim) const { return maxGridPointCoord[dim]; }
+  IndexType getMaxGridPoint(int dim) const noexcept {
+    return maxGridPointCoord[dim];
+  }
 
   /// returns the index[dim] of the maximum grid point which is minIndex-1 for
   /// periodic BNCs
-  IndexType getMinGridPoint(int dim) const { return minGridPointCoord[dim]; }
+  IndexType getMinGridPoint(int dim) const noexcept {
+    return minGridPointCoord[dim];
+  }
 
   /// returns the index of the maximum grid point which is maxIndex-1 for
   /// periodic BNCs
-  const Index<D> &getMaxGridPoint() const { return maxGridPointCoord; }
+  const Index<D> &getMaxGridPoint() const noexcept { return maxGridPointCoord; }
 
   /// returns the index of the maximum grid point which is minIndex-1 for
   /// periodic BNCs
-  const Index<D> &getMinGridPoint() const { return minGridPointCoord; }
+  const Index<D> &getMinGridPoint() const noexcept { return minGridPointCoord; }
 
-  IndexType getMinBounds(int dim) const { return minBounds[dim]; }
+  IndexType getMinBounds(int dim) const noexcept { return minBounds[dim]; }
 
-  IndexType getMaxBounds(int dim) const { return maxBounds[dim]; }
+  IndexType getMaxBounds(int dim) const noexcept { return maxBounds[dim]; }
 
-  const Index<D> &getMinBounds() const { return minBounds; }
+  const Index<D> &getMinBounds() const noexcept { return minBounds; }
 
-  const Index<D> &getMaxBounds() const { return maxBounds; }
+  const Index<D> &getMaxBounds() const noexcept { return maxBounds; }
 
   /// returns whether the point v is at infinity in any dimension
-  template <class V> bool isAtInfinity(const V &v) const {
+  template <class V> bool isAtInfinity(const V &v) const noexcept {
     for (int i = 0; i < D; i++) {
       if (std::abs(v[i]) == INF_EXTENSION)
         return true;
@@ -349,7 +355,9 @@ public:
 
   /// Returns the coordinate of the point at index "index" in the direction
   /// dir.
-  CoordType index2Coordinate(IndexType idx) const { return idx * gridDelta; }
+  CoordType index2Coordinate(IndexType idx) const noexcept {
+    return idx * gridDelta;
+  }
 
   /// This function transforms the coordinate c in respect to the rectilinear
   /// grid into the real coordinates. Non-integer contributions in c are
@@ -391,7 +399,7 @@ public:
   }
 
   /// Transforms a global coordinate in direction dir to a global index.
-  IndexType globalCoordinate2GlobalIndex(const CoordType c) const {
+  IndexType globalCoordinate2GlobalIndex(const CoordType c) const noexcept {
     return static_cast<IndexType>(round(c / gridDelta));
   }
 
@@ -494,7 +502,7 @@ public:
   // const GridTraitsType &grid_traits() const { return GridTraits; }
 
   /// returns the grid point separation
-  CoordType getGridDelta() const { return gridDelta; }
+  CoordType getGridDelta() const noexcept { return gridDelta; }
 
   /// Returns the grid position for a global index,
   /// taking into account the boundary conditions.
@@ -542,7 +550,7 @@ public:
 
   /// This function increases the index vector v by unity in lexicographical
   /// order.
-  template <class V> V incrementIndices(V v) const {
+  template <class V> V incrementIndices(V v) const noexcept {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       if (v[dim] < getMaxGridPoint(dim))
@@ -555,7 +563,7 @@ public:
 
   /// This function decreases the index vector v by unity in lexicographical
   /// order.
-  template <class V> V decrementIndices(V v) const {
+  template <class V> V decrementIndices(V v) const noexcept {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       if (v[dim] > getMinGridPoint(dim))
@@ -567,7 +575,7 @@ public:
   }
 
   /// Determine whether index is on border of simulation domain.
-  template <class V> bool isBorderPoint(V v) const {
+  template <class V> bool isBorderPoint(V v) const noexcept {
     for (unsigned i = 0; i < D; ++i) {
       if (v[i] <= minIndex[i] || v[i] >= maxIndex[i])
         return true;
@@ -577,7 +585,7 @@ public:
 
   /// Determine whether point is outside the domain in direction other than
   /// the direction of the infinite boundary.
-  template <class V> bool isOutsideOfDomain(V v) const {
+  template <class V> bool isOutsideOfDomain(V v) const noexcept {
     for (unsigned i = 0; i < D; ++i) {
       if (boundaryConditions[i] == BoundaryType::INFINITE_BOUNDARY)
         continue;

@@ -592,6 +592,9 @@ protected:
 public:
   using DomainType = hrleDomain;
 
+#ifdef NDEBUG
+  void print() const {}
+#else
   void print() const {
     BaseIterator<hrleDomain>::print();
     std::cout << "start_run_rel_coords: " << start_run_rel_coords << std::endl;
@@ -600,6 +603,7 @@ public:
     std::cout << "offset: " << offset << std::endl;
     std::cout << "move_inverse: " << move_inverse << std::endl;
   }
+#endif
 
   template <class V>
   SparseOffsetIterator(hrleDomain &passedDomain, const V &o,
