@@ -27,9 +27,23 @@ class SparseIterator : public BaseIterator<hrleDomain> {
   using BaseIterator<hrleDomain>::go_up_BA;
   using BaseIterator<hrleDomain>::D;
 
+private:
+  // Cache domain segment reference for performance
+  mutable const DomainSegmentType *currentSegment;
+
+  // Update cached segment when sub changes
+  void updateSegmentCache() const noexcept {
+    currentSegment = &domain.domainSegments[sub];
+  }
+
+  // Get cached domain segment
+  const DomainSegmentType &getDomainSegment() const noexcept {
+    return *currentSegment;
+  }
+
   void go_down_AB(IndexType c) { // find right runTypePos
-    const DomainSegmentType &sl = domain.domainSegments[sub];
-    const SizeType &s = startIndicesPos[s_level];
+    const DomainSegmentType &sl = getDomainSegment();
+    const SizeType s = startIndicesPos[s_level]; // Remove unnecessary reference
 
     --r_level;                                // go down one level
     SizeType r = sl.startIndices[r_level][s]; // r is the start index of the run
@@ -71,9 +85,8 @@ class SparseIterator : public BaseIterator<hrleDomain> {
   void go_down_AB_first() { // find right runTypePos
     assert(s_level == r_level);
 
-    const DomainSegmentType &sl = domain.domainSegments[sub];
-
-    const SizeType &s = startIndicesPos[s_level];
+    const DomainSegmentType &sl = getDomainSegment();
+    const SizeType s = startIndicesPos[s_level]; // Remove unnecessary reference
 
     --r_level;
 
@@ -92,9 +105,8 @@ class SparseIterator : public BaseIterator<hrleDomain> {
   void go_down_AB_last() { // find right runTypePos
     assert(s_level == r_level);
 
-    const DomainSegmentType &sl = domain.domainSegments[sub];
-
-    const SizeType &s = startIndicesPos[s_level];
+    const DomainSegmentType &sl = getDomainSegment();
+    const SizeType s = startIndicesPos[s_level]; // Remove unnecessary reference
 
     --r_level;
 
@@ -114,7 +126,7 @@ class SparseIterator : public BaseIterator<hrleDomain> {
     assert(s_level == r_level + 1);
     assert(s_level >= 1);
 
-    const DomainSegmentType &sl = domain.domainSegments[sub];
+    const DomainSegmentType &sl = getDomainSegment();
 
     startIndicesPos[s_level - 1] = sl.runTypes[r_level][runTypePos[r_level]];
     if (DomainSegmentType::isPtIdDefined(startIndicesPos[s_level - 1])) {
@@ -130,7 +142,7 @@ class SparseIterator : public BaseIterator<hrleDomain> {
     }
   }
 
-  bool go_next_A() {
+  bool go_next_A() noexcept {
     if (s_level == r_level) {
       // if
       // (startIndicesPos[s_level]<l.runtypes[r_level][runTypePos[r_level]]+(end_run_coords[r_level]-start_run_coords[r_level]))
@@ -149,7 +161,7 @@ class SparseIterator : public BaseIterator<hrleDomain> {
     assert(s_level == r_level + 1);
     // assert(endRunAbsCoords[r_level]<=domain.getGrid().getMaxIndex(r_level));
 
-    const DomainSegmentType &sl = domain.domainSegments[sub];
+    const DomainSegmentType &sl = getDomainSegment();
 
     if (endRunAbsCoords[r_level] != domain.getGrid().getMaxGridPoint(r_level)) {
       // current run is not the last run in the segment
@@ -163,7 +175,7 @@ class SparseIterator : public BaseIterator<hrleDomain> {
     }
   }
 
-  bool go_previous_A() {
+  bool go_previous_A() noexcept {
     if (s_level == r_level) {
       if (absCoords[s_level] > startRunAbsCoords[r_level]) {
         --startIndicesPos[s_level];
@@ -179,7 +191,7 @@ class SparseIterator : public BaseIterator<hrleDomain> {
     assert(s_level == r_level + 1);
     // assert(startRunAbsCoords[r_level]>=domain.getGrid().getMinIndex(r_level));
 
-    const DomainSegmentType &sl = domain.domainSegments[sub];
+    const DomainSegmentType &sl = getDomainSegment();
 
     if (startRunAbsCoords[r_level] !=
         domain.getGrid().getMinGridPoint(r_level)) {
@@ -199,7 +211,8 @@ public:
   void print() { BaseIterator<hrleDomain>::print(); }
 
   explicit SparseIterator(hrleDomain &passedDomain, bool reverse = false)
-      : BaseIterator<hrleDomain>(passedDomain) {
+      : BaseIterator<hrleDomain>(passedDomain), currentSegment(nullptr) {
+    updateSegmentCache(); // Initialize cache
     if (reverse) {
       goToIndices(domain.getGrid().getMaxGridPoint());
     } else {
@@ -208,7 +221,9 @@ public:
   }
 
   template <class V>
-  SparseIterator(hrleDomain &lx, const V &v) : BaseIterator<hrleDomain>(lx) {
+  SparseIterator(hrleDomain &lx, const V &v)
+      : BaseIterator<hrleDomain>(lx), currentSegment(nullptr) {
+    updateSegmentCache(); // Initialize cache
     goToIndices(v);
   }
 
@@ -245,9 +260,11 @@ public:
     }
 
     // check if new point is in the same segment, if not change segments
-    int s = BaseIterator<hrleDomain>::getSegmentRun();
-    if (s != sub) {
-      goToIndices(s, absCoords);
+    const int newSub = BaseIterator<hrleDomain>::getSegmentRun();
+    if (newSub != sub) {
+      sub = newSub;
+      updateSegmentCache(); // Update cache when segment changes
+      goToIndices(newSub, absCoords);
     }
 
     return *this;
@@ -285,16 +302,11 @@ public:
       go_down_BA(c);
     }
 
-    int s = BaseIterator<hrleDomain>::getSegmentRun();
-    if (s != sub) {
-      goToIndices(s, BaseIterator<hrleDomain>::getEndIndices());
-      /*if (s<it.l.segmentation.size()) {
-          //shfdhsfhdskjhgf
-      assert(it.l.grid().decrementIndices(it.l.segmentation[s])==it.getEndIndices());
-      } else {
-          //shfdhsfhdskjhgf
-      assert(it.l.grid().max_point_index()==it.getEndIndices());
-      }*/
+    const int newSub = BaseIterator<hrleDomain>::getSegmentRun();
+    if (newSub != sub) {
+      sub = newSub;
+      updateSegmentCache(); // Update cache when segment changes
+      goToIndices(newSub, BaseIterator<hrleDomain>::getEndIndices());
     }
     return *this;
   }
@@ -344,14 +356,21 @@ public:
 
   template <class V> void goToIndices(const V &v) {
     goToIndices(0, v); // TODO
-    if (int s = this->getSegmentRun(); s != 0)
-      goToIndices(s, v);
+    const int newSub = this->getSegmentRun();
+    if (newSub != 0) {
+      sub = newSub;
+      updateSegmentCache(); // Update cache when segment changes
+      goToIndices(newSub, v);
+    }
   }
 
   template <class V> void goToIndices(int subDomain, const V &v) {
     r_level = D;
     s_level = D;
-    sub = subDomain;
+    if (sub != subDomain) {
+      sub = subDomain;
+      updateSegmentCache(); // Update cache when segment changes
+    }
     startIndicesPos[D] = 0;
     do {
       const IndexType c = v[r_level - 1];

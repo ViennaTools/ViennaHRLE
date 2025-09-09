@@ -21,23 +21,33 @@ protected:
                              typename hrleDomain::ValueType>
       ValueType;
 
-  hrleDomain &domain;
-  VectorType<SizeType, D + 1> startIndicesPos;
-  VectorType<SizeType, D> runTypePos;
-  Index<D> startRunAbsCoords;
-  Index<D> endRunAbsCoords;
-  Index<D> absCoords;
-  Index<D> endAbsCoords;
-  int r_level;
-  int s_level;
-  int sub;
+  // Most frequently accessed members first (hot data)
+  hrleDomain &domain; // 8 bytes (reference)
 
-  void go_up_BA() {
+  // Frequently accessed small integers - group together for cache efficiency
+  int r_level; // 4 bytes - very frequently accessed
+  int s_level; // 4 bytes - very frequently accessed
+  int sub;     // 4 bytes - frequently accessed
+  // 4 bytes padding here on 64-bit systems for alignment
+
+  // Coordinate vectors - accessed together in iteration
+  Index<D> absCoords;    // D * sizeof(IndexType) bytes
+  Index<D> endAbsCoords; // D * sizeof(IndexType) bytes
+
+  // Run coordinate vectors - used together in navigation
+  Index<D> startRunAbsCoords; // D * sizeof(IndexType) bytes
+  Index<D> endRunAbsCoords;   // D * sizeof(IndexType) bytes
+
+  // Position vectors - larger, less frequently accessed
+  VectorType<SizeType, D + 1> startIndicesPos; // (D+1) * sizeof(SizeType) bytes
+  VectorType<SizeType, D> runTypePos;          // D * sizeof(SizeType) bytes
+
+  inline void go_up_BA() {
     ++r_level;
     assert(r_level == s_level);
   }
 
-  void go_up_AB() {
+  inline void go_up_AB() {
     // assert((r_level == s_level) || (s_level == r_level + 1));
     s_level = r_level + 1;
     absCoords[r_level] = domain.getGrid().getMinGridPoint(r_level);
@@ -47,6 +57,10 @@ protected:
 public:
   using DomainType = hrleDomain;
 
+#ifdef NDEBUG
+  // Remove to reduce code bloat
+  void print() {}
+#else
   void print() {
     std::cout << "startIndicesPos: " << startIndicesPos << std::endl;
     std::cout << "runTypePos: " << runTypePos << std::endl;
@@ -61,6 +75,7 @@ public:
     std::cout << "current segment: " << getSegmentRun() << std::endl
               << std::endl;
   }
+#endif
 
   explicit BaseIterator(hrleDomain &passedDomain)
       : domain(passedDomain), absCoords(domain.getGrid().getMinGridPoint()),
@@ -86,26 +101,26 @@ public:
   //   return *this;
   // }
 
-  bool isFinished() const {
+  bool isFinished() const noexcept {
     // returns true if iterator reached the end
     return (r_level == D);
   }
 
-  IndexType getStartIndices(int dir) const {
+  IndexType getStartIndices(int dir) const noexcept {
     // returns the start index of a run for a certain axis direction
     return absCoords[dir];
   }
 
-  const Index<D> &getStartIndices() const { return absCoords; }
+  const Index<D> &getStartIndices() const noexcept { return absCoords; }
 
-  IndexType getEndIndices(int dir) const {
+  IndexType getEndIndices(int dir) const noexcept {
     // returns the end index of a run for a certain axis direction
     return endAbsCoords[dir];
   }
 
-  const Index<D> &getEndIndices() const { return endAbsCoords; }
+  const Index<D> &getEndIndices() const noexcept { return endAbsCoords; }
 
-  SizeType getRunTypePosition() const {
+  SizeType getRunTypePosition() const noexcept {
     if (s_level == 0) {
       assert(s_level == r_level);
       return startIndicesPos[0];
@@ -115,11 +130,11 @@ public:
     }
   }
 
-  int getLevel() const { return s_level; }
+  int getLevel() const noexcept { return s_level; }
 
-  SizeType getRunCode() const { return startIndicesPos[r_level]; }
+  SizeType getRunCode() const noexcept { return startIndicesPos[r_level]; }
 
-  SizeType getSegmentRun() const {
+  SizeType getSegmentRun() const noexcept {
     const SizeType r = getRunCode();
     if (r >= RunTypeValues::SEGMENT_PT) {
       return r - RunTypeValues::SEGMENT_PT;
@@ -128,9 +143,9 @@ public:
     }
   }
 
-  SizeType getSegmentId() const { return sub; }
+  SizeType getSegmentId() const noexcept { return sub; }
 
-  SizeType getPointId() const {
+  SizeType getPointId() const noexcept {
     // returns the getPointId if it is a defined run
     SizeType tmp = getRunCode();
     if (isDefined())
@@ -138,31 +153,31 @@ public:
     return tmp;
   }
 
-  bool isDefined() const {
+  bool isDefined() const noexcept {
     // returns if a run is defined or not
     // NOTE: if a run is defined, it always has length 1 and therefore it always
     //      represents a single grid point
     return (s_level == 0);
   }
 
-  const ValueType &getValue() const {
+  const ValueType &getValue() const noexcept {
     // returns the level set value for the current run
     // if the run is undefined either POS_VALUE or NEG_VALUE is returned
-    if (isDefined()) {
-      return getDefinedValue();
+    const SizeType runCode = startIndicesPos[r_level];
+    if (s_level == 0) {
+      return domain.domainSegments[sub].definedValues[runCode];
     } else {
-      // assert(getRunCode()==NEG_PT); //TODO
       return domain.domainSegments[sub]
-          .undefinedValues[getRunCode() - RunTypeValues::UNDEF_PT];
+          .undefinedValues[runCode - RunTypeValues::UNDEF_PT];
     }
   }
 
-  ValueType &getValue() {
+  ValueType &getValue() noexcept {
     return const_cast<ValueType &>(
         const_cast<const BaseIterator *>(this)->getValue());
   }
 
-  const ValueType &getDefinedValue() const {
+  const ValueType &getDefinedValue() const noexcept {
     // the same as "value", however this function assumes
     // that the current run is defined, and therefore no check is required
     // if the run is undefined or not
@@ -170,7 +185,7 @@ public:
     return domain.domainSegments[sub].definedValues[getRunCode()];
   }
 
-  ValueType &getDefinedValue() {
+  ValueType &getDefinedValue() noexcept {
     return const_cast<ValueType &>(
         const_cast<const BaseIterator *>(this)->getDefinedValue());
   }
