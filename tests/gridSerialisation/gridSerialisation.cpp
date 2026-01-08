@@ -30,6 +30,10 @@ int main() {
 
   // Open file for writing and save serialized level set in it
   std::ofstream fout("test.grid");
+  if (!fout.is_open()) {
+    std::cerr << "Error opening test.grid for writing" << std::endl;
+    return 1;
+  }
 
   grid.serialize(fout);
 
@@ -37,6 +41,10 @@ int main() {
 
   // Now read the grid in again
   std::ifstream fin("test.grid");
+  if (!fin.is_open()) {
+    std::cerr << "Error opening test.grid for reading" << std::endl;
+    return 1;
+  }
 
   Grid<D> newGrid;
 

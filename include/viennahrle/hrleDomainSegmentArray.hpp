@@ -12,6 +12,7 @@ template <class T = double, int D = 3> class DomainSegmentArray {
   typedef DomainSegment<T, D> *segmentPointer; // pointer to memory containing
                                                // hrleDomainSegment object
   std::vector<segmentPointer> domainSegmentPointers;
+  bool isOwner = true;
 
 public:
   // assignment operator and copy-constructor are deleted since vector only
@@ -41,7 +42,7 @@ public:
 
   void clear() {
     for (auto &segP : domainSegmentPointers)
-      if (segP)
+      if (segP && isOwner)
         delete segP;
     domainSegmentPointers.clear();
   }
@@ -54,6 +55,7 @@ public:
              AllocationType<SizeType, D> a = AllocationType<SizeType, D>()) {
     clear(); // delete all data in the array
 
+    isOwner = true;
     domainSegmentPointers.resize(i);
 
     a *= a.allocationFactor; // increase allocation by extra margin defined in
@@ -75,6 +77,7 @@ public:
 
   void deepCopy(const Grid<D> *g, const DomainSegmentArray &s) {
     clear(); // deallocate all domain segments
+    isOwner = true;
     domainSegmentPointers.resize(s.getNumberOfSegments());
 
 #pragma omp parallel for schedule(static, 1)
@@ -87,8 +90,11 @@ public:
   }
 
   void shallowCopy(const DomainSegmentArray &s) {
+    clear();
+    isOwner = false;
+    domainSegmentPointers.resize(s.getNumberOfSegments());
     for (int k = 0; k < static_cast<int>(s.getNumberOfSegments()); ++k) {
-      domainSegmentPointers[k] = segmentPointer(&s[k]);
+      domainSegmentPointers[k] = const_cast<segmentPointer>(&s[k]);
     }
   }
 

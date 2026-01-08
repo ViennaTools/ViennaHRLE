@@ -80,11 +80,13 @@ void fillDomain(Domain<DataType, D> &domain) {
 int main() {
   omp_set_num_threads(1);
 
-  std::array<IndexType, D> min = {-20, -20, -20};
-  std::array<IndexType, D> max = {20, 20, 20};
-  std::array<BoundaryType, D> bounds = {BoundaryType::REFLECTIVE_BOUNDARY,
-                                        BoundaryType::INFINITE_BOUNDARY,
-                                        BoundaryType::REFLECTIVE_BOUNDARY};
+  std::array<IndexType, D> min;
+  min.fill(-20);
+  std::array<IndexType, D> max;
+  max.fill(20);
+  std::array<BoundaryType, D> bounds;
+  bounds.fill(BoundaryType::REFLECTIVE_BOUNDARY);
+  bounds[1] = BoundaryType::INFINITE_BOUNDARY;
 
   Grid<D> grid(min.data(), max.data(), 1.0, bounds.data());
 
