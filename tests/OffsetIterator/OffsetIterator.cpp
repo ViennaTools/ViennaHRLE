@@ -121,8 +121,10 @@ void runTest(Domain<DataType, D> &domain) {
 int main() {
   omp_set_num_threads(1);
 
-  const std::array<IndexType, D> min = {-10, -10};
-  const std::array<IndexType, D> max = {10, 10};
+  std::array<IndexType, D> min;
+  min.fill(-10);
+  std::array<IndexType, D> max;
+  max.fill(10);
 
   // Test for periodic boundary condition
   {

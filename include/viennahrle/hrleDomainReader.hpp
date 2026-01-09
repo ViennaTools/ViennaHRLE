@@ -20,14 +20,10 @@ template <class hrleDomain> class DomainReader {
   std::string filePath;
   int valueTypeByteSize = 0;
 
-  union {
-    uint16_t shortVar;  // binary  number of length 16 Bits
-    uint8_t charVar[2]; // 2 binary numbers, each 8 Bits
-  } test_endianness;
-
   bool bigEndian() {
-    test_endianness.shortVar = 0x8000; // MSB of 16
-    return test_endianness.charVar[0] != 0;
+    uint16_t number = 0x1;
+    char *numPtr = reinterpret_cast<char *>(&number);
+    return (numPtr[0] != 1);
   }
 
 public:

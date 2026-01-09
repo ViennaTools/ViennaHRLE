@@ -5,6 +5,7 @@
 #include "hrleUtil.hpp"
 
 #include <cmath>
+#include <cstring>
 #include <memory>
 #include <ostream>
 #include <vector>
@@ -85,7 +86,9 @@ private:
       for (unsigned i = gridBoundaryBytes; i < sizeof(IndexType); ++i)
         number[i] = static_cast<char>(0xFF);
     }
-    return *reinterpret_cast<IndexType *>(number);
+    IndexType result;
+    std::memcpy(&result, number, sizeof(IndexType));
+    return result;
   }
 
 public:

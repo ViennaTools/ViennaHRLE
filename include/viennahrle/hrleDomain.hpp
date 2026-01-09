@@ -63,35 +63,21 @@ private:
   template <class> friend class SparseIterator;
   template <class> friend class SparseOffsetIterator;
 
-  template <
-      class S, class Type,
-      std::enable_if_t<std::is_arithmetic_v<Type>, std::nullptr_t> = nullptr>
-  static S &writeValue(S &stream, Type &value) {
-    stream.write(reinterpret_cast<const char *>(&value), sizeof(value));
+  template <class S, class Type> static S &writeValue(S &stream, Type &value) {
+    if constexpr (std::is_arithmetic_v<Type>) {
+      stream.write(reinterpret_cast<const char *>(&value), sizeof(value));
+    } else {
+      value->serialize(stream);
+    }
     return stream;
   }
 
-  template <
-      class S, class Type,
-      std::enable_if_t<!std::is_arithmetic_v<Type>, std::nullptr_t> = nullptr>
-  static S &writeValue(S &stream, Type &value) {
-    value->serialize(stream);
-    return stream;
-  }
-
-  template <
-      class S, class Type,
-      std::enable_if_t<std::is_arithmetic_v<Type>, std::nullptr_t> = nullptr>
-  static S &readValue(S &stream, Type &value) {
-    stream.read(reinterpret_cast<char *>(&value), sizeof(value));
-    return stream;
-  }
-
-  template <
-      class S, class Type,
-      std::enable_if_t<!std::is_arithmetic_v<Type>, std::nullptr_t> = nullptr>
-  static S &readValue(S &stream, Type &value) {
-    value->deserialize(stream);
+  template <class S, class Type> static S &readValue(S &stream, Type &value) {
+    if constexpr (std::is_arithmetic_v<Type>) {
+      stream.read(reinterpret_cast<char *>(&value), sizeof(value));
+    } else {
+      value->deserialize(stream);
+    }
     return stream;
   }
 

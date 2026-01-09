@@ -212,7 +212,7 @@ template <class S, int D> S &operator<<(S &o, const Index<D> &v) {
   return o;
 }
 
-template <int D> Index<D> BitMaskToIndex(unsigned int i) {
+template <int D> constexpr Index<D> BitMaskToIndex(unsigned int i) {
   Index<D> tmp(0);
   for (unsigned int k = 0; k < D; k++) {
     if (((1 << k) & i) != 0)
