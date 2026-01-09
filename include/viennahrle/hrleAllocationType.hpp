@@ -34,19 +34,19 @@ public:
     return *this;
   }
 
-  template <class X> [[nodiscard]] AllocationType operator*(const X &x) {
+  template <class X> [[nodiscard]] AllocationType operator*(const X &x) const {
     AllocationType tmp(*this);
     tmp *= x;
     return tmp;
   }
 
-  template <class X> [[nodiscard]] AllocationType operator/(const X &x) {
+  template <class X> [[nodiscard]] AllocationType operator/(const X &x) const {
     AllocationType tmp(*this);
     tmp /= x;
     return tmp;
   }
 
-  template <class X> [[nodiscard]] AllocationType operator+(const X &x) {
+  template <class X> [[nodiscard]] AllocationType operator+(const X &x) const {
     AllocationType tmp(*this);
     tmp += x;
     return tmp;
