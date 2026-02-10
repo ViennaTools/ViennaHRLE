@@ -175,7 +175,17 @@ public:
     return neighborIterators[index];
   }
 
+  SparseOffsetIterator<hrleDomain> const &getNeighbor(int index) const {
+    assert(index >= 0 && index < numNeighbors);
+    return neighborIterators[index];
+  }
+
   SparseOffsetIterator<hrleDomain> &getNeighbor(unsigned index) {
+    assert(index < numNeighbors);
+    return neighborIterators[index];
+  }
+
+  SparseOffsetIterator<hrleDomain> const &getNeighbor(unsigned index) const {
     assert(index < numNeighbors);
     return neighborIterators[index];
   }

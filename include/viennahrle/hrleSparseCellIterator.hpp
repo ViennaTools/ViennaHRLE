@@ -141,7 +141,15 @@ public:
     return cornerIterators[index];
   }
 
+  SparseOffsetIterator<hrleDomain> const &getCorner(unsigned index) const {
+    return cornerIterators[index];
+  }
+
   SparseOffsetIterator<hrleDomain> &getCorner(int index) {
+    return cornerIterators[index];
+  }
+
+  SparseOffsetIterator<hrleDomain> const &getCorner(int index) const {
     return cornerIterators[index];
   }
 
