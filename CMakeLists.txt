@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 project(
   ViennaHRLE
   LANGUAGES CXX
-  VERSION 0.8.0)
+  VERSION 1.0.0)
 
 # --------------------------------------------------------------------------------------------------------
 # Library options
@@ -43,7 +43,7 @@ include("cmake/cpm.cmake")
 
 CPMAddPackage(
   NAME ViennaCore
-  VERSION 1.4.3
+  VERSION 2.0.0
   GIT_REPOSITORY "https://github.com/ViennaTools/ViennaCore")
 
 CPMAddPackage(

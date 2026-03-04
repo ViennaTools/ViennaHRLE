@@ -6,9 +6,7 @@
 
 </div>
 
-ViennaHRLE is a header-only C++ library for storing sparse spatial data efficiently. In the worst case, traversing the
-whole data structure is achieved in O(N), where N is the number of data points stored in the structure. Random access is
-achieved in O(log(N)).
+ViennaHRLE is a header-only C++ library for storing sparse spatial data efficiently. In the worst case, traversing the whole data structure is achieved in O(N), where N is the number of data points stored in the structure. Random access is achieved in O(log(N)).
 
 ## Support
 
@@ -18,14 +16,14 @@ Bug reports and suggestions should be filed on [GitHub](https://github.com/Vienn
 
 ## Releases
 
-Releases are tagged on the maser branch and available in
+Releases are tagged on the master branch and available in
 the [releases section](https://github.com/ViennaTools/viennahrle/releases).
 
 ## Building
 
 ### System Requirements
 
-* C++11 Compiler with OpenMP support
+* C++17 Compiler with OpenMP support
 
 ### Installing
 
@@ -58,7 +56,7 @@ We recommend using [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) to consum
 
 * Installation with CPM
   ```cmake
-  CPMAddPackage("gh:viennatools/viennahrle@0.8.0")
+  CPMAddPackage("gh:viennatools/viennahrle@1.0.0")
   ```
 
 * With a local installation
@@ -78,4 +76,4 @@ http://www.iue.tuwien.ac.at/
 
 License
 --------------------------
-See file LICENSE in the base directory.
+Versions < 1.0.0 were released under MIT License. Starting with version 1.0.0, the project is licensed under GPL-3.0 License. For more details, please refer to the LICENSE file in the base directory of the repository. 
