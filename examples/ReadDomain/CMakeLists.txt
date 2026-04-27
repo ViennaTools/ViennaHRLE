@@ -6,4 +6,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ViennaHRLE)
 
 add_dependencies(ViennaHRLE_Examples ${PROJECT_NAME})
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/foxDomain.hrle" "${CMAKE_CURRENT_BINARY_DIR}/foxDomain.hrle" COPYONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/foxDomain.hrle"
+               "${CMAKE_CURRENT_BINARY_DIR}/foxDomain.hrle" COPYONLY)

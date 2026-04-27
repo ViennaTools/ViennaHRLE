@@ -163,11 +163,11 @@ public:
     return cornerIterators[index];
   }
 
-  const Index<D> &getIndices() { return currentCoords; }
+  const Index<D> &getIndices() const { return currentCoords; }
 
-  const IndexType &getIndices(unsigned i) { return currentCoords[i]; }
+  const IndexType &getIndices(unsigned i) const { return currentCoords[i]; }
 
-  const DomainType &getDomain() { return domain; }
+  const DomainType &getDomain() const { return domain; }
 
   bool isFinished() const { return cornerIterators[0].isFinished(); }
 };

@@ -169,7 +169,15 @@ public:
     return cornerIterators[index];
   }
 
+  SparseOffsetIterator<hrleDomain> const &getCorner(unsigned index) const {
+    return cornerIterators[index];
+  }
+
   SparseOffsetIterator<hrleDomain> &getCorner(int index) {
+    return cornerIterators[index];
+  }
+
+  SparseOffsetIterator<hrleDomain> const &getCorner(int index) const {
     return cornerIterators[index];
   }
 
@@ -179,14 +187,15 @@ public:
       if (vector[i])
         index |= 1 << i;
     }
+    assert(index < numCorners);
     return cornerIterators[index];
   }
 
-  const Index<D> &getIndices() { return currentCoords; }
+  const Index<D> &getIndices() const { return currentCoords; }
 
-  const IndexType &getIndices(unsigned i) { return currentCoords[i]; }
+  const IndexType &getIndices(unsigned i) const { return currentCoords[i]; }
 
-  const DomainType &getDomain() { return domain; }
+  const DomainType &getDomain() const { return domain; }
 
   bool isFinished() const {
     if (compare(currentCoords, maxIndex) > 0) {
