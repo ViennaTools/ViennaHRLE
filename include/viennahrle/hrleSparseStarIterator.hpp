@@ -15,7 +15,11 @@ using namespace viennacore;
 /// Whenever one of these (2*Dimensions+1) iterators reach a defined grid point,
 /// the iterator stops.
 template <class hrleDomain, int order> class SparseStarIterator {
+public:
+  using DomainType = hrleDomain;
+  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
+private:
   typedef std::conditional_t<std::is_const_v<hrleDomain>,
                              const typename hrleDomain::ValueType,
                              typename hrleDomain::ValueType>
@@ -27,7 +31,7 @@ template <class hrleDomain, int order> class SparseStarIterator {
   hrleDomain &domain;
   Index<D> currentCoords;
   SparseIterator<hrleDomain> centerIterator;
-  std::vector<SparseOffsetIterator<hrleDomain>> neighborIterators;
+  std::vector<OffsetIterator> neighborIterators;
 
   template <class V> void initializeNeighbors(const V &v) {
     neighborIterators.reserve(numNeighbors);
@@ -44,9 +48,6 @@ template <class hrleDomain, int order> class SparseStarIterator {
   }
 
 public:
-  using DomainType = hrleDomain;
-  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
-
   SparseStarIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), currentCoords(v),
         centerIterator(passedDomain, v) {
@@ -177,6 +178,8 @@ public:
   const SparseIterator<hrleDomain> &getCenter() const { return centerIterator; }
 
   const Index<D> &getIndices() const { return currentCoords; }
+
+  const IndexType &getIndices(unsigned i) const { return currentCoords[i]; }
 
   const DomainType &getDomain() const { return domain; }
 

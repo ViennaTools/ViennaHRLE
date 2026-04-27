@@ -11,7 +11,11 @@ using namespace viennacore;
 /// Whenever one of these (2*Dimensions+1) iterators reach a defined grid point,
 /// the iterator stops.
 template <class hrleDomain> class SparseCellIterator {
+public:
+  using DomainType = hrleDomain;
+  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
+private:
   typedef std::conditional_t<std::is_const_v<hrleDomain>,
                              const typename hrleDomain::ValueType,
                              typename hrleDomain::ValueType>
@@ -22,21 +26,16 @@ template <class hrleDomain> class SparseCellIterator {
 
   hrleDomain &domain;
   Index<D> currentCoords;
-  std::vector<SparseOffsetIterator<hrleDomain>> cornerIterators;
+  std::vector<OffsetIterator> cornerIterators;
 
   template <class V> void initialize(const V &v) {
     cornerIterators.reserve(numCorners);
-    for (unsigned i = 0; i < 1 << D; ++i) {
-      cornerIterators.push_back(
-          SparseOffsetIterator<hrleDomain>(domain, BitMaskToIndex<D>(i), v));
+    for (unsigned i = 0; i < numCorners; ++i) {
+      cornerIterators.emplace_back(domain, BitMaskToIndex<D>(i), v);
     }
-    cornerIterators.shrink_to_fit();
   }
 
 public:
-  using DomainType = hrleDomain;
-  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
-
   SparseCellIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), currentCoords(v) {
 
@@ -137,23 +136,19 @@ public:
     } while (!isDefined() && !isFinished());
   }
 
-  SparseOffsetIterator<hrleDomain> &getCorner(unsigned index) {
+  OffsetIterator &getCorner(unsigned index) { return cornerIterators[index]; }
+
+  OffsetIterator const &getCorner(unsigned index) const {
     return cornerIterators[index];
   }
 
-  SparseOffsetIterator<hrleDomain> const &getCorner(unsigned index) const {
+  OffsetIterator &getCorner(int index) { return cornerIterators[index]; }
+
+  OffsetIterator const &getCorner(int index) const {
     return cornerIterators[index];
   }
 
-  SparseOffsetIterator<hrleDomain> &getCorner(int index) {
-    return cornerIterators[index];
-  }
-
-  SparseOffsetIterator<hrleDomain> const &getCorner(int index) const {
-    return cornerIterators[index];
-  }
-
-  template <class V> SparseOffsetIterator<hrleDomain> &getCorner(V vector) {
+  template <class V> OffsetIterator &getCorner(V vector) {
     unsigned index = 0;
     for (unsigned i = 0; i < D; ++i) {
       if (vector[i])

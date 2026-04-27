@@ -19,7 +19,11 @@ using namespace viennacore;
 ///                     0  1  2  3  4
 /// center: 4           center: 12
 template <class hrleDomain, int order = 1> class SparseBoxIterator {
+public:
+  using DomainType = hrleDomain;
+  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
+private:
   typedef std::conditional_t<std::is_const_v<hrleDomain>,
                              const typename hrleDomain::ValueType,
                              typename hrleDomain::ValueType>
@@ -35,7 +39,7 @@ template <class hrleDomain, int order = 1> class SparseBoxIterator {
 
   const IndexType centerIndex;
   Index<D> currentCoords;
-  std::vector<SparseOffsetIterator<hrleDomain>> neighborIterators;
+  std::vector<OffsetIterator> neighborIterators;
 
   Index<D> indexToCoordinate(IndexType index) const {
     Index<D> coordinate;
@@ -75,15 +79,11 @@ template <class hrleDomain, int order = 1> class SparseBoxIterator {
   template <class V> void initializeNeighbors(const V &v) {
     neighborIterators.reserve(numNeighbors);
     for (unsigned i = 0; i < numNeighbors; ++i) {
-      auto offset = indexToCoordinate(i);
-      neighborIterators.emplace_back(domain, offset, v);
+      neighborIterators.emplace_back(domain, indexToCoordinate(i), v);
     }
   }
 
 public:
-  using DomainType = hrleDomain;
-  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
-
   SparseBoxIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
         currentCoords(v) {
@@ -170,36 +170,33 @@ public:
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
-  SparseOffsetIterator<hrleDomain> &getNeighbor(int index) {
+  OffsetIterator &getNeighbor(int index) {
     assert(index >= 0 && index < numNeighbors);
     return neighborIterators[index];
   }
 
-  SparseOffsetIterator<hrleDomain> const &getNeighbor(int index) const {
+  OffsetIterator const &getNeighbor(int index) const {
     assert(index >= 0 && index < numNeighbors);
     return neighborIterators[index];
   }
 
-  SparseOffsetIterator<hrleDomain> &getNeighbor(unsigned index) {
+  OffsetIterator &getNeighbor(unsigned index) {
     assert(index < numNeighbors);
     return neighborIterators[index];
   }
 
-  SparseOffsetIterator<hrleDomain> const &getNeighbor(unsigned index) const {
+  OffsetIterator const &getNeighbor(unsigned index) const {
     assert(index < numNeighbors);
     return neighborIterators[index];
   }
 
-  template <class V>
-  SparseOffsetIterator<hrleDomain> &getNeighbor(V relativeCoordinate) {
+  template <class V> OffsetIterator &getNeighbor(V relativeCoordinate) {
     return neighborIterators[coordinateToIndex(relativeCoordinate)];
   }
 
-  SparseOffsetIterator<hrleDomain> &getCenter() {
-    return neighborIterators[centerIndex];
-  }
+  OffsetIterator &getCenter() { return neighborIterators[centerIndex]; }
 
-  const SparseOffsetIterator<hrleDomain> &getCenter() const {
+  const OffsetIterator &getCenter() const {
     return neighborIterators[centerIndex];
   }
 

@@ -8,7 +8,11 @@ using namespace viennacore;
 /// This iterator consists of 2^Dimensions SparseOffsetIterators
 /// for the cartesian neighbors and an SparseIterator for the center.
 template <class hrleDomain> class DenseCellIterator {
+public:
+  using DomainType = hrleDomain;
+  using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
+private:
   typedef std::conditional_t<std::is_const_v<hrleDomain>,
                              const typename hrleDomain::ValueType,
                              typename hrleDomain::ValueType>
@@ -19,16 +23,14 @@ template <class hrleDomain> class DenseCellIterator {
 
   hrleDomain &domain;
   Index<D> currentCoords;
-  std::vector<SparseOffsetIterator<hrleDomain>> cornerIterators;
+  std::vector<OffsetIterator> cornerIterators;
   Index<D> minIndex, maxIndex;
 
   template <class V> void initialize(const V &v) {
     cornerIterators.reserve(numCorners);
     for (unsigned i = 0; i < numCorners; ++i) {
-      cornerIterators.push_back(
-          SparseOffsetIterator<hrleDomain>(domain, BitMaskToIndex<D>(i), v));
+      cornerIterators.emplace_back(domain, BitMaskToIndex<D>(i), v);
     }
-    cornerIterators.shrink_to_fit();
   }
 
   void incrementIndices(Index<D> &v) {
@@ -59,16 +61,7 @@ template <class hrleDomain> class DenseCellIterator {
     --v[dim];
   }
 
-  // make post in/decrement private, since they should not be used, due to the
-  // size of the structure
-  DenseCellIterator operator++(int) { return *this; }
-  // use pre increment instead
-  DenseCellIterator operator--(int) { return *this; }
-  // use pre decrement instead
-
 public:
-  using DomainType = hrleDomain;
-
   DenseCellIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), currentCoords(v) {
 
@@ -94,6 +87,11 @@ public:
 
     initialize(currentCoords);
   }
+
+  // delete post in/decrement, since they should not be used, due to the
+  // size of the structure
+  DenseCellIterator operator++(int) = delete; // use pre increment instead
+  DenseCellIterator operator--(int) = delete; // use pre decrement instead
 
   bool isDefined() const {
     for (unsigned i = 0; i < D; ++i) {
@@ -165,23 +163,19 @@ public:
     decrementIndices(currentCoords);
   }
 
-  SparseOffsetIterator<hrleDomain> &getCorner(unsigned index) {
+  OffsetIterator &getCorner(unsigned index) { return cornerIterators[index]; }
+
+  OffsetIterator const &getCorner(unsigned index) const {
     return cornerIterators[index];
   }
 
-  SparseOffsetIterator<hrleDomain> const &getCorner(unsigned index) const {
+  OffsetIterator &getCorner(int index) { return cornerIterators[index]; }
+
+  OffsetIterator const &getCorner(int index) const {
     return cornerIterators[index];
   }
 
-  SparseOffsetIterator<hrleDomain> &getCorner(int index) {
-    return cornerIterators[index];
-  }
-
-  SparseOffsetIterator<hrleDomain> const &getCorner(int index) const {
-    return cornerIterators[index];
-  }
-
-  template <class V> SparseOffsetIterator<hrleDomain> &getCorner(V vector) {
+  template <class V> OffsetIterator &getCorner(V vector) {
     unsigned index = 0;
     for (unsigned i = 0; i < D; ++i) {
       if (vector[i])
