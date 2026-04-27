@@ -22,7 +22,7 @@ template <class hrleDomain> class DenseIterator {
   Index<D> minIndex;
   Index<D> maxIndex;
 
-  void incrementIndices(Index<D> &v) {
+  void incrementIndices(Index<D> &v) const {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       bool posInfinite = domain.getGrid().isPosBoundaryInfinite(dim);
@@ -36,7 +36,7 @@ template <class hrleDomain> class DenseIterator {
     ++v[dim];
   }
 
-  void decrementIndices(Index<D> &v) {
+  void decrementIndices(Index<D> &v) const {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       bool posInfinite = domain.getGrid().isPosBoundaryInfinite(dim);
@@ -143,7 +143,7 @@ public:
     runsIterator.goToIndices(v);
   }
 
-  bool isFinished() {
+  bool isFinished() const {
     if (Compare(currentIndices, maxIndex) > 0)
       return true;
 
@@ -156,15 +156,17 @@ public:
 
   ValueType &getValue() { return runsIterator.getValue(); }
 
-  IndexType getIndex(int dimension) { return currentIndices[dimension]; }
+  const ValueType &getValue() const { return runsIterator.getValue(); }
 
-  Index<D> getIndices() { return currentIndices; }
+  IndexType getIndex(int dimension) const { return currentIndices[dimension]; }
 
-  Index<D> getIteratorIndices() { return runsIterator.getStartIndices(); }
+  Index<D> getIndices() const { return currentIndices; }
 
-  const DomainType &getDomain() { return domain; }
+  Index<D> getIteratorIndices() const { return runsIterator.getStartIndices(); }
 
-  void print() {
+  const DomainType &getDomain() const { return domain; }
+
+  void print() const {
     std::cout << currentIndices << std::endl;
     runsIterator.print();
   }

@@ -1,6 +1,9 @@
 #ifndef HRLE_DENSE_CELL_ITERATOR_HPP
 #define HRLE_DENSE_CELL_ITERATOR_HPP
 
+#include <array>
+#include <utility>
+
 #include "hrleSparseOffsetIterator.hpp"
 
 namespace viennahrle {
@@ -23,14 +26,45 @@ private:
 
   hrleDomain &domain;
   Index<D> currentCoords;
-  std::vector<OffsetIterator> cornerIterators;
+  std::array<OffsetIterator, numCorners> cornerIterators;
   Index<D> minIndex, maxIndex;
 
-  template <class V> void initialize(const V &v) {
-    cornerIterators.reserve(numCorners);
-    for (unsigned i = 0; i < numCorners; ++i) {
-      cornerIterators.emplace_back(domain, BitMaskToIndex<D>(i), v);
+  template <class V, std::size_t... Is>
+  static std::array<OffsetIterator, numCorners>
+  makeCornerIteratorsImpl(hrleDomain &passedDomain, const V &v,
+                          std::index_sequence<Is...>) {
+    return {OffsetIterator(passedDomain,
+                           BitMaskToIndex<D>(static_cast<unsigned>(Is)), v)...};
+  }
+
+  template <class V>
+  static std::array<OffsetIterator, numCorners>
+  makeCornerIterators(hrleDomain &passedDomain, const V &v) {
+    return makeCornerIteratorsImpl(
+        passedDomain, v,
+        std::make_index_sequence<static_cast<std::size_t>(numCorners)>{});
+  }
+
+  static Index<D> makeMinIndex(hrleDomain &passedDomain) {
+    Index<D> index;
+    auto &grid = passedDomain.getGrid();
+    for (unsigned i = 0; i < D; ++i) {
+      index[i] = (grid.isNegBoundaryInfinite(i))
+                     ? passedDomain.getMinRunBreak(i)
+                     : grid.getMinBounds(i);
     }
+    return index;
+  }
+
+  static Index<D> makeMaxIndex(hrleDomain &passedDomain) {
+    Index<D> index;
+    auto &grid = passedDomain.getGrid();
+    for (unsigned i = 0; i < D; ++i) {
+      index[i] = (grid.isPosBoundaryInfinite(i))
+                     ? passedDomain.getMaxRunBreak(i)
+                     : grid.getMaxBounds(i);
+    }
+    return index;
   }
 
   void incrementIndices(Index<D> &v) {
@@ -63,30 +97,16 @@ private:
 
 public:
   DenseCellIterator(hrleDomain &passedDomain, const Index<D> &v)
-      : domain(passedDomain), currentCoords(v) {
-
-    initialize(currentCoords);
-  }
+      : domain(passedDomain), currentCoords(v),
+        cornerIterators(makeCornerIterators(passedDomain, currentCoords)) {}
 
   explicit DenseCellIterator(hrleDomain &passedDomain, bool reverse = false)
       : domain(passedDomain),
-        currentCoords(domain.getGrid().getMinGridPoint()) {
-
-    auto &grid = domain.getGrid();
-    for (unsigned i = 0; i < D; ++i) {
-      minIndex[i] = (grid.isNegBoundaryInfinite(i)) ? domain.getMinRunBreak(i)
-                                                    : grid.getMinBounds(i);
-      maxIndex[i] = (grid.isPosBoundaryInfinite(i)) ? domain.getMaxRunBreak(i)
-                                                    : grid.getMaxBounds(i);
-    }
-
-    if (reverse)
-      currentCoords = maxIndex;
-    else
-      currentCoords = minIndex;
-
-    initialize(currentCoords);
-  }
+        currentCoords(reverse ? makeMaxIndex(passedDomain)
+                              : makeMinIndex(passedDomain)),
+        cornerIterators(makeCornerIterators(passedDomain, currentCoords)),
+        minIndex(makeMinIndex(passedDomain)),
+        maxIndex(makeMaxIndex(passedDomain)) {}
 
   // delete post in/decrement, since they should not be used, due to the
   // size of the structure

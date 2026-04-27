@@ -1,6 +1,9 @@
 #ifndef HRLE_CELL_ITERATOR_HPP
 #define HRLE_CELL_ITERATOR_HPP
 
+#include <array>
+#include <utility>
+
 #include "hrleSparseOffsetIterator.hpp"
 
 namespace viennahrle {
@@ -26,29 +29,36 @@ private:
 
   hrleDomain &domain;
   Index<D> currentCoords;
-  std::vector<OffsetIterator> cornerIterators;
+  std::array<OffsetIterator, numCorners> cornerIterators;
 
-  template <class V> void initialize(const V &v) {
-    cornerIterators.reserve(numCorners);
-    for (unsigned i = 0; i < numCorners; ++i) {
-      cornerIterators.emplace_back(domain, BitMaskToIndex<D>(i), v);
-    }
+  template <class V, std::size_t... Is>
+  static std::array<OffsetIterator, numCorners>
+  makeCornerIteratorsImpl(hrleDomain &passedDomain, const V &v,
+                          std::index_sequence<Is...>) {
+    return {OffsetIterator(passedDomain,
+                           BitMaskToIndex<D>(static_cast<unsigned>(Is)), v)...};
+  }
+
+  template <class V>
+  static std::array<OffsetIterator, numCorners>
+  makeCornerIterators(hrleDomain &passedDomain, const V &v) {
+    return makeCornerIteratorsImpl(
+        passedDomain, v,
+        std::make_index_sequence<static_cast<std::size_t>(numCorners)>{});
   }
 
 public:
   SparseCellIterator(hrleDomain &passedDomain, const Index<D> &v)
-      : domain(passedDomain), currentCoords(v) {
-
-    initialize(v);
+      : domain(passedDomain), currentCoords(v),
+        cornerIterators(makeCornerIterators(passedDomain, v)) {
     if (!isDefined())
       next();
   }
 
   explicit SparseCellIterator(hrleDomain &passedDomain)
-      : domain(passedDomain),
-        currentCoords(domain.getGrid().getMinGridPoint()) {
-
-    initialize(passedDomain.getGrid().getMinIndex());
+      : domain(passedDomain), currentCoords(domain.getGrid().getMinGridPoint()),
+        cornerIterators(makeCornerIterators(
+            passedDomain, passedDomain.getGrid().getMinIndex())) {
     if (!isDefined())
       next();
   }

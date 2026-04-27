@@ -33,9 +33,9 @@ private:
   std::vector<SparseIterator<hrleDomain>> iterators;
 
   template <class V> void initializeIterators(const V &v) {
-    iterators.clear();
+    iterators.reserve(domains.size());
     for (unsigned i = 0; i < domains.size(); ++i) {
-      iterators.push_back(SparseIterator<hrleDomain>(*domains[i], v));
+      iterators.emplace_back(*domains[i], v);
     }
   }
 

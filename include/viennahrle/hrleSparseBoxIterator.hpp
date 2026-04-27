@@ -1,6 +1,9 @@
 #ifndef HRLE_SQUARE_ITERATOR_HPP
 #define HRLE_SQUARE_ITERATOR_HPP
 
+#include <array>
+#include <utility>
+
 #include "hrleSparseOffsetIterator.hpp"
 #include "hrleUtil.hpp"
 
@@ -39,9 +42,9 @@ private:
 
   const IndexType centerIndex;
   Index<D> currentCoords;
-  std::vector<OffsetIterator> neighborIterators;
+  std::array<OffsetIterator, numNeighbors> neighborIterators;
 
-  Index<D> indexToCoordinate(IndexType index) const {
+  static Index<D> indexToCoordinate(IndexType index) {
     Index<D> coordinate;
 
     if (D > 2) {
@@ -74,27 +77,33 @@ private:
     return index;
   }
 
-  /// push offset iterators lexicographically into std::vector from -order to
-  /// +order
-  template <class V> void initializeNeighbors(const V &v) {
-    neighborIterators.reserve(numNeighbors);
-    for (unsigned i = 0; i < numNeighbors; ++i) {
-      neighborIterators.emplace_back(domain, indexToCoordinate(i), v);
-    }
+  template <class V, std::size_t... Is>
+  static std::array<OffsetIterator, numNeighbors>
+  makeNeighborIteratorsImpl(hrleDomain &passedDomain, const V &v,
+                            std::index_sequence<Is...>) {
+    return {OffsetIterator(
+        passedDomain, indexToCoordinate(static_cast<IndexType>(Is)), v)...};
+  }
+
+  template <class V>
+  static std::array<OffsetIterator, numNeighbors>
+  makeNeighborIterators(hrleDomain &passedDomain, const V &v) {
+    return makeNeighborIteratorsImpl(
+        passedDomain, v,
+        std::make_index_sequence<static_cast<std::size_t>(numNeighbors)>{});
   }
 
 public:
   SparseBoxIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
-        currentCoords(v) {
-    initializeNeighbors(v);
-  }
+        currentCoords(v),
+        neighborIterators(makeNeighborIterators(passedDomain, v)) {}
 
   explicit SparseBoxIterator(hrleDomain &passedDomain)
       : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
-        currentCoords(domain.getGrid().getMinGridPoint()) {
-    initializeNeighbors(passedDomain.getGrid().getMinIndex());
-  }
+        currentCoords(domain.getGrid().getMinGridPoint()),
+        neighborIterators(makeNeighborIterators(
+            passedDomain, passedDomain.getGrid().getMinIndex())) {}
 
   // delete post in/decrement, since they should not be used, due to the
   // size of the structure

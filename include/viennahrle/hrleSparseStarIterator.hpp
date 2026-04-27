@@ -1,6 +1,7 @@
 #ifndef HRLE_CROSS_ITERATOR_HPP
 #define HRLE_CROSS_ITERATOR_HPP
 
+#include <array>
 #include <cassert>
 
 #include "hrleSparseIterator.hpp"
@@ -31,34 +32,46 @@ private:
   hrleDomain &domain;
   Index<D> currentCoords;
   SparseIterator<hrleDomain> centerIterator;
-  std::vector<OffsetIterator> neighborIterators;
+  std::array<OffsetIterator, numNeighbors> neighborIterators;
 
-  template <class V> void initializeNeighbors(const V &v) {
-    neighborIterators.reserve(numNeighbors);
-    for (int i = 0; i < order; ++i) {
-      for (int j = 0; j < 2 * D; ++j) {
-        Index<D> relativeIndex(0);
-        if (j < D)
-          relativeIndex[j] = i + 1;
-        else
-          relativeIndex[j - D] = -(i + 1);
-        neighborIterators.emplace_back(domain, relativeIndex, v);
-      }
-    }
+  static Index<D> makeRelativeIndex(int neighborId) {
+    Index<D> relativeIndex(0);
+    const int shell = neighborId / (2 * D);
+    const int direction = neighborId % (2 * D);
+
+    if (direction < D)
+      relativeIndex[direction] = shell + 1;
+    else
+      relativeIndex[direction - D] = -(shell + 1);
+
+    return relativeIndex;
+  }
+
+  template <class V, std::size_t... Is>
+  static std::array<OffsetIterator, numNeighbors>
+  makeNeighborIteratorsImpl(hrleDomain &passedDomain, const V &v,
+                            std::index_sequence<Is...>) {
+    return {OffsetIterator(passedDomain,
+                           makeRelativeIndex(static_cast<int>(Is)), v)...};
+  }
+
+  template <class V>
+  static std::array<OffsetIterator, numNeighbors>
+  makeNeighborIterators(hrleDomain &passedDomain, const V &v) {
+    return makeNeighborIteratorsImpl(passedDomain, v,
+                                     std::make_index_sequence<numNeighbors>{});
   }
 
 public:
   SparseStarIterator(hrleDomain &passedDomain, const Index<D> &v)
-      : domain(passedDomain), currentCoords(v),
-        centerIterator(passedDomain, v) {
-    initializeNeighbors(v);
-  }
+      : domain(passedDomain), currentCoords(v), centerIterator(passedDomain, v),
+        neighborIterators(makeNeighborIterators(passedDomain, v)) {}
 
   explicit SparseStarIterator(hrleDomain &passedDomain)
       : domain(passedDomain), currentCoords(domain.getGrid().getMinGridPoint()),
-        centerIterator(passedDomain) {
-    initializeNeighbors(passedDomain.getGrid().getMinIndex());
-  }
+        centerIterator(passedDomain),
+        neighborIterators(makeNeighborIterators(
+            passedDomain, passedDomain.getGrid().getMinIndex())) {}
 
   // delete post in/decrement, since they should not be used, due to the
   // size of the structure
