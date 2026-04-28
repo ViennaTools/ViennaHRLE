@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 project(
   ViennaHRLE
   LANGUAGES CXX
-  VERSION 1.0.0)
+  VERSION 1.1.0)
 
 # --------------------------------------------------------------------------------------------------------
 # Library options
@@ -20,10 +20,10 @@ option(VIENNAHRLE_USE_SANITIZER "Enable Sanitizers" OFF)
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(ViennaTools::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 set_target_properties(
   ${PROJECT_NAME}
-  PROPERTIES CXX_STANDARD 17
+  PROPERTIES CXX_STANDARD 20
              CXX_EXTENSIONS OFF
              CXX_STANDARD_REQUIRED ON)
 
@@ -43,7 +43,7 @@ include("cmake/cpm.cmake")
 
 CPMAddPackage(
   NAME ViennaCore
-  VERSION 2.0.0
+  VERSION 2.1.2
   GIT_REPOSITORY "https://github.com/ViennaTools/ViennaCore")
 
 CPMAddPackage(

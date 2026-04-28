@@ -23,7 +23,7 @@ the [releases section](https://github.com/ViennaTools/viennahrle/releases).
 
 ### System Requirements
 
-* C++17 Compiler with OpenMP support
+* C++20 Compiler with OpenMP support
 
 ### Installing
 
@@ -56,7 +56,7 @@ We recommend using [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) to consum
 
 * Installation with CPM
   ```cmake
-  CPMAddPackage("gh:viennatools/viennahrle@1.0.0")
+  CPMAddPackage("gh:viennatools/viennahrle@1.1.0")
   ```
 
 * With a local installation
