@@ -13,7 +13,7 @@
 namespace viennahrle {
 using namespace viennacore;
 
-enum class BoundaryType : unsigned {
+enum class BoundaryType : uint8_t {
   REFLECTIVE_BOUNDARY = 0,
   INFINITE_BOUNDARY = 1,
   PERIODIC_BOUNDARY = 2,
@@ -286,8 +286,9 @@ public:
     if (cycles == 0)
       return relative_coord - offset;
 
+    assert((maxIndex[dim] - minIndex[dim]) == indexExtension[dim]);
     if (isBoundaryPeriodic(dim))
-      return relative_coord - offset + cycles * (maxIndex[dim] - minIndex[dim]);
+      return cycles * indexExtension[dim] + relative_coord - offset;
 
     if ((cycles & 1) == 0) // if cycles is even
       return cycles * indexExtension[dim] + relative_coord - offset;

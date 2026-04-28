@@ -77,9 +77,9 @@ public:
 #endif
 
   explicit BaseIterator(hrleDomain &passedDomain)
-      : domain(passedDomain), absCoords(domain.getGrid().getMinGridPoint()),
-        endAbsCoords(domain.getGrid().getMaxGridPoint()), r_level(D),
-        s_level(D), sub(0) {
+      : domain(passedDomain), r_level(D), s_level(D), sub(0),
+        absCoords(domain.getGrid().getMinGridPoint()),
+        endAbsCoords(domain.getGrid().getMaxGridPoint()) {
     startIndicesPos[D] = 0;
   }
 

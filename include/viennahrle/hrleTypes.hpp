@@ -86,23 +86,44 @@ public:
     return false;
   }
   template <class V> bool operator<(const V &v) const {
-    for (int i = D - 1; i >= 0; --i) {
-      if (x[i] < v[i])
-        return true;
-      if (x[i] > v[i])
-        return false;
+    // Lexicographic: compare from high to low dimension
+    if constexpr (D == 2) {
+      if (x[1] != v[1])
+        return x[1] < v[1];
+      return x[0] < v[0];
+    } else if constexpr (D == 3) {
+      if (x[2] != v[2])
+        return x[2] < v[2];
+      if (x[1] != v[1])
+        return x[1] < v[1];
+      return x[0] < v[0];
+    } else {
+      for (int i = D - 1; i >= 0; --i) {
+        if (x[i] != v[i])
+          return x[i] < v[i];
+      }
+      return false;
     }
-    return false;
   }
   template <class V> bool operator<=(const V &v) const { return !(*this > v); }
   template <class V> bool operator>(const V &v) const {
-    for (int i = D - 1; i >= 0; --i) {
-      if (x[i] > v[i])
-        return true;
-      if (x[i] < v[i])
-        return false;
+    if constexpr (D == 2) {
+      if (x[1] != v[1])
+        return x[1] > v[1];
+      return x[0] > v[0];
+    } else if constexpr (D == 3) {
+      if (x[2] != v[2])
+        return x[2] > v[2];
+      if (x[1] != v[1])
+        return x[1] > v[1];
+      return x[0] > v[0];
+    } else {
+      for (int i = D - 1; i >= 0; --i) {
+        if (x[i] != v[i])
+          return x[i] > v[i];
+      }
+      return false;
     }
-    return false;
   }
   template <class V> bool operator>=(const V &v) const { return !(*this < v); }
 
@@ -221,6 +242,7 @@ template <int D> constexpr Index<D> BitMaskToIndex(unsigned int i) {
   return tmp;
 }
 
+// Generic Compare for other dimensions
 template <int D> int Compare(const Index<D> &v1, const Index<D> &v2) {
   for (int i = D - 1; i >= 0; --i) {
     if (v1[i] > v2[i])
@@ -228,6 +250,36 @@ template <int D> int Compare(const Index<D> &v1, const Index<D> &v2) {
     if (v1[i] < v2[i])
       return -1;
   }
+  return 0;
+}
+
+// Specialized Compare for D=2
+template <> inline int Compare<2>(const Index<2> &v1, const Index<2> &v2) {
+  if (v1[1] > v2[1])
+    return 1;
+  if (v1[1] < v2[1])
+    return -1;
+  if (v1[0] > v2[0])
+    return 1;
+  if (v1[0] < v2[0])
+    return -1;
+  return 0;
+}
+
+// Specialized Compare for D=3
+template <> inline int Compare<3>(const Index<3> &v1, const Index<3> &v2) {
+  if (v1[2] > v2[2])
+    return 1;
+  if (v1[2] < v2[2])
+    return -1;
+  if (v1[1] > v2[1])
+    return 1;
+  if (v1[1] < v2[1])
+    return -1;
+  if (v1[0] > v2[0])
+    return 1;
+  if (v1[0] < v2[0])
+    return -1;
   return 0;
 }
 } // namespace viennahrle

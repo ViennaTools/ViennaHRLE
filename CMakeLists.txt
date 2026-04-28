@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 project(
   ViennaHRLE
   LANGUAGES CXX
-  VERSION 1.1.0)
+  VERSION 1.1.1)
 
 # --------------------------------------------------------------------------------------------------------
 # Library options
