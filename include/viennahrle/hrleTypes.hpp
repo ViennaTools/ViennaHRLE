@@ -86,23 +86,59 @@ public:
     return false;
   }
   template <class V> bool operator<(const V &v) const {
-    for (int i = D - 1; i >= 0; --i) {
-      if (x[i] < v[i])
+    if constexpr (D == 2) {
+      if (x[1] < v[1])
         return true;
-      if (x[i] > v[i])
+      if (x[1] > v[1])
         return false;
+      return x[0] < v[0];
+    } else if constexpr (D == 3) {
+      if (x[2] < v[2])
+        return true;
+      if (x[2] > v[2])
+        return false;
+      if (x[1] < v[1])
+        return true;
+      if (x[1] > v[1])
+        return false;
+      return x[0] < v[0];
+    } else {
+      for (int i = D - 1; i >= 0; --i) {
+        if (x[i] < v[i])
+          return true;
+        if (x[i] > v[i])
+          return false;
+      }
+      return false;
     }
-    return false;
   }
   template <class V> bool operator<=(const V &v) const { return !(*this > v); }
   template <class V> bool operator>(const V &v) const {
-    for (int i = D - 1; i >= 0; --i) {
-      if (x[i] > v[i])
+    if constexpr (D == 2) {
+      if (x[1] > v[1])
         return true;
-      if (x[i] < v[i])
+      if (x[1] < v[1])
         return false;
+      return x[0] > v[0];
+    } else if constexpr (D == 3) {
+      if (x[2] > v[2])
+        return true;
+      if (x[2] < v[2])
+        return false;
+      if (x[1] > v[1])
+        return true;
+      if (x[1] < v[1])
+        return false;
+      return x[0] > v[0];
+    } else {
+      for (int i = D - 1; i >= 0; --i) {
+        if (x[i] > v[i])
+          return true;
+        if (x[i] < v[i])
+          return false;
+      }
+      return false;
     }
-    return false;
   }
   template <class V> bool operator>=(const V &v) const { return !(*this < v); }
 
