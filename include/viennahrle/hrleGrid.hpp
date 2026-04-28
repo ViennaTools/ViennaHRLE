@@ -13,7 +13,7 @@
 namespace viennahrle {
 using namespace viennacore;
 
-enum class BoundaryType : unsigned {
+enum class BoundaryType : uint8_t {
   REFLECTIVE_BOUNDARY = 0,
   INFINITE_BOUNDARY = 1,
   PERIODIC_BOUNDARY = 2,
