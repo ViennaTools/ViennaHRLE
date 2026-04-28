@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <hrleGrid.hpp>
+#include <vcLogger.hpp>
 
 namespace viennahrle {
 using namespace viennacore;
@@ -46,23 +47,21 @@ public:
 
   void apply() {
     if (domain == nullptr) {
-      std::cout
-          << "ERROR: In order to read an hrleDomain, you first have to set the "
-             "object to read it into. Use DomainReader.setDomain()"
-          << std::endl;
+      VIENNACORE_LOG_ERROR(
+          "In order to read an hrleDomain, you first have to set the "
+          "object to read it into. Use DomainReader.setDomain()");
       return;
     }
 
     if (filePath.find(".hrle") == std::string::npos) {
-      std::cout
-          << "ERROR: File name does not have the correct file ending: '.hrle'"
-          << std::endl;
+      VIENNACORE_LOG_ERROR(
+          "File name does not have the correct file ending: '.hrle'");
       return;
     }
 
     std::ifstream fin(filePath, std::ifstream::binary);
     if (!fin.is_open()) {
-      std::cout << "ERROR: Could not open the file: " << filePath << std::endl;
+      VIENNACORE_LOG_ERROR("Could not open the file: " + filePath);
       return;
     }
 
@@ -71,26 +70,27 @@ public:
     fin.read(buff, 8);
     // Comparing Identification Bytes
     if (std::string(buff).compare(0, 4, "HRLE")) {
-      std::cout << "ERROR: File is not an HRLE file." << std::endl;
+      VIENNACORE_LOG_ERROR("File is not an HRLE file.");
       return;
     }
     if (HRLE_FILE_READ_VERSION_NUMBER != buff[4] - 48) {
-      std::cout << "WARNING: File of version " << buff[4] - 48
-                << " is read by this reader(Version "
-                << HRLE_FILE_READ_VERSION_NUMBER << ")!" << std::endl;
+      VIENNACORE_LOG_WARNING("File of version " + std::to_string(buff[4] - 48) +
+                             " is read by this reader(Version " +
+                             std::to_string(HRLE_FILE_READ_VERSION_NUMBER) +
+                             ")!");
       if (HRLE_FILE_READ_VERSION_NUMBER < buff[4] - 48)
         return;
     }
     if (bigEndian() != bool(buff[5] - 48)) {
-      std::cout << "WARNING: File was written in a different byte order than "
-                   "it is being read. Results may be incorrect!"
-                << std::endl;
+      VIENNACORE_LOG_WARNING("File was written in a different byte order than "
+                             "it is being read. Results may be incorrect!");
     }
     const int dimension = buff[6] - 48;
     if (dimension != D) {
-      std::cout << "ERROR: Domain in file has " << dimension
-                << " dimensions, but trying to read domain with " << D
-                << " dimensions." << std::endl;
+      VIENNACORE_LOG_ERROR("ERROR: Domain in file has " +
+                           std::to_string(dimension) +
+                           " dimensions, but trying to read domain with " +
+                           std::to_string(D) + " dimensions.");
       return;
     }
 

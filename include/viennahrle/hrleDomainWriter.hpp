@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <vcLogger.hpp>
+
 /*
 *********************************************************************
 *********************** THE HRLE FILE FORMAT ***********************
@@ -106,7 +108,7 @@ public:
   void apply() {
     std::ofstream fout(filePath, std::ofstream::binary);
     if (!fout.is_open()) {
-      std::cout << "ERROR: Could not open the file: " << filePath << std::endl;
+      VIENNACORE_LOG_ERROR("Could not open the file: " + filePath);
       return;
     }
 

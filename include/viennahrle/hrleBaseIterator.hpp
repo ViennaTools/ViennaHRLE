@@ -16,10 +16,9 @@ using namespace viennacore;
 template <class hrleDomain> class BaseIterator {
 protected:
   static constexpr int D = hrleDomain::dimension;
-  typedef std::conditional_t<std::is_const_v<hrleDomain>,
-                             const typename hrleDomain::ValueType,
-                             typename hrleDomain::ValueType>
-      ValueType;
+  using ValueType = std::conditional_t<std::is_const_v<hrleDomain>,
+                                       const typename hrleDomain::ValueType,
+                                       typename hrleDomain::ValueType>;
 
   // Most frequently accessed members first (hot data)
   hrleDomain &domain; // 8 bytes (reference)

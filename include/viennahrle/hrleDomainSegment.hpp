@@ -97,7 +97,7 @@ public:
 
     startIndices[D - 1].push_back(0);
     runBreaks[D - 1].reserve(a.num_runs[D - 1] - 1);
-  };
+  }
 
   DomainSegment(const Grid<D> &g, const DomainSegment &s) : grid(&g) {
     for (int i = 0; i < D; ++i)
@@ -109,7 +109,7 @@ public:
     definedValues = s.definedValues;
     undefinedValues = s.undefinedValues;
     grid = &g;
-  };
+  }
 
   DomainSegment &operator=(const DomainSegment &s) {
     if (this == &s) // handle self-assignment
@@ -492,8 +492,6 @@ public:
   }
 
   void print(std::ostream &out = std::cout) const {
-    std::ostringstream oss;
-
     out << std::endl;
     out << std::string(20, '-') << " HRLE Data Structure "
         << std::string(20, '-') << std::endl

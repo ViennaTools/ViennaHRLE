@@ -27,19 +27,16 @@ public:
   using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
 private:
-  typedef std::conditional_t<std::is_const_v<hrleDomain>,
-                             const typename hrleDomain::ValueType,
-                             typename hrleDomain::ValueType>
-      ValueType;
-
+  using ValueType = std::conditional_t<std::is_const_v<hrleDomain>,
+                                       const typename hrleDomain::ValueType,
+                                       typename hrleDomain::ValueType>;
   static constexpr int D = hrleDomain::dimension;
-
-  hrleDomain &domain;
   static constexpr IndexType sideLength = 1 + 2 * order;
   static constexpr IndexType sliceArea = sideLength * sideLength;
   static constexpr auto numNeighbors =
       static_cast<unsigned>(hrleUtil::pow(1 + 2 * order, D));
 
+  hrleDomain &domain;
   const IndexType centerIndex;
   Index<D> currentCoords;
   std::array<OffsetIterator, numNeighbors> neighborIterators;
@@ -94,16 +91,16 @@ private:
   }
 
 public:
-  SparseBoxIterator(hrleDomain &passedDomain, const Index<D> &v)
-      : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
-        currentCoords(v),
-        neighborIterators(makeNeighborIterators(passedDomain, v)) {}
-
   explicit SparseBoxIterator(hrleDomain &passedDomain)
       : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
         currentCoords(domain.getGrid().getMinGridPoint()),
         neighborIterators(makeNeighborIterators(
             passedDomain, passedDomain.getGrid().getMinIndex())) {}
+
+  SparseBoxIterator(hrleDomain &passedDomain, const Index<D> &v)
+      : domain(passedDomain), centerIndex(coordinateToIndex(Index<D>(0))),
+        currentCoords(v),
+        neighborIterators(makeNeighborIterators(passedDomain, v)) {}
 
   // delete post in/decrement, since they should not be used, due to the
   // size of the structure
@@ -143,10 +140,10 @@ public:
 
     if (increment[numNeighbors])
       neighborIterators[centerIndex].next();
-    for (int i = 0; i < numNeighbors; i++)
+    for (int i = 0; i < numNeighbors; i++) {
       if (increment[i])
         neighborIterators[i].next();
-
+    }
     currentCoords = domain.getGrid().incrementIndices(end_coords);
   }
 
@@ -172,10 +169,10 @@ public:
 
     if (decrement[numNeighbors])
       neighborIterators[centerIndex].previous();
-    for (int i = 0; i < numNeighbors; i++)
+    for (int i = 0; i < numNeighbors; i++) {
       if (decrement[i])
         neighborIterators[i].previous();
-
+    }
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
@@ -235,13 +232,11 @@ public:
   /// then the iterator will be moved until it reaches v
   template <class V> void goToIndicesSequential(const V &v) {
     if (v >= currentCoords) {
-      while (v > currentCoords) {
+      while (v > currentCoords)
         next();
-      }
     } else {
-      while (v < currentCoords) {
+      while (v < currentCoords)
         previous();
-      }
     }
   }
 };

@@ -21,11 +21,9 @@ public:
   using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
 private:
-  typedef std::conditional_t<std::is_const_v<hrleDomain>,
-                             const typename hrleDomain::ValueType,
-                             typename hrleDomain::ValueType>
-      ValueType;
-
+  using ValueType = std::conditional_t<std::is_const_v<hrleDomain>,
+                                       const typename hrleDomain::ValueType,
+                                       typename hrleDomain::ValueType>;
   static constexpr int D = hrleDomain::dimension;
   static constexpr int numNeighbors = 2 * order * D;
 
@@ -63,15 +61,15 @@ private:
   }
 
 public:
-  SparseStarIterator(hrleDomain &passedDomain, const Index<D> &v)
-      : domain(passedDomain), currentCoords(v), centerIterator(passedDomain, v),
-        neighborIterators(makeNeighborIterators(passedDomain, v)) {}
-
   explicit SparseStarIterator(hrleDomain &passedDomain)
       : domain(passedDomain), currentCoords(domain.getGrid().getMinGridPoint()),
         centerIterator(passedDomain),
         neighborIterators(makeNeighborIterators(
             passedDomain, passedDomain.getGrid().getMinIndex())) {}
+
+  SparseStarIterator(hrleDomain &passedDomain, const Index<D> &v)
+      : domain(passedDomain), currentCoords(v), centerIterator(passedDomain, v),
+        neighborIterators(makeNeighborIterators(passedDomain, v)) {}
 
   // delete post in/decrement, since they should not be used, due to the
   // size of the structure
@@ -108,10 +106,10 @@ public:
 
     if (increment[numNeighbors])
       centerIterator.next();
-    for (int i = 0; i < numNeighbors; ++i)
+    for (int i = 0; i < numNeighbors; ++i) {
       if (increment[i])
         neighborIterators[i].next();
-
+    }
     currentCoords = domain.getGrid().incrementIndices(end_coords);
   }
 
@@ -214,21 +212,13 @@ public:
   /// then the iterator will be moved until it reaches v
   template <class V> void goToIndicesSequential(const V &v) {
     if (v >= currentCoords) {
-      while (v > currentCoords) {
+      while (v > currentCoords)
         next();
-      }
     } else {
-      while (v < currentCoords) {
+      while (v < currentCoords)
         previous();
-      }
     }
   }
-
-  // const Index<D> &getStartIndices() const {
-  //   return startCoords;
-  // }
-  //
-  // IndexType getStartIndex(int dir) const { return startCoords[dir]; }
 };
 
 template <class hrleDomain, int order>

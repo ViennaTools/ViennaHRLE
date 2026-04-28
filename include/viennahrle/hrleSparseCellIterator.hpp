@@ -19,11 +19,9 @@ public:
   using OffsetIterator = SparseOffsetIterator<hrleDomain>;
 
 private:
-  typedef std::conditional_t<std::is_const_v<hrleDomain>,
-                             const typename hrleDomain::ValueType,
-                             typename hrleDomain::ValueType>
-      ValueType;
-
+  using ValueType = std::conditional_t<std::is_const_v<hrleDomain>,
+                                       const typename hrleDomain::ValueType,
+                                       typename hrleDomain::ValueType>;
   static constexpr int D = hrleDomain::dimension;
   static constexpr int numCorners = 1 << D;
 
@@ -48,17 +46,17 @@ private:
   }
 
 public:
-  SparseCellIterator(hrleDomain &passedDomain, const Index<D> &v)
-      : domain(passedDomain), currentCoords(v),
-        cornerIterators(makeCornerIterators(passedDomain, v)) {
-    if (!isDefined())
-      next();
-  }
-
   explicit SparseCellIterator(hrleDomain &passedDomain)
       : domain(passedDomain), currentCoords(domain.getGrid().getMinGridPoint()),
         cornerIterators(makeCornerIterators(
             passedDomain, passedDomain.getGrid().getMinIndex())) {
+    if (!isDefined())
+      next();
+  }
+
+  SparseCellIterator(hrleDomain &passedDomain, const Index<D> &v)
+      : domain(passedDomain), currentCoords(v),
+        cornerIterators(makeCornerIterators(passedDomain, v)) {
     if (!isDefined())
       next();
   }
