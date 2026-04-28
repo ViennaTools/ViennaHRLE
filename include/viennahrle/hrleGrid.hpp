@@ -407,8 +407,8 @@ public:
   }
 
   /// Transforms a global coordinate vector to a global index vector.
-  Index<D>
-  globalCoordinates2GlobalIndices(const VectorType<CoordType, D> &v) const {
+  template <class V>
+  Index<D> globalCoordinates2GlobalIndices(const V &v) const {
     Index<D> tmp;
     for (unsigned i = 0; i < D; ++i)
       tmp[i] = globalCoordinate2GlobalIndex(v[i]);
