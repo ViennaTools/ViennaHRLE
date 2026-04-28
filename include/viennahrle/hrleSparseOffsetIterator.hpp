@@ -605,8 +605,7 @@ public:
   }
 #endif
 
-  template <class V>
-  SparseOffsetIterator(hrleDomain &passedDomain, const V &o,
+  SparseOffsetIterator(hrleDomain &passedDomain, const Index<D> &o,
                        bool reverse = false)
       : BaseIterator<hrleDomain>(passedDomain), offset(o) {
     if (reverse) {
@@ -616,8 +615,8 @@ public:
     }
   }
 
-  template <class V1, class V2>
-  SparseOffsetIterator(hrleDomain &passedDomain, const V1 &o, const V2 &v)
+  SparseOffsetIterator(hrleDomain &passedDomain, const Index<D> &o,
+                       const Index<D> &v)
       : BaseIterator<hrleDomain>(passedDomain), offset(o) {
     goToIndices(v);
   }
@@ -727,7 +726,7 @@ public:
     return true;
   }
 
-  template <class V> void goToIndices(const V &v) {
+  void goToIndices(const Index<D> &v) {
     goToIndices(0, v); // TODO
     int s = BaseIterator<hrleDomain>::getSegmentRun();
     // std::cout << "got_to_indices, sub: " << s << std::endl;
@@ -735,7 +734,7 @@ public:
       goToIndices(s, v);
   }
 
-  template <class V> void goToIndices(int subDomain, const V &v) {
+  void goToIndices(int subDomain, const Index<D> &v) {
     r_level = D;
     s_level = D;
     sub = subDomain;

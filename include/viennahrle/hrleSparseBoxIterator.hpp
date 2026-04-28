@@ -59,7 +59,7 @@ private:
     return coordinate;
   }
 
-  template <class V> static IndexType coordinateToIndex(V coordinate) {
+  static IndexType coordinateToIndex(Index<D> coordinate) {
     // shift to the middle
     for (unsigned i = 0; i < D; ++i)
       coordinate[i] += order;
@@ -74,17 +74,16 @@ private:
     return index;
   }
 
-  template <class V, std::size_t... Is>
+  template <std::size_t... Is>
   static std::array<OffsetIterator, numNeighbors>
-  makeNeighborIteratorsImpl(hrleDomain &passedDomain, const V &v,
+  makeNeighborIteratorsImpl(hrleDomain &passedDomain, const Index<D> &v,
                             std::index_sequence<Is...>) {
     return {OffsetIterator(
         passedDomain, indexToCoordinate(static_cast<IndexType>(Is)), v)...};
   }
 
-  template <class V>
   static std::array<OffsetIterator, numNeighbors>
-  makeNeighborIterators(hrleDomain &passedDomain, const V &v) {
+  makeNeighborIterators(hrleDomain &passedDomain, const Index<D> &v) {
     return makeNeighborIteratorsImpl(
         passedDomain, v,
         std::make_index_sequence<static_cast<std::size_t>(numNeighbors)>{});
@@ -196,7 +195,7 @@ public:
     return neighborIterators[index];
   }
 
-  template <class V> OffsetIterator &getNeighbor(V relativeCoordinate) {
+  OffsetIterator &getNeighbor(const Index<D> &relativeCoordinate) {
     return neighborIterators[coordinateToIndex(relativeCoordinate)];
   }
 
@@ -217,7 +216,7 @@ public:
   /// Sets the iterator to position v.
   /// Uses random access to move, so it is slower
   /// than goToIndicesSequential for repeated serial calls.
-  template <class V> void goToIndices(V &v) {
+  void goToIndices(const Index<D> &v) {
     const unsigned numNeighbors = neighborIterators.size();
     getCenter().goToIndices(v);
     for (int j = 0; j < numNeighbors; ++j) {
@@ -230,7 +229,7 @@ public:
   /// the iterator will be moved back to v.
   /// If v is lexicographically smaller than the current position
   /// then the iterator will be moved until it reaches v
-  template <class V> void goToIndicesSequential(const V &v) {
+  void goToIndicesSequential(const Index<D> &v) {
     if (v >= currentCoords) {
       while (v > currentCoords)
         next();

@@ -246,9 +246,8 @@ public:
     return definedValues.size();
   }
 
-  template <class V>
-  void insertNextUndefinedRunType(V start_point, const V &end_point,
-                                  SizeType rt) {
+  void insertNextUndefinedRunType(Index<D> start_point,
+                                  const Index<D> &end_point, SizeType rt) {
 
     if (start_point > end_point)
       return; // in this case, do not add the point
@@ -272,8 +271,7 @@ public:
     }
   }
 
-  template <class V>
-  void insertNextUndefinedRunType(const V &point, SizeType rt) {
+  void insertNextUndefinedRunType(const Index<D> &point, SizeType rt) {
 
     int level;
     for (level = 0; level < D; ++level) {
@@ -357,9 +355,8 @@ public:
     }
   }
 
-  template <class V>
-  void insertNextUndefinedPoint(const V &startPoint, const V &endPoint,
-                                ValueType value) {
+  void insertNextUndefinedPoint(const Index<D> &startPoint,
+                                const Index<D> &endPoint, ValueType value) {
     // if undefined value already exists, use its runtype,
     // if it does not use the next available undefined runtype
     auto it = std::find(undefinedValues.begin(), undefinedValues.end(), value);
@@ -378,8 +375,7 @@ public:
     insertNextUndefinedRunType(startPoint, endPoint, runType);
   }
 
-  template <class V>
-  void insertNextUndefinedPoint(const V &point, ValueType value) {
+  void insertNextUndefinedPoint(const Index<D> &point, ValueType value) {
     // if undefined value already exists, use its runtype,
     // if it does not, use the next available undefined runtype
     auto it = std::find(undefinedValues.begin(), undefinedValues.end(), value);
@@ -397,8 +393,7 @@ public:
 
   /// Inserts an undefined point into the HRLE structure.
   /// CAREFUL: If the same point is inserted twice, the structure might break!
-  template <class V>
-  void insertNextDefinedPoint(const V &point, ValueType value) {
+  void insertNextDefinedPoint(const Index<D> &point, ValueType value) {
 
     int level;
     for (level = 0; level < D; ++level) {

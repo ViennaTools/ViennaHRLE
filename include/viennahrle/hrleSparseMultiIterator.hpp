@@ -21,18 +21,16 @@ public:
   using DomainsType = std::vector<DomainType *>;
 
 private:
-  typedef std::conditional_t<std::is_const_v<hrleDomain>,
-                             const typename hrleDomain::ValueType,
-                             typename hrleDomain::ValueType>
-      ValueType;
-
+  using ValueType = std::conditional_t<std::is_const_v<hrleDomain>,
+                                       const typename hrleDomain::ValueType,
+                                       typename hrleDomain::ValueType>;
   static constexpr int D = hrleDomain::dimension;
 
   DomainsType domains;
   Index<D> currentIndices;
   std::vector<SparseIterator<hrleDomain>> iterators;
 
-  template <class V> void initializeIterators(const V &v) {
+  void initializeIterators(const Index<D> &v) {
     iterators.reserve(domains.size());
     for (unsigned i = 0; i < domains.size(); ++i) {
       iterators.emplace_back(*domains[i], v);
@@ -196,7 +194,7 @@ public:
   /// Sets the iterator to position v.
   /// Uses random access to move, so it is be slower
   /// than goToIndicesSequential for repeated serial calls.
-  template <class V> void goToIndices(V &v) {
+  void goToIndices(const Index<D> &v) {
     for (auto &it : iterators) {
       it.goToIndices(v);
     }
@@ -208,7 +206,7 @@ public:
   /// the iterator will be moved back to v.
   /// If v is lexicographically smaller than the current position
   /// then the iterator will be moved until it reaches v
-  template <class V> void goToIndicesSequential(const V &v) {
+  void goToIndicesSequential(const Index<D> &v) {
     if (v >= currentIndices) {
       while (v > currentIndices) {
         next();

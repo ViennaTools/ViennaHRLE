@@ -45,17 +45,16 @@ private:
     return relativeIndex;
   }
 
-  template <class V, std::size_t... Is>
+  template <std::size_t... Is>
   static std::array<OffsetIterator, numNeighbors>
-  makeNeighborIteratorsImpl(hrleDomain &passedDomain, const V &v,
+  makeNeighborIteratorsImpl(hrleDomain &passedDomain, const Index<D> &v,
                             std::index_sequence<Is...>) {
     return {OffsetIterator(passedDomain,
                            makeRelativeIndex(static_cast<int>(Is)), v)...};
   }
 
-  template <class V>
   static std::array<OffsetIterator, numNeighbors>
-  makeNeighborIterators(hrleDomain &passedDomain, const V &v) {
+  makeNeighborIterators(hrleDomain &passedDomain, const Index<D> &v) {
     return makeNeighborIteratorsImpl(passedDomain, v,
                                      std::make_index_sequence<numNeighbors>{});
   }
@@ -158,8 +157,7 @@ public:
         const_cast<const SparseStarIterator *>(this)->getNeighbor(index));
   }
 
-  template <class V>
-  const OffsetIterator &getNeighbor(V const &relativeIndex) const {
+  const OffsetIterator &getNeighbor(Index<D> const &relativeIndex) const {
     // check first if it is a valid index
     unsigned char directions = 0;
     unsigned neighborIndex;
@@ -178,7 +176,7 @@ public:
     return neighborIterators[neighborIndex];
   }
 
-  template <class V> OffsetIterator &getNeighbor(V const &relativeIndex) {
+  OffsetIterator &getNeighbor(Index<D> const &relativeIndex) {
     return const_cast<OffsetIterator &>(
         const_cast<const SparseStarIterator *>(this)->getNeighbor(
             relativeIndex));
@@ -199,7 +197,7 @@ public:
   /// Sets the iterator to position v.
   /// Uses random access to move, so it is slower
   /// than goToIndicesSequential for repeated serial calls.
-  template <class V> void goToIndices(V &v) {
+  void goToIndices(const Index<D> &v) {
     centerIterator.goToIndices(v);
     for (auto &it : neighborIterators)
       it.goToIndices(v);
@@ -210,7 +208,7 @@ public:
   /// the iterator will be moved back to v.
   /// If v is lexicographically smaller than the current position
   /// then the iterator will be moved until it reaches v
-  template <class V> void goToIndicesSequential(const V &v) {
+  void goToIndicesSequential(const Index<D> &v) {
     if (v >= currentCoords) {
       while (v > currentCoords)
         next();

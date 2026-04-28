@@ -70,8 +70,7 @@ public:
     runsIterator.goToIndicesSequential(currentIndices);
   }
 
-  template <class V>
-  DenseIterator(hrleDomain &passedDomain, V &v)
+  DenseIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), runsIterator(passedDomain, v) {
     auto &grid = domain.getGrid();
     for (unsigned i = 0; i < D; ++i) {
@@ -134,11 +133,11 @@ public:
     if (Compare(currentIndices, minIndex) < 0) {
       return false;
     }
-    ++(*this);
+    --(*this);
     return true;
   }
 
-  template <class V> void goToIndices(V &v) {
+  void goToIndices(const Index<D> &v) {
     currentIndices = v;
     runsIterator.goToIndices(v);
   }

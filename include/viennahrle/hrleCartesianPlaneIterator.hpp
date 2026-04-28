@@ -73,7 +73,7 @@ template <class hrleDomain, int order = 1> class CartesianPlaneIterator {
     return coordinate;
   }
 
-  template <class V> static IndexType coordinateToIndex(V coordinate) {
+  static IndexType coordinateToIndex(Index<D> coordinate) {
     // TODO: consider empty indices
     // shift to the middle
     for (unsigned i = 0; i < D; ++i)
@@ -93,7 +93,7 @@ template <class hrleDomain, int order = 1> class CartesianPlaneIterator {
   // Create a Box iterator
   // Create a planeCords array that contains the indices of the cartesian planes
   // Only increment the iterators with indices in the planeCoords array
-  template <class V> void initializeNeighbors(const V &v) {
+  void initializeNeighbors(const Index<D> &v) {
     neighborIterators.reserve(numNeighbors);
     planeCoords.reserve(numPlaneCoords);
     for (unsigned i = 0; i < numNeighbors; ++i) {
@@ -220,8 +220,8 @@ public:
     return *(neighborIterators[planeCoords[index]]);
   }
 
-  template <class V>
-  SparseOffsetIterator<hrleDomain> &getNeighbor(V relativeCoordinate) {
+  SparseOffsetIterator<hrleDomain> &
+  getNeighbor(Index<D> const &relativeCoordinate) {
     return *(neighborIterators[coordinateToIndex(relativeCoordinate)]);
   }
 
@@ -240,7 +240,7 @@ public:
   /// Sets the iterator to position v.
   /// Uses random access to move, so it is slower
   /// than goToIndicesSequential for repeated serial calls.
-  template <class V> void goToIndices(V &v) {
+  void goToIndices(const Index<D> &v) {
     const unsigned numPlaneNeighbours = planeCoords.size();
     getCenter().goToIndices(v);
     for (int j = 0; j < numPlaneNeighbours; ++j) {
@@ -253,7 +253,7 @@ public:
   /// the iterator will be moved back to v.
   /// If v is lexicographically smaller than the current position
   /// then the iterator will be moved until it reaches v
-  template <class V> void goToIndicesSequential(const V &v) {
+  void goToIndicesSequential(const Index<D> &v) {
     if (v >= currentCoords) {
       while (v > currentCoords) {
         next();

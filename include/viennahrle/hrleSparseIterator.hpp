@@ -220,8 +220,7 @@ public:
     }
   }
 
-  template <class V>
-  SparseIterator(hrleDomain &lx, const V &v)
+  SparseIterator(hrleDomain &lx, const Index<D> &v)
       : BaseIterator<hrleDomain>(lx), currentSegment(nullptr) {
     updateSegmentCache(); // Initialize cache
     goToIndices(v);
@@ -342,7 +341,7 @@ public:
   /// the iterator will be moved back to v.
   /// If v is lexicographically smaller than the current position
   /// then the iterator will be moved until it reaches v
-  template <class V> void goToIndicesSequential(const V &v) {
+  void goToIndicesSequential(const Index<D> &v) {
     if (v >= absCoords) {
       while (v > endAbsCoords) {
         ++(*this);
@@ -354,7 +353,7 @@ public:
     }
   }
 
-  template <class V> void goToIndices(const V &v) {
+  void goToIndices(const Index<D> &v) {
     goToIndices(0, v); // TODO
     const int newSub = this->getSegmentRun();
     if (newSub != 0) {
@@ -364,7 +363,7 @@ public:
     }
   }
 
-  template <class V> void goToIndices(int subDomain, const V &v) {
+  void goToIndices(int subDomain, const Index<D> &v) {
     r_level = D;
     s_level = D;
     if (sub != subDomain) {

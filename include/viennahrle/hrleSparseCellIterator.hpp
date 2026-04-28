@@ -29,17 +29,16 @@ private:
   Index<D> currentCoords;
   std::array<OffsetIterator, numCorners> cornerIterators;
 
-  template <class V, std::size_t... Is>
+  template <std::size_t... Is>
   static std::array<OffsetIterator, numCorners>
-  makeCornerIteratorsImpl(hrleDomain &passedDomain, const V &v,
+  makeCornerIteratorsImpl(hrleDomain &passedDomain, const Index<D> &v,
                           std::index_sequence<Is...>) {
     return {OffsetIterator(passedDomain,
                            BitMaskToIndex<D>(static_cast<unsigned>(Is)), v)...};
   }
 
-  template <class V>
   static std::array<OffsetIterator, numCorners>
-  makeCornerIterators(hrleDomain &passedDomain, const V &v) {
+  makeCornerIterators(hrleDomain &passedDomain, const Index<D> &v) {
     return makeCornerIteratorsImpl(
         passedDomain, v,
         std::make_index_sequence<static_cast<std::size_t>(numCorners)>{});
@@ -156,7 +155,7 @@ public:
     return cornerIterators[index];
   }
 
-  template <class V> OffsetIterator &getCorner(V vector) {
+  OffsetIterator &getCorner(const Index<D> &vector) {
     unsigned index = 0;
     for (unsigned i = 0; i < D; ++i) {
       if (vector[i])

@@ -230,7 +230,7 @@ public:
   }
 
   /// return whether the point given by vec is within the simulation domain
-  template <class V> bool isInDomain(const V &vec) const noexcept {
+  bool isInDomain(const Index<D> &vec) const noexcept {
     for (int i = 0; i < D; ++i) {
       if ((vec[i] < getMinIndex(i)) || (vec[i] >= getMaxIndex(i)))
         return false;
@@ -267,7 +267,7 @@ public:
   const Index<D> &getMaxBounds() const noexcept { return maxBounds; }
 
   /// returns whether the point v is at infinity in any dimension
-  template <class V> bool isAtInfinity(const V &v) const noexcept {
+  bool isAtInfinity(const Index<D> &v) const noexcept {
     for (int i = 0; i < D; i++) {
       if (std::abs(v[i]) == INF_EXTENSION)
         return true;
@@ -349,7 +349,7 @@ public:
 
   /// This function transforms a global index vector to the corresponding
   /// local index vector.
-  template <class V> Index<D> globalIndices2LocalIndices(const V &v) const {
+  Index<D> globalIndices2LocalIndices(const Index<D> &v) const {
     Index<D> tmp;
     for (int i = 0; i < D; i++)
       tmp[i] = globalIndex2LocalIndex(i, v[i]);
@@ -393,8 +393,8 @@ public:
   }
 
   /// Transforms a global index vector to a global coordinate vector.
-  template <class V>
-  VectorType<CoordType, D> globalIndices2GlobalCoordinates(const V &v) const {
+  VectorType<CoordType, D>
+  globalIndices2GlobalCoordinates(const Index<D> &v) const {
     VectorType<CoordType, D> tmp;
     for (unsigned i = 0; i < D; ++i)
       tmp[i] = globalIndex2GlobalCoordinate(i, v[i]);
@@ -407,8 +407,8 @@ public:
   }
 
   /// Transforms a global coordinate vector to a global index vector.
-  template <class V>
-  Index<D> globalCoordinates2GlobalIndices(const V &v) const {
+  Index<D>
+  globalCoordinates2GlobalIndices(const VectorType<CoordType, D> &v) const {
     Index<D> tmp;
     for (unsigned i = 0; i < D; ++i)
       tmp[i] = globalCoordinate2GlobalIndex(v[i]);
@@ -553,7 +553,7 @@ public:
 
   /// This function increases the index vector v by unity in lexicographical
   /// order.
-  template <class V> V incrementIndices(V v) const noexcept {
+  Index<D> incrementIndices(Index<D> v) const noexcept {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       if (v[dim] < getMaxGridPoint(dim))
@@ -566,7 +566,7 @@ public:
 
   /// This function decreases the index vector v by unity in lexicographical
   /// order.
-  template <class V> V decrementIndices(V v) const noexcept {
+  Index<D> decrementIndices(Index<D> v) const noexcept {
     int dim = 0;
     for (; dim < D - 1; ++dim) {
       if (v[dim] > getMinGridPoint(dim))
@@ -578,7 +578,7 @@ public:
   }
 
   /// Determine whether index is on border of simulation domain.
-  template <class V> bool isBorderPoint(V v) const noexcept {
+  bool isBorderPoint(const Index<D> &v) const noexcept {
     for (unsigned i = 0; i < D; ++i) {
       if (v[i] <= minIndex[i] || v[i] >= maxIndex[i])
         return true;
@@ -588,7 +588,7 @@ public:
 
   /// Determine whether point is outside the domain in direction other than
   /// the direction of the infinite boundary.
-  template <class V> bool isOutsideOfDomain(V v) const noexcept {
+  bool isOutsideOfDomain(const Index<D> &v) const noexcept {
     for (unsigned i = 0; i < D; ++i) {
       if (boundaryConditions[i] == BoundaryType::INFINITE_BOUNDARY)
         continue;
