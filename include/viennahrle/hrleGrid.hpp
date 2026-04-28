@@ -286,8 +286,9 @@ public:
     if (cycles == 0)
       return relative_coord - offset;
 
+    assert((maxIndex[dim] - minIndex[dim]) == indexExtension[dim]);
     if (isBoundaryPeriodic(dim))
-      return relative_coord - offset + cycles * (maxIndex[dim] - minIndex[dim]);
+      return cycles * indexExtension[dim] + relative_coord - offset;
 
     if ((cycles & 1) == 0) // if cycles is even
       return cycles * indexExtension[dim] + relative_coord - offset;

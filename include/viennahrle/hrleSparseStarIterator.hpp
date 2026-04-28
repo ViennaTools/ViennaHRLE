@@ -96,8 +96,10 @@ public:
       case 1:
         end_coords = neighborIterators[i].getEndIndices();
         increment.fill(false);
+        [[fallthrough]];
       case 0:
         increment[i] = true;
+        break;
       default:
         break;
       }
@@ -123,8 +125,10 @@ public:
       case -1:
         start_coords = neighborIterators[i].getStartIndices();
         decrement.fill(false);
+        [[fallthrough]];
       case 0:
         decrement[i] = true;
+        break;
       default:
         break;
       }
@@ -160,7 +164,8 @@ public:
   const OffsetIterator &getNeighbor(Index<D> const &relativeIndex) const {
     // check first if it is a valid index
     unsigned char directions = 0;
-    unsigned neighborIndex;
+    unsigned neighborIndex =
+        std::numeric_limits<unsigned>::max(); // invalid index
     for (unsigned i = 0; i < D; ++i) {
       assert(abs(relativeIndex[i]) <= order);
       if (relativeIndex[i] != 0) {
@@ -172,6 +177,7 @@ public:
       }
     }
     assert(directions == 1);
+    assert(neighborIndex < numNeighbors);
 
     return neighborIterators[neighborIndex];
   }
