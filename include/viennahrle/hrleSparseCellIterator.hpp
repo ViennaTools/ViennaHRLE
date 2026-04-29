@@ -90,55 +90,59 @@ public:
   }
 
   void next() {
+    static_assert(numCorners <= 8);
+
     do {
-      std::array<bool, numCorners> increment;
-      increment.fill(false);
-      increment[0] = true;
+      std::uint_fast8_t incrementMask = 1u; // corner 0
 
       auto end_coords = cornerIterators[0].getEndIndices();
-      for (int i = 1; i < numCorners; i++) {
-        switch (Compare(end_coords, cornerIterators[i].getEndIndices())) {
-        case 1:
-          end_coords = cornerIterators[i].getEndIndices();
-          increment.fill(false);
-        case 0:
-          increment[i] = true;
-        default:
-          break;
+
+      for (int i = 1; i < numCorners; ++i) {
+        const auto &cornerEnd = cornerIterators[i].getEndIndices();
+        const int cmp = Compare(end_coords, cornerEnd);
+
+        if (cmp > 0) {
+          end_coords = cornerEnd;
+          incrementMask = static_cast<std::uint_fast8_t>(1u << i);
+        } else if (cmp == 0) {
+          incrementMask |= static_cast<std::uint_fast8_t>(1u << i);
         }
       }
 
-      for (int i = 0; i < numCorners; ++i)
-        if (increment[i])
+      for (int i = 0; i < numCorners; ++i) {
+        if (incrementMask & (1u << i))
           cornerIterators[i].next();
+      }
 
       currentCoords = domain.getGrid().incrementIndices(end_coords);
     } while (!isDefined() && !isFinished());
   }
 
   void previous() {
+    static_assert(numCorners <= 8);
+
     do {
-      std::array<bool, numCorners> decrement;
-      decrement.fill(false);
-      decrement[0] = true;
+      std::uint_fast8_t decrementMask = 1u; // corner 0
 
       auto start_coords = cornerIterators[0].getStartIndices();
-      for (int i = 1; i < numCorners; i++) {
-        switch (Compare(start_coords, cornerIterators[i].getStartIndices())) {
-        case -1:
-          start_coords = cornerIterators[i].getStartIndices();
-          decrement.fill(false);
-        case 0:
-          decrement[i] = true;
-        default:
-          break;
+
+      for (int i = 1; i < numCorners; ++i) {
+        const auto &cornerStart = cornerIterators[i].getStartIndices();
+        const int cmp = Compare(start_coords, cornerStart);
+
+        if (cmp < 0) {
+          start_coords = cornerStart;
+          decrementMask = static_cast<std::uint_fast8_t>(1u << i);
+        } else if (cmp == 0) {
+          decrementMask |= static_cast<std::uint_fast8_t>(1u << i);
         }
       }
 
       for (int i = 0; i < numCorners; ++i) {
-        if (decrement[i])
+        if (decrementMask & (1u << i))
           cornerIterators[i].previous();
       }
+
       currentCoords = domain.getGrid().decrementIndices(start_coords);
     } while (!isDefined() && !isFinished());
   }
