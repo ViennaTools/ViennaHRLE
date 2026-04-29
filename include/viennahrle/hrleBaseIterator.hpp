@@ -21,7 +21,7 @@ protected:
                                        typename hrleDomain::ValueType>;
 
   // Most frequently accessed members first (hot data)
-  hrleDomain &domain; // 8 bytes (reference)
+  hrleDomain const &domain; // 8 bytes (reference)
 
   // Frequently accessed small integers - group together for cache efficiency
   int r_level; // 4 bytes - very frequently accessed

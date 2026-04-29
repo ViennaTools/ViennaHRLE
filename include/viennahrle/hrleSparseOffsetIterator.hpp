@@ -154,13 +154,13 @@ protected:
     // assert(s_level>=1);
     // assert(s_level==r_level+1);
 
-    if (endRunAbsCoords[r_level] - startRunAbsCoords[r_level] >
-        end_run_rel_coords[r_level] - start_run_rel_coords[r_level]) {
-      // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
-      // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
-      // ||
-      // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
-    }
+    // if (endRunAbsCoords[r_level] - startRunAbsCoords[r_level] >
+    //     end_run_rel_coords[r_level] - start_run_rel_coords[r_level]) {
+    // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
+    // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
+    // ||
+    // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
+    // }
 
     // assert(domain.getGrid().globalIndex2LocalIndex(r_level,startRunAbsCoords[r_level],
     // offset[r_level])>=start_run_rel_coords[r_level]);
@@ -434,13 +434,13 @@ protected:
       // assert(startRunAbsCoords[r_level]<=endRunAbsCoords[r_level]);
       // assert(domain.getGrid().getMaxGridPoint(r_level)>=endRunAbsCoords[r_level]);
 
-      if (endRunAbsCoords[r_level] - startRunAbsCoords[r_level] >
-          end_run_rel_coords[r_level] - start_run_rel_coords[r_level]) {
-        // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
-        // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
-        // ||
-        // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
-      }
+      // if (endRunAbsCoords[r_level] - startRunAbsCoords[r_level] >
+      //     end_run_rel_coords[r_level] - start_run_rel_coords[r_level]) {
+      // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
+      // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
+      // ||
+      // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
+      // }
 
       // assert(domain.getGrid().globalIndex2LocalIndex(r_level,startRunAbsCoords[r_level],
       // offset[r_level])>=start_run_rel_coords[r_level]);
