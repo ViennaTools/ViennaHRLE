@@ -95,7 +95,7 @@ protected:
     // assert(domain.getGrid().getMaxGridPoint(r_level)>=end_run_rel_coords[r_level]);
 
     // calculate run_absCoords
-    if (this->isBoundaryPeriodic(r_level)) {
+    if (domain.getGrid().isBoundaryPeriodic(r_level)) {
 
       const IndexType &rel_s = start_run_rel_coords[r_level];
       const IndexType &rel_e = end_run_rel_coords[r_level];
@@ -156,7 +156,7 @@ protected:
 
     // if (endRunAbsCoords[r_level] - startRunAbsCoords[r_level] >
     //     end_run_rel_coords[r_level] - start_run_rel_coords[r_level]) {
-    // assert(!(this->isBoundaryPeriodic(r_level)));
+    // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
     // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
     // ||
     // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
@@ -249,7 +249,7 @@ protected:
         ++absCoords[s_level];
         ++endAbsCoords[s_level];
 
-        if (this->isBoundaryPeriodic(r_level)) {
+        if (domain.getGrid().isBoundaryPeriodic(r_level)) {
           // assert(rel_coords[s_level]!=domain.getGrid().getMaxGridPoint(s_level));
           ++rel_coords[s_level];
           ++startIndicesPos[s_level];
@@ -297,7 +297,7 @@ protected:
         --absCoords[s_level];
         --endAbsCoords[s_level];
 
-        if (this->isBoundaryPeriodic(r_level)) {
+        if (domain.getGrid().isBoundaryPeriodic(r_level)) {
           // assert(rel_coords[s_level]!=domain.getGrid().getMinGridPoint(s_level));
           --rel_coords[s_level];
           --startIndicesPos[s_level];
@@ -436,7 +436,7 @@ protected:
 
       // if (endRunAbsCoords[r_level] - startRunAbsCoords[r_level] >
       //     end_run_rel_coords[r_level] - start_run_rel_coords[r_level]) {
-      // assert(!(this->isBoundaryPeriodic(r_level)));
+      // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
       // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
       // ||
       // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
@@ -567,7 +567,7 @@ protected:
 
       if (endRunAbsCoords[r_level] - startRunAbsCoords[r_level] >
           end_run_rel_coords[r_level] - start_run_rel_coords[r_level]) {
-        // assert(!(this->isBoundaryPeriodic(r_level)));
+        // assert(!(domain.getGrid().isBoundaryPeriodic(r_level)));
         // assert(end_run_rel_coords[r_level]==domain.getGrid().getMaxGridPoint(r_level)
         // ||
         // start_run_rel_coords[r_level]==domain.getGrid().getMinGridPoint(r_level));
