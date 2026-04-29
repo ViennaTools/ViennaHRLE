@@ -40,6 +40,22 @@ protected:
   // Position vectors - larger, less frequently accessed
   VectorType<SizeType, D + 1> startIndicesPos; // (D+1) * sizeof(SizeType) bytes
   VectorType<SizeType, D> runTypePos;          // D * sizeof(SizeType) bytes
+  const uint8_t
+      boundaryPeriodicFlags; // 1 byte - bitfield for boundary periodicity
+
+  static uint8_t makeBoundaryPeriodicFlags(const hrleDomain &domain) {
+    uint8_t flags = 0;
+    for (int i = 0; i < D; ++i) {
+      if (domain.getGrid().isBoundaryPeriodic(i)) {
+        flags |= (1 << i);
+      }
+    }
+    return flags;
+  }
+
+  bool isBoundaryPeriodic(int dim) const {
+    return (boundaryPeriodicFlags & (1 << dim)) != 0;
+  }
 
   inline void go_up_BA() {
     ++r_level;
@@ -79,7 +95,8 @@ public:
   explicit BaseIterator(hrleDomain &passedDomain)
       : domain(passedDomain), r_level(D), s_level(D), sub(0),
         absCoords(domain.getGrid().getMinGridPoint()),
-        endAbsCoords(domain.getGrid().getMaxGridPoint()) {
+        endAbsCoords(domain.getGrid().getMaxGridPoint()),
+        boundaryPeriodicFlags(makeBoundaryPeriodicFlags(domain)) {
     startIndicesPos[D] = 0;
   }
 
