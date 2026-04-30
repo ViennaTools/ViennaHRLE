@@ -27,7 +27,7 @@ private:
   static constexpr int D = hrleDomain::dimension;
   static constexpr int numNeighbors = 2 * order * D;
 
-  hrleDomain &domain;
+  hrleDomain const &domain;
   Index<D> currentCoords;
   SparseIterator<hrleDomain> centerIterator;
   std::array<OffsetIterator, numNeighbors> neighborIterators;
@@ -64,11 +64,17 @@ public:
       : domain(passedDomain), currentCoords(domain.getGrid().getMinGridPoint()),
         centerIterator(passedDomain),
         neighborIterators(makeNeighborIterators(
-            passedDomain, passedDomain.getGrid().getMinIndex())) {}
+            passedDomain, passedDomain.getGrid().getMinIndex())) {
+    static_assert(numNeighbors + 1 <= 64,
+                  "SparseStarIterator assumes at most 64 iterators");
+  }
 
   SparseStarIterator(hrleDomain &passedDomain, const Index<D> &v)
       : domain(passedDomain), currentCoords(v), centerIterator(passedDomain, v),
-        neighborIterators(makeNeighborIterators(passedDomain, v)) {}
+        neighborIterators(makeNeighborIterators(passedDomain, v)) {
+    static_assert(numNeighbors + 1 <= 64,
+                  "SparseStarIterator assumes at most 64 iterators");
+  }
 
   // delete post in/decrement, since they should not be used, due to the
   // size of the structure
@@ -86,60 +92,60 @@ public:
   }
 
   void next() {
-    std::array<bool, numNeighbors + 1> increment;
-    increment.fill(false);
-    increment[numNeighbors] = true;
-
     Index<D> end_coords = centerIterator.getEndIndices();
-    for (int i = 0; i < numNeighbors; i++) {
-      switch (Compare(end_coords, neighborIterators[i].getEndIndices())) {
-      case 1:
-        end_coords = neighborIterators[i].getEndIndices();
-        increment.fill(false);
-        [[fallthrough]];
-      case 0:
-        increment[i] = true;
-        break;
-      default:
-        break;
+
+    // bit numNeighbors represents the center iterator
+    std::uint64_t incrementMask = std::uint64_t{1} << numNeighbors;
+
+    for (int i = 0; i < numNeighbors; ++i) {
+      const auto &neighborEnd = neighborIterators[i].getEndIndices();
+      const int cmp = Compare(end_coords, neighborEnd);
+
+      if (cmp > 0) {
+        end_coords = neighborEnd;
+        incrementMask = std::uint64_t{1} << i;
+      } else if (cmp == 0) {
+        incrementMask |= std::uint64_t{1} << i;
       }
     }
 
-    if (increment[numNeighbors])
+    if (incrementMask & (std::uint64_t{1} << numNeighbors))
       centerIterator.next();
+
     for (int i = 0; i < numNeighbors; ++i) {
-      if (increment[i])
+      if (incrementMask & (std::uint64_t{1} << i))
         neighborIterators[i].next();
     }
+
     currentCoords = domain.getGrid().incrementIndices(end_coords);
   }
 
   void previous() {
-    std::array<bool, numNeighbors + 1> decrement;
-    decrement.fill(false);
-    decrement[numNeighbors] = true;
-
     Index<D> start_coords = centerIterator.getStartIndices();
-    for (int i = 0; i < numNeighbors; i++) {
-      switch (Compare(start_coords, neighborIterators[i].getStartIndices())) {
-      case -1:
-        start_coords = neighborIterators[i].getStartIndices();
-        decrement.fill(false);
-        [[fallthrough]];
-      case 0:
-        decrement[i] = true;
-        break;
-      default:
-        break;
+
+    // bit numNeighbors represents the center iterator
+    std::uint64_t decrementMask = std::uint64_t{1} << numNeighbors;
+
+    for (int i = 0; i < numNeighbors; ++i) {
+      const auto &neighborStart = neighborIterators[i].getStartIndices();
+      const int cmp = Compare(start_coords, neighborStart);
+
+      if (cmp < 0) {
+        start_coords = neighborStart;
+        decrementMask = std::uint64_t{1} << i;
+      } else if (cmp == 0) {
+        decrementMask |= std::uint64_t{1} << i;
       }
     }
 
-    if (decrement[numNeighbors])
+    if (decrementMask & (std::uint64_t{1} << numNeighbors))
       centerIterator.previous();
+
     for (int i = 0; i < numNeighbors; ++i) {
-      if (decrement[i])
+      if (decrementMask & (std::uint64_t{1} << i))
         neighborIterators[i].previous();
     }
+
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 

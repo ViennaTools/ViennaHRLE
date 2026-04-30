@@ -2,6 +2,7 @@
 #define HRLE_SQUARE_ITERATOR_HPP
 
 #include <array>
+#include <bitset>
 #include <utility>
 
 #include "hrleSparseOffsetIterator.hpp"
@@ -117,61 +118,62 @@ public:
   }
 
   void next() {
-    std::array<bool, numNeighbors + 1> increment;
-    increment.fill(false);
-    increment[numNeighbors] = true;
+    std::bitset<numNeighbors> increment;
+    increment.set(centerIndex);
 
     Index<D> end_coords = neighborIterators[centerIndex].getEndIndices();
-    for (int i = 0; i < numNeighbors; i++) {
+
+    for (int i = 0; i < numNeighbors; ++i) {
       if (i == centerIndex)
         continue;
 
-      switch (Compare(end_coords, neighborIterators[i].getEndIndices())) {
-      case 1:
-        end_coords = neighborIterators[i].getEndIndices();
-        increment.fill(false);
-      case 0:
-        increment[i] = true;
-      default:
-        break;
+      const auto &neighborEnd = neighborIterators[i].getEndIndices();
+      const int cmp = Compare(end_coords, neighborEnd);
+
+      if (cmp > 0) {
+        end_coords = neighborEnd;
+        increment.reset();
+        increment.set(i);
+      } else if (cmp == 0) {
+        increment.set(i);
       }
     }
 
-    if (increment[numNeighbors])
-      neighborIterators[centerIndex].next();
-    for (int i = 0; i < numNeighbors; i++) {
-      if (increment[i])
+    for (int i = 0; i < numNeighbors; ++i) {
+      if (increment.test(i))
         neighborIterators[i].next();
     }
+
     currentCoords = domain.getGrid().incrementIndices(end_coords);
   }
 
   void previous() {
-    std::array<bool, numNeighbors + 1> decrement;
-    decrement.fill(false);
-    decrement[numNeighbors] = true;
+    std::bitset<numNeighbors> decrement;
+    decrement.set(centerIndex);
 
     Index<D> start_coords = neighborIterators[centerIndex].getStartIndices();
-    for (int i = 0; i < numNeighbors; i++) {
+
+    for (int i = 0; i < numNeighbors; ++i) {
       if (i == centerIndex)
         continue;
-      switch (Compare(start_coords, neighborIterators[i].getStartIndices())) {
-      case -1:
-        start_coords = neighborIterators[i].getStartIndices();
-        decrement.fill(false);
-      case 0:
-        decrement[i] = true;
-      default:
-        break;
+
+      const auto &neighborStart = neighborIterators[i].getStartIndices();
+      const int cmp = Compare(start_coords, neighborStart);
+
+      if (cmp < 0) {
+        start_coords = neighborStart;
+        decrement.reset();
+        decrement.set(i);
+      } else if (cmp == 0) {
+        decrement.set(i);
       }
     }
 
-    if (decrement[numNeighbors])
-      neighborIterators[centerIndex].previous();
-    for (int i = 0; i < numNeighbors; i++) {
-      if (decrement[i])
+    for (int i = 0; i < numNeighbors; ++i) {
+      if (decrement.test(i))
         neighborIterators[i].previous();
     }
+
     currentCoords = domain.getGrid().decrementIndices(start_coords);
   }
 
@@ -196,6 +198,10 @@ public:
   }
 
   OffsetIterator &getNeighbor(const Index<D> &relativeCoordinate) {
+    return neighborIterators[coordinateToIndex(relativeCoordinate)];
+  }
+
+  OffsetIterator const &getNeighbor(const Index<D> &relativeCoordinate) const {
     return neighborIterators[coordinateToIndex(relativeCoordinate)];
   }
 
