@@ -201,6 +201,10 @@ public:
     return neighborIterators[coordinateToIndex(relativeCoordinate)];
   }
 
+  OffsetIterator const &getNeighbor(const Index<D> &relativeCoordinate) const {
+    return neighborIterators[coordinateToIndex(relativeCoordinate)];
+  }
+
   OffsetIterator &getCenter() { return neighborIterators[centerIndex]; }
 
   const OffsetIterator &getCenter() const {
